@@ -1,0 +1,15 @@
+﻿namespace MisterAutoAndTurbo.Web.Models
+{
+    public class Customer
+    {
+        public string Id { get; set; }
+        public string UserAccountId { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public string Phone { get; set; }
+        public string Email { get; set; }
+        public string Address { get; set; }
+        public string? WorkAddress { get; set; }
+        public string? WorkPhone { get; set; }
+    }
+}

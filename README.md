@@ -1,4 +1,4 @@
-Mister Auto & Turbo — VSMS
+Mister Auto & Turbo VSMS
 
 Web Vortex WIL Project
 
@@ -31,7 +31,7 @@ ASP.NET Core / C#
 Supabase / PostgreSQL
 Git & GitHub
 
-Team — Web Vortex
+Team Web Vortex
 
 * Le Letsie
 * RG Madi

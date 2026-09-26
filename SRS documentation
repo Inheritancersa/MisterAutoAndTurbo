@@ -1,0 +1,898 @@
+ 
+
+ 
+Project Introduction 
+ 
+In research , we recognized that there was a need for websites that had all the necessary information for car services. Even much larger companies did not have a system that allowed you to track the progress of your car until collection and it generally made it difficult for people to be informed and understand costs where some felt like services were overpriced and there was a lack of communication. This made people feel anxious and often unsure if they were truly getting what they were paying for and for people that looked for car services, they could not compare properly, as so many did not have social media presence or web based information especially for those without insurance because they cannot afford it. Our aim was to start a trend that would support local businesses in a more digital manner and create an environment of transparency between the business and client. 
+ 
+ Phase 1 -PLANNING, REQUIREMENT ANALYSIS AND FEASIBILITY
+
+3. Problem Statement 
+Current situation: Mister Auto & Turbo currently manages customer intake, job cards, quotations and repair tracking using largely manual, paper-based methods, and has no online presence beyond wordof-mouth referrals. 
+Problem: Customers have no way to check a vehicle's repair progress without phoning the workshop directly, there is no fixed or published pricing for common services, and there is no clear breakdown of cost differences when a customer supplies their own part instead of the business sourcing it. This leads to repeated interruptions, pricing disputes and difficulty attracting new customers without an online presence. 
+Affected users: Customers experience poor visibility into repair progress and pricing uncertainty; reception and mechanics are repeatedly interrupted by status-check calls and price negotiations; the manager/owner lacks a way to reach new customers online and lacks centralised business records. 
+Consequences: Frequent phone interruptions during active repair work, recurring disputes over pricing and discounts, missed opportunities to attract new customers, and no centralised repair history for returning customers. 
+Need for improvement: A digital system is needed to give customers visibility into repair status without phoning in, present clear itemised pricing (including customer-supplied part discounts), and centralise vehicle and customer records. 
+ 
+ 
+4. Project Process Aim and Objectives 
+Aim: To design and develop an integrated Vehicle Service Management System that digitises the vehicle servicing lifecycle for Mister Auto & Turbo, improving record-keeping, communication and operational visibility. 
+Objectives: 
+•Replace paper-based job cards with a digital job card and status-tracking system. 
+•Provide customers with visibility of their vehicle's status via a mobile application. 
+•Provide reception, mechanics and management with role-appropriate dashboards for their tasks. 
+•Centralise customer, vehicle, quotation and payment records in a shared backend. 
+•Deliver a working prototype that has been validated against the stakeholder's actual process by the end of Phase  
+5. Project Scope 
+STAKEHOLDER COOPERATION & INFORMATION USE AGREEMENT
+Academic Student Project - Central University of Technology, Free State
+This Agreement is entered into between the parties named below for the purpose of an academic student project conducted as part of the module ITC327W (Work-Integrated Learning), Diploma in Information Technology, Central University of Technology.
+1. The Parties
+Stakeholder / Business Representative
+Name:
+Motlokoa Tsoetsi
+Business name:
+Mister Auto and Turbo
+Position:
+Managing Director
+Contact details (phone number):
+073 002 4579
+Email address:
+csolotsi.motloton@yahoo.com
+Student Group Representative initials and student numbers
+224099468 LE LETSIE
+215135458 LE LIPALI
+219002738 LTBG PULE
+223013773 NM NETSHITUKA
+222066543 RG MADI
+
+2. Purpose of the Project
+The student group is developing, as part of their academic assessment, a proposed Vehicle Service Management System intended to support the Stakeholder's day-to-day vehicle servicing operations (customer intake, job cards, quotations, repair tracking, payments, and vehicle collection). The purpose of this Agreement is to confirm what information the Stakeholder voluntarily participates and to set out, in writing, what information will be collected, how it will be used, and what the student group will provide in return.
+
+3. What the Students Will Collect
+With the Stakeholder's cooperation, the student group may collect the following, strictly for the purposes of this academic project:
+• A description of the Stakeholder's current business process and workflow.
+• Information about the roles of staff involved in that process (e.g. reception, mechanics, management).
+• The Stakeholder's requirements and preferences for a proposed digital system.
+• Feedback on draft requirements, mock-ups, or prototypes.
+• General, non-identifying examples of the type of data the business handles (e.g. what fields a job card typically contains), rather than actual customer records where avoidable.
+
+4. What the Students Will NOT Do
+• The students will not request or record sensitive personal information about the Stakeholder's customers or staff beyond what is reasonably necessary to understand the business process.
+• The students will not publish any confidential business information, pricing, customer data, or credentials in any public location.
+• The students will not use any information gathered for any purpose beyond this academic module and its assessment and presentation requirements.
+
+5. What the Stakeholder Agrees To
+• Making themselves reasonably available for a limited number of meetings, interviews, or written communications during the semester.
+• Providing honest and accurate information about their current process to the best of their ability.
+• Reviewing and confirming, in writing (email, WhatsApp, or meeting notes signed off), the requirements gathered so the students have documented evidence for their assessment.
+• Understanding that participation is voluntary and can be withdrawn at any time by notifying the student group and their module supervisor.
+
+6. What the Students Provide in Return
+In exchange for the Stakeholder's time and cooperation, the student group will provide the Stakeholder with a working prototype/solution developed during the module, at no cost, for the Stakeholder's own use.
+• The solution is developed as a student learning exercise and is provided "as is," without any guarantee of ongoing support, maintenance, hosting, or further development beyond the academic module, unless separately agreed in writing.
+• The Stakeholder understands this is a prototype developed for assessment purposes and may not include all features of a full commercial system.
+• Any continued use, hosting, or support arrangement after the module ends is a separate matter to be agreed between the parties directly, and is not a requirement of this Agreement.
+
+7. Confidentiality & Data Handling
+The student group agrees to handle any information shared by the Stakeholder responsibly and in line with their institution's academic integrity requirements. Where actual customer or business data is shared for reference, it will be used only to inform system design (e.g. field names, workflow steps) and will not be reproduced or published without the Stakeholder's consent.
+
+8. Acknowledgement
+Both parties confirm that they understand and voluntarily agree to the terms set out above. This Agreement is intended to document good-faith cooperation for academic purposes and does not create a commercial contract, employment relationship, or ongoing service obligation between the parties.
+Signed:
+Stakeholder signature: ____________________
+Date: 25/08/2026
+Print name: Motlokoa Tsoetsi
+Student representative surnames and signatures:
+224099468 LE LETSIE
+215135458 LE LIPALI
+219002738 LTBG PULE
+223013773 NM Netshituka
+Date: ___/08/21/2026
+Note: This is a plain-language cooperation agreement for academic purposes, not a legal contract drafted by a lawyer. If the Stakeholder wishes to formalise this further, they are welcome to have it reviewed before signing.
+
+
+
+                                                6.Deliverables And Acceptance Criteria
+
+-Deliverables 
+•Customer and vehicle registration. 
+•Digital job card creation and status tracking. 
+•Quotation creation and customer approval workflow. 
+•Repair tracking through to quality check and collection. 
+•Payment recording. 
+•Role-based dashboards for customer, reception/admin, mechanic and manager/owner. 
+ -Acceptance Criteria 
+•A customer can register, view their vehicle's job status, and receive a notification when it is ready. 
+•A staff member can create a job card, record diagnosis/quotation, and update status through to collection. 
+•A manager can view a basic report of jobs and payments. 
+
+
+                                           7.Exclusions, Constraints And Assumptions
+
+-Exclusions (Out of Scope for Phase 1) 
+•Full supplier/parts ordering and stock management integration. 
+•SMS notifications (in-app and email only for this phase). 
+•Full accounting/bookkeeping integration. 
+•A full public marketing website or SEO/social-media management tools — the customer-facing mobile/web login provides the business some online presence as a secondary benefit, but building out marketing reach is not a function of this system. 
+ -Constraints 
+•Delivery within the academic semester timeframe. 
+•Group members' current skill level in Flutter, ASP.NET and Supabase. 
+•No project budget beyond free-tier tools and services. 
+ -Assumptions 
+•The stakeholder will remain available for periodic engagement throughout the project. 
+•The stakeholder has basic smartphone/computer access for demonstration and feedback purposes 
+ 
+8. Stakeholders and User Groups 
+ 
+Organisation: Mister Auto & Turbo ,a vehicle repair and turbo servicing business  located at No. 5, 123 Constantia Road, Dagbreek, Welkom, 9459, Free State, South Africa. 
+Primary stakeholder: Mr. Motlokoa Tsotesi  Manager, who also works as a mechanic in the business himself. 
+8.1 User Groups 
+•Customers - vehicle owners bringing vehicles in for service or repair. 
+•Reception/admin staff - handle intake, job cards and customer communication. 
+•Mechanics - perform inspection, diagnosis and repair work. 
+•Manager/Owner - oversees operations, pricing and business decisions.
+•Developers – override critical system functionality.
+
+ 
+ 
+ 
+8.2 Stakeholder Needs 
+This section records needs identified directly from stakeholder engagement with Mr. Motlokoa Tsotesi (Manager & Mechanic, Mister Auto & Turbo). Findings below are drawn from stakeholder discussion; formal written confirmation (WhatsApp/meeting notes) is attached as Appendix A. 
+•SN-01: The stakeholder needs customers to be able to check a vehicle's repair progress without phoning the workshop, since check-in calls interrupt workshop staff during active repair work. 
+•SN-02: The stakeholder needs a clear, fixed price reference for common services and parts, to reduce on-thespot negotiation and requests for discounts. 
+•SN-03: The stakeholder needs quotations to clearly show the price difference between the business supplying a part (e.g. a battery) versus the customer supplying their own part, since this is a recurring source of pricing disputes. 
+•SN-04: The stakeholder relies almost entirely on word-of-mouth referrals and currently has no website, which limits his ability to reach new customers. A customer-facing mobile/web presence would indirectly support this, though a full marketing website is outside the scope of this system (see Section 7.1, Exclusions). 
+SN-05: The stakeholder needs a record of past repairs per vehicle for reference on repeat customers 
+ 
+9. Current Process and Diagram 
+
+Based on stakeholder engagement, the current process typically follows these steps: 
+•Customer brings the vehicle in, describing the issue or requesting a scheduled service. 
+•A staff member or mechanic performs an initial inspection. 
+•A job card is created, usually on paper, recording the vehicle and reported issue. 
+•The mechanic diagnoses the fault and prepares a quotation for parts and labour. 
+•The customer is contacted to approve the quotation before work proceeds. 
+•The repair is carried out. 
+•A quality check confirms the work is complete and correct. 
+•Payment is collected. 
+•The customer collects the vehicle. 
+•Reviews from Customers
+ 
+9.1 Problems with the Current Process 
+•Job cards and records are paper-based and can be lost or misplaced. 
+•No way for customers to track a vehicle's repair progress remotely customers call in regularly to check status, this interrupts workshop staff. 
+•No fixed, published price list for common services and parts, which leads to friction with customers negotiating for discounts on the spot. 
+•No clear breakdown of cost differences when a customer supplies their own part versus the business supplying it (e.g. customer-supplied battery vs. shop-supplied battery), leading to disputes over pricing. 
+•The business relies almost entirely on word-of-mouth referrals; until recently it had no social media presence and still has no website, making it difficult to reach new customers. 
+•Repair history is not centrally stored, making it hard to reference past work on a vehicle. 
+
+
+
+   
+                           10. Product Perspective
+
+
+The Vehicle Service Management System (VSMS) is a new standalone software solution developed for Mister Auto & Turbo to digitise and streamline the vehicle servicing process. The system is intended to replace the current paper-based methods used for job cards, repair tracking, quotations, and customer communication.
+The product will provide a centralized platform for managing customer, vehicle, repair, quotation, and payment information. It will serve as a bridge between customers and workshop staff by improving transparency and communication throughout the repair lifecycle.
+Unlike the current process, where customers must contact the workshop directly for updates, the proposed system will allow customers to track the status of their vehicles in real time through a mobile or web application. Staff members will be able to update repair progress digitally, while management will be able to monitor operations through administrative dashboards and reporting features.
+
+User Role	Purpose
+Customer
+	View vehicle status, quotations, notifications and repair history.
+
+Reception/Admin
+	Register customers and vehicles, create job cards and manage quotations.
+
+Mechanic
+	Update diagnoses, repair progress and job statuses.
+
+Manager/Owner
+	View reports, monitor jobs, manage pricing and operations.
+
+Developer
+	Maintain and manage critical system functionality.
+
+
+
+
+
+
+
+
+
+
+
+                              11. Main Flutter, ASP.NET And Supabase
+
+The system will consist of multiple application components that work together to provide services to customers and workshop staff.
+The main components of the system will include:
+A Flutter customer application, consisting of a user interface and Flutter application logic for customer-related functionality. 
+An ASP.NET MVC staff application, consisting of a user interface and MVC application logic for mechanics and other authorised workshop staff. 
+An ASP.NET Web API, responsible for providing API services and managing communication with the Supabase cloud services where required. 
+Supabase, responsible for cloud database services, authentication, real-time functionality, and cloud storage. 
+The customer and staff applications will access the appropriate system services and communicate with Supabase according to the system architecture and authorised access rules.
+11.1 Flutter Customer Application
+Flutter will be used to develop the customer-facing application across supported mobile and web platforms.
+The Flutter application will provide the customer user interface and application functionality required for customers to interact with the vehicle service and repair management system.
+Customer Registration and Authentication
+The system shall allow customers to:
+Register a new customer account. 
+Log into their account. 
+Recover or reset their password. 
+Securely access authorised customer functionality. 
+Customer Profile Management
+The system shall allow customers to:
+View their personal profile information. 
+Update permitted personal information. 
+View their registered vehicles. 
+Vehicle Management
+The system shall allow customers to:
+Register vehicles. 
+View registered vehicle information. 
+View vehicle service and repair status. 
+View vehicle repair history. 
+Job and Repair Tracking
+The system shall allow customers to:
+View the current status of their vehicle service or repair. 
+Track the progress of active repairs. 
+Receive updated information when the status of a repair changes. 
+Quotations and Approvals
+The system shall allow customers to:
+View quotations generated for their vehicles. 
+View requests requiring customer approval. 
+Approve or reject quotations where authorised. 
+View quotation approval status. 
+Payment Information
+The system shall allow customers to:
+View payment information. 
+View payment history. 
+Submit or upload proof of payment where required. 
+Notifications
+The system shall allow customers to receive notifications regarding:
+Changes to vehicle repair status. 
+Quotation requests. 
+Approval requests. 
+Vehicle collection availability. 
+Other relevant service updates. 
+11.2 ASP.NET MVC Staff Application
+ASP.NET MVC will be used to develop the workshop staff-facing application.
+The ASP.NET MVC application will provide both the user interface and MVC application logic required by mechanics, reception staff, administrators, and managers.
+Access to functionality shall be controlled according to the user's authorised role.
+Reception and Administration Functions
+The system shall allow authorised reception and administration staff to:
+Register customers. 
+Register customer vehicles. 
+Create and manage digital job cards. 
+Record customer complaints. 
+Record vehicle service and repair requests. 
+Generate quotations. 
+Record customer quotation approvals. 
+Record payments. 
+Manage vehicle collection records. 
+Mechanic Functions
+The system shall allow mechanics to:
+View assigned jobs. 
+View job card information. 
+Record vehicle inspection details. 
+Record diagnosis details. 
+Update repair progress. 
+Update the status of assigned jobs. 
+Add notes regarding inspections and repairs. 
+The system shall support the following job statuses:
+Inspection 
+Quotation 
+In Progress 
+Quality Check 
+Ready for Collection 
+Collected 
+Manager Functions
+The system shall allow authorised managers to:
+View active jobs. 
+View completed jobs. 
+Monitor workshop performance. 
+View payment records. 
+Generate basic reports. 
+Manage pricing information. 
+View customer records. 
+View vehicle records. 
+Monitor job progress across the workshop. 
+11.3 Flutter Application Services
+The Flutter application shall contain the application logic required to support customer-facing functionality.
+These services may include functionality for:
+Customer Account Services
+Managing customer registration processes. 
+Managing customer login sessions. 
+Managing customer profile information. 
+Handling password recovery processes. 
+Vehicle Services
+Managing vehicle registration. 
+Retrieving customer vehicle information. 
+Retrieving vehicle service and repair history. 
+Job Tracking Services
+Retrieving vehicle job information. 
+Retrieving repair progress. 
+Processing customer-facing job status information. 
+Providing current vehicle service information. 
+Quotation and Approval Services
+Retrieving customer quotations. 
+Displaying approval requests. 
+Processing authorised customer approval decisions. 
+Retrieving quotation status information. 
+Notification Services
+Receiving customer notifications. 
+Processing vehicle status updates. 
+Displaying relevant service notifications. 
+
+11.4 ASP.NET MVC Application Services
+The ASP.NET MVC application shall contain the server-side and application logic required to support workshop staff operations.
+Authentication and Authorisation
+The system shall:
+Validate authorised staff access. 
+Apply role-based access control. 
+Restrict access to functionality based on user roles. 
+Manage authorised user sessions. 
+Job Card Management
+The system shall:
+Create job cards. 
+Update job card information. 
+Retrieve job details. 
+Assign jobs to authorised staff where required. 
+Maintain repair history records. 
+Inspection and Repair Management
+The system shall:
+Store inspection information. 
+Store vehicle diagnosis information. 
+Record repair progress. 
+Update vehicle job status. 
+Store mechanic notes. 
+Quotation Management
+The system shall:
+Create quotations. 
+Calculate labour costs. 
+Calculate parts costs. 
+Calculate quotation totals. 
+Calculate differences when customers provide their own parts. 
+Maintain quotation approval status. 
+Payment Management
+The system shall:
+Record payments. 
+Store proof of payment information. 
+Maintain payment history. 
+Reporting Services
+The system shall:
+Generate job reports. 
+Generate payment summaries. 
+Generate customer activity reports. 
+Provide workshop performance information. 
+11.5 ASP.NET Web API
+The ASP.NET Web API shall provide API functionality and services for communication between the system applications and Supabase.
+The API shall expose authorised endpoints for system operations where API-based communication is required.
+API Services
+The ASP.NET Web API shall provide services for:
+Retrieving authorised system data. 
+Processing authorised data requests. 
+Managing business operations. 
+Validating requests. 
+Managing communication with Supabase services. 
+Providing structured responses to authorised application components. 
+Authentication and Security
+The API shall:
+Validate authorised requests. 
+Enforce appropriate access controls. 
+Prevent unauthorised access to protected resources. 
+Secure communication between application components. 
+Business Logic
+The API shall handle business operations that require centralised processing, including:
+Job-related operations. 
+Quotation calculations. 
+Payment processing. 
+Reporting operations. 
+Notification-related operations. 
+
+11.6 Supabase Cloud Services
+Supabase will provide the cloud services required for data persistence, authentication, real-time functionality, and file storage.
+The Flutter customer application and the ASP.NET MVC staff application shall communicate with Supabase services according to the approved system architecture and security requirements.
+The ASP.NET Web API shall also communicate with Supabase when API-based data access or centralised business processing is required.
+                               12.Functional Requirements
+
+Requirements are typed and prioritised per module convention: 
+Functional (FR); priority Must Have.
+
+• FR-01 Customer registration
+The system shall allow customers to register an account with their name, contact details and vehicle information.
+
+
+• FR-02 Vehicle registration
+The system shall allow staff to register a vehicle against a customer record.
+
+• FR-03 Digital job cards
+The system shall allow staff to create a digital job card capturing the reported issue and inspection notes.
+
+• FR-04 Diagnosis and quotation generation
+The system shall allow a mechanic to record a diagnosis and generate a quotation.
+
+• FR-05 Customer approval workflow
+The system shall require customer approval of a quotation before repair work is marked as started.
+
+• FR-06 Repair status tracking
+The system shall allow a mechanic to update repair status through defined stages (e.g. In Progress, Quality Check, Ready for Collection), so customers can check progress without phoning the workshop. 
+
+• FR-07 Payment recording
+The system shall allow staff to record a payment against a job card.
+
+• FR-8 Notifications
+The system shall send an in-app and/or email notification to the customer when their vehicle's status changes to "Ready for Collection", reducing status-check phone calls. 
+
+• FR-9 Itemised quotations
+The system shall display an itemised quotation that separates labour cost from parts cost. 
+
+• FR-10 Customer-supplied part comparison
+The system shall allow a quotation to show a reduced price where a customer supplies their own part instead of the business supplying it, with both amounts visible for comparison. 
+
+
+
+
+                            13.Non-Functional Requirements
+
+NFR-01: Performance
+The system shall respond to user requests within 3 seconds under normal operating conditions.
+Customer registration, vehicle registration, job card creation, quotation generation, and payment recording shall be completed without noticeable delay.
+Vehicle status updates shall be available to customers within 5 seconds of a mechanic updating the status.
+
+NFR-02: Availability
+The system shall be available 99% of operating hours excluding planned maintenance.
+Customers shall be able to access vehicle progress information at any time when internet connectivity is available.
+Notification services shall be operational whenever the system is available.
+
+NFR-03: Security
+All users shall authenticate before accessing protected system features.
+Customer, vehicle, quotation, and payment information shall only be accessible to authorized users.
+Passwords shall be encrypted before storage.
+Communication between Flutter, ASP.NET, and Supabase shall use secure HTTPS connections.
+
+NFR-04: Usability
+The system shall provide a simple and intuitive interface requiring minimal training.
+Customers shall be able to locate vehicle status information within three navigation steps.
+System screens shall maintain a consistent design throughout the application.
+
+NFR-05: Reliability
+The system shall accurately store and retrieve all job cards, quotations, and payment records.
+No customer, vehicle, or repair information shall be lost during normal system operation.
+Data shall remain consistent across all user roles.
+
+NFR-06: Maintainability
+The application shall be developed using a modular architecture to simplify future enhancements.
+Code shall be documented to support future maintenance and upgrades.
+Errors and exceptions shall be logged for troubleshooting purposes.
+
+NFR-07: Scalability
+The system shall support growth in the number of customers, vehicles, job cards, and quotations without requiring significant redesign.
+The database shall allow future expansion to support additional workshop branches.
+
+NFR-08: Compatibility
+The customer application shall run on Android devices.
+The web version shall support Google Chrome, Microsoft Edge, and Mozilla Firefox.
+The system shall function correctly across different screen sizes.
+
+NFR-09: Notification Delivery
+Email and in-app notifications shall be delivered within one minute of a vehicle status changing to "Ready for Collection".
+Notification failures shall be recorded in system logs for administrative review.
+
+NFR-10: Data Accuracy and Transparency
+Quotations shall display labour and parts costs clearly and accurately.
+Any discount resulting from customer-supplied parts shall be calculated automatically.
+Cost calculations shall remain consistent across all quotations.
+
+
+
+14. System Requirements
+
+
+14.1 Hardware Requirements
+-Client Devices
+Android smartphone or tablet.
+Desktop or laptop computer.
+Stable internet connection.
+-Server Requirements
+ Since the project uses cloud-hosted services:
+Cloud-hosted ASP.NET backend.
+Supabase cloud database.
+Internet connectivity for all users.
+
+14.2 Software Requirements
+Development Environment
+Flutter SDK
+Visual Studio 2022
+.NET 8 or later
+Supabase Account
+GitHub Version Control
+Client Software
+Android Operating System
+Web Browser (Chrome, Edge, Firefox)
+
+15. Integration Requirements
+The Vehicle Service Management System consists of three primary technology components that must integrate seamlessly.
+15.1 Flutter and ASP.NET Integration
+
+Purpose
+To allow user interfaces to communicate with business logic and application services.
+
+Integration Requirements
+Flutter shall send API requests to ASP.NET.
+ASP.NET shall return responses in JSON format.
+User authentication requests shall be processed through ASP.NET.
+Job card, quotation, and status update requests shall be transmitted securely.
+
+15.2 ASP.NET and Supabase Integration
+
+Purpose
+To connect business logic with cloud-hosted data storage.
+
+Integration Requirements
+ASP.NET shall perform Create, Read, Update, and Delete (CRUD) operations on Supabase.
+ASP.NET shall retrieve customer, vehicle, quotation, repair, and payment information from Supabase.
+ASP.NET shall validate and process data before database storage.
+ASP.NET shall interact with Supabase Authentication services for user management.
+
+15.3 Flutter and ASP.NET Integration
+
+Purpose
+To support authentication and real-time updates where required.
+
+Integration Requirements
+Flutter shall receive real-time vehicle status updates from Supabase.
+Flutter shall authenticate users through Supabase authentication services.
+Flutter shall retrieve user-specific information based on access permissions.
+
+15.4 Email Notification Integration
+
+Purpose
+To notify customers of important service events.
+
+Integration Requirements
+The system shall send email notifications when: 
+oA quotation is ready for approval.
+oA quotation is approved or rejected.
+oVehicle status changes occur.
+oThe vehicle is ready for collection.
+
+
+                                  16. Requirements Prioritisation
+The MoSCoW prioritisation technique was used to rank requirements according to their importance for  Phase 1 delivery.
+Must Have Requirements
+These requirements are essential for the system to operate and meet stakeholder needs.
+
+Requirement ID
+	Description
+
+FR-01
+	Customer account registration
+
+FR-02
+	Vehicle registration against customer records
+
+FR-03
+	Digital job card creation
+
+FR-05
+	Mechanic diagnosis and quotation generation
+
+FR-06
+	Customer quotation approval workflow
+
+FR-07
+	Repair status tracking and updates
+
+FR-09
+	
+Payment recording
+
+FR-10
+	Ready-for-collection notifications
+
+FR-14
+	Itemised quotations showing labour and parts costs
+
+FR-15
+	Display of pricing differences for customer-supplied parts
+
+
+Should Have Requirements
+These requirements add significant value but are not critical to the basic operation of the system.
+
+Requirement ID
+	Description
+
+		
+FR-04
+	Search and retrieval of customer and vehicle records
+
+FR-08
+	Vehicle repair history viewing
+
+FR-11
+	Manager dashboard displaying active and completed jobs
+
+FR-12
+	Basic reporting on jobs and payments
+
+FR-13
+	User profile management
+
+
+Could Have Requirements
+These requirements would improve user experience but can be implemented in later phases if time permits.
+
+Requirement ID
+	Description
+
+FR-16
+	Customer feedback and rating functionality
+
+FR-17
+	Vehicle image uploads
+
+FR-18
+	Additional notification preferences and reminders
+
+FR-19
+	Export reports to PDF or Excel
+
+
+Won't Have (Phase 1)
+The following requirements are intentionally excluded from the first release:
+Full inventory and stock management.
+Supplier ordering integration.
+SMS notifications.
+Accounting software integration.
+Online payment gateway integration.
+Public marketing website.
+Social media management tools.
+Multi-branch workshop support.
+Prioritisation Justification
+The highest priority requirements focus on solving the stakeholder's main problems:
+Reducing customer status-check phone calls.
+Improving repair progress visibility.
+Eliminating paper-based record keeping.
+Reducing pricing disputes through transparent quotations.
+Centralising customer and vehicle records.
+Requirements not directly addressing these issues have been assigned lower priority and reserved for future phases.
+
+
+
+17. Appendices Containing Stakeholder Evidence
+
+Appendix A: Stakeholder Information
+Business Name: Mister Auto & Turbo
+Representative: Mr. Motlokoa Tsoetsi
+Position: Managing Director
+Business Address: No. 5, 123 Constantia Road, Dagbreek, Welkom, 9459, Free State, South Africa
+Contact Number: 073 002 4579
+Email Address: csolotsi.motloton@yahoo.com
+
+Appendix B: Stakeholder Cooperation Agreement
+Attached to this document is the signed Stakeholder Cooperation and Information Use Agreement confirming:
+Stakeholder participation in requirements gathering.
+Permission to analyse existing business processes.
+Agreement to review project requirements and prototypes.
+Understanding that the developed solution is an academic prototype.
+Confirmation of stakeholder cooperation throughout the project lifecycle.
+Evidence Source: Signed Stakeholder Cooperation & Information Use Agreement dated 25/08/2026.
+
+Appendix C: Stakeholder Interview Findings
+The following stakeholder needs were identified during interviews and discussions:
+Stakeholder Need ID
+	Requirement Identified
+
+SN-01
+	Customers should track vehicle progress without phoning the workshop.
+
+SN-02
+	Fixed and transparent pricing should be available for common services.
+
+SN-03
+	Quotations should clearly show differences between customer-supplied and business-supplied parts.
+
+SN-04
+	The business requires a stronger digital presence.
+
+N-05
+	The business needs repair history records for repeat customers.
+
+
+Appendix D: Current Process Evidence
+Current workflow observed during stakeholder engagement:
+1.Customer brings vehicle to workshop.
+2.Initial inspection is conducted.
+3.Paper-based job card is created.
+4.Diagnosis and quotation are prepared.
+5.Customer approval is requested.
+6.Repairs are performed.
+7.Quality inspection is completed.
+8.Payment is collected.
+9.Customer collects vehicle.
+Problems Identified
+Paper records can be misplaced.
+Customers frequently call for status updates.
+Pricing disputes occur regularly.
+No centralised repair history exists.
+Limited online presence restricts customer reach.
+Manual administration increases workload.
+
+Appendix E: Stakeholder Communication Evidence
+Evidence may include:
+WhatsApp conversations.
+Email correspondence.
+Meeting minutes.
+Interview notes.
+Screenshots of discussions.
+Requirement validation messages.
+.
+
+Appendix F: System Screens and Mockups (If Available)
+This appendix may contain:
+Wireframes.
+User interface mockups.
+Dashboard designs.
+Workflow diagrams.
+System architecture diagrams.
+These prototypes will be reviewed and validated by the stakeholder before final implementation.
+
+Appendix G: Stakeholder Validation Statement
+"The requirements documented in this Software Requirements Specification accurately reflect the current business processes and needs of Mister Auto & Turbo as discussed during stakeholder engagement."
+Stakeholder Name: Motlokoa Tsoetsi
+Position: Managing Director
+
+
+
+
+
+GITHUB LINK
+
+ https://github.com/Inheritancersa/MisterAutoAndTurbo
+ 
+Phase 2 -SYSTEM ARCHITECTURE AND DESIGN
+
+MR AUTO & TURBO
+Workshop Management System - Phase 2 System Design
+Field	Detail
+Module	ITC327W - Work-Integrated Learning
+Assessment	Group Assessment 2 - Phase 2: System Architecture and Design
+Client / Stakeholder	Motlokoa Tsotesi, Owner - Mr Auto & Turbo
+Prepared by	Web Vortex
+Date	25/09/26
+
+
+1. Purpose of This Document
+This document supports the System Architecture and Design section of the ITC327W Phase 2 Software Requirements Specification (SRS) for the Mr Auto & Turbo Workshop Management System. It provides:
+●Written content the group can adapt and insert into the updated SRS alongside the System Architecture Diagram, Use Case Diagram, Sequence Diagrams, ERD, and interface designs already completed.
+●A Design Alignment table linking requirements, use cases, database entities, and interfaces, as required by the rubric.
+●A Stakeholder Review and Approval page (Section 8) for the client, Motlokoa Tsotesi, to review and sign - evidence of stakeholder engagement for the SRS appendix.
+2. System Overview
+The Mr Auto & Turbo Workshop Management System is designed as one integrated system built from three connected components: a Flutter mobile application, an ASP.NET web application, and a shared Supabase backend.
+The Flutter mobile application serves both customers and workshop staff. Customers use it to track their vehicle's repair status in real time, view notifications, and manage payments. Staff use the same application, under a different role-based view, to check job status on the go and receive job-assignment notifications. Sign-in is handled through a phone-number and OTP (one-time PIN) flow, matching the way the business already communicates with customers over SMS/WhatsApp.
+The ASP.NET web application is the primary workstation tool for the business, providing three role-based views: an Administrator/Manager view with full access to all modules including payments and reporting; a Receptionist view scoped to front-desk functions such as customer registration, vehicle check-in, appointments, and collections (with payment processing restricted, since only management handles payments); and a Mechanic view scoped to assigned jobs, inspection checklists, and parts requests.
+The Supabase backend provides the shared PostgreSQL database, authentication, and real-time data services that both the Flutter and ASP.NET applications read from and write to. This ensures that a status update made by a mechanic on the web application is reflected immediately in the customer's mobile app, and that a booking made by a receptionist is immediately visible to the assigned mechanic - the three components operate as a single, real-time system rather than separate, disconnected tools.
+3. User Roles (Actors)
+These roles correspond to the actors used in the group's Use Case Diagram.
+Actor	Description	Primary Interface
+Administrator / Manager	Owns or manages the business; has full access to all modules, including payments, staff management, and reporting.	ASP.NET web application
+Receptionist	Front-desk staff; manages customers, vehicle check-in, appointments, and collection. No access to payment processing.	ASP.NET web application
+Mechanic	Workshop technician; manages assigned jobs, inspections, status updates, and part requests.	ASP.NET web application + Flutter mobile app
+Customer	Vehicle owner; tracks repair status, receives notifications, and pays invoices.	Flutter mobile application
+4. Use Case Summary
+This table summarises the use cases represented in the group's Use Case Diagram, for reference alongside the diagram in the SRS.
+Use Case	Primary Actor	Includes / Extends
+Sign In (OTP)	All actors	-
+Register Customer	Receptionist	-
+Register Vehicle / Check-In Vehicle	Receptionist	<<include>> Register Customer (if new)
+Book Appointment	Receptionist	-
+Create Job Card	Receptionist, Mechanic	<<include>> Register Vehicle
+Conduct Inspection	Mechanic	<<extend>> Create Job Card
+Update Repair Status	Mechanic	-
+Request / Manage Parts	Mechanic, Administrator	-
+Record Payment	Administrator	-
+Confirm Vehicle Collection	Receptionist	<<include>> Record Payment (if outstanding)
+Log Customer Complaint	Receptionist	-
+Track Vehicle Status	Customer	-
+Receive Notifications	Customer, Mechanic	-
+Manage Staff / Users	Administrator	-
+View Reports	Administrator	-
+5. Database Entity Summary
+This table summarises the entities represented in the group's ERD, for reference alongside the diagram in the SRS.
+Entity	Purpose	Key Relationships
+Customer	Stores customer contact and account details.	One customer has many Vehicles; many Complaints; many Payments.
+Vehicle	Stores registration, make, model, and condition details.	Belongs to one Customer; has many Jobs.
+Job	Represents a repair/service job card and its current status.	Belongs to one Vehicle; linked to one Mechanic (User); has many Parts Used and Labour entries.
+Appointment	Stores scheduled workshop visits.	Linked to one Customer and one Vehicle.
+Part	Inventory item with stock level and pricing.	Linked to Jobs via a Job Parts junction table (many-to-many).
+Payment	Records an amount paid against a Job invoice.	Belongs to one Job.
+Complaint	Records a customer complaint or review.	Belongs to one Customer; optionally linked to one Job.
+User (Staff)	Administrator, Receptionist, or Mechanic account.	A Mechanic User is linked to many Jobs.
+6. Interface Design Summary
+This table lists the main screens produced for the Flutter mobile application and ASP.NET web application, linking each to its primary use case.
+Screen / Page	Platform	Role	Related Use Case
+Login + OTP Verification	Flutter	All	Sign In (OTP)
+Vehicle Status & Timeline	Flutter	Customer	Track Vehicle Status
+Notifications	Flutter	Customer, Mechanic	Receive Notifications
+Payments / Invoice	Flutter	Customer	Record Payment (view)
+My Jobs / Job Detail	Flutter	Mechanic	Update Repair Status
+Dashboard	ASP.NET	Administrator	View Reports
+Vehicles / Add Vehicle	ASP.NET	Receptionist	Register Vehicle
+Customers / Add Customer / Customer Details	ASP.NET	Receptionist	Register Customer
+Appointments / New Appointment	ASP.NET	Receptionist	Book Appointment
+Jobs / Create Job / Job Card	ASP.NET	Receptionist, Mechanic	Create Job Card
+Job Card - Status Picker & Inspection Checklist	ASP.NET	Mechanic	Conduct Inspection, Update Repair Status
+Parts / Inventory / Add Part	ASP.NET	Administrator, Mechanic	Request / Manage Parts
+Payments / Record Payment	ASP.NET	Administrator	Record Payment
+Collection	ASP.NET	Receptionist	Confirm Vehicle Collection
+Customer Complaints	ASP.NET	Receptionist	Log Customer Complaint
+Users / Add User	ASP.NET	Administrator	Manage Staff / Users
+Reports	ASP.NET	Administrator	View Reports
+7. Design Alignment Table
+This table demonstrates that the architecture, use cases, database design, and interfaces describe the same, consistent system, as required by the rubric.
+Requirement	Use Case	ERD Entity	Interface
+Customer can track repair status remotely	Track Vehicle Status	Job, Vehicle	Flutter - Vehicle Status & Timeline
+Front desk can register new customers and vehicles	Register Customer, Register Vehicle	Customer, Vehicle	ASP.NET - Add Customer, Add Vehicle
+Mechanic can update job status and log inspection findings	Conduct Inspection, Update Repair Status	Job	ASP.NET - Job Card (status picker + checklist)
+Only management can process payments	Record Payment	Payment, Job	ASP.NET - Payments (Admin only; hidden from Receptionist)
+Customers and staff receive real-time updates	Receive Notifications	Job, User	Flutter - Notifications
+Workshop can track and request parts	Request / Manage Parts	Part, Job	ASP.NET - Parts / Inventory
+Front desk can log and track customer complaints	Log Customer Complaint	Complaint, Customer	ASP.NET - Customer Complaints
+
+
+8. Original Design Source Links
+Design Artefact	Tool Used	Link / File Location
+		
+System Architecture Diagram	LucidChart	File is attached
+Use Case Diagram	Draw.io	File is attached
+Sequence Diagram 1 (Flutter ↔ Supabase)	LucidChart	File is attached
+Sequence Diagram 2 (ASP.NET ↔ Supabase)	LucidChart	File is attached
+ERD	LucidChart,	File is attached
+Flutter Mobile Interface Design (Every interface combined)	Figma	https://www.figma.com/design/kEyegKqrF78iY3xdtU5Xaq/WebVortex---Mr-Auto-Desktop?t=vk6XPei7YKP2Kxgn-1
+ASP.NET Web Interface Design for desktops	Figma	https://www.figma.com/design/IhomVdDBHY9DbSQzEv50WM/Desktop-WebVortex?t=vk6XPei7YKP2Kxgn-1
+Flutter Mobile Interface Design	Figma	https://www.figma.com/design/xfaNqX7d1PSMdKE3YC4z9r/customer-proto?node-id=0-1&m=dev&t=wwSaaAZlpSC10l8n-1
+
+MR AUTO & TURBO
+Stakeholder Review & Approval - Phase 2 System Design
+This page confirms that the stakeholder listed below has reviewed the Phase 2 system design for the Mr Auto & Turbo Workshop Management System, prepared as part of the ITC327W Work-Integrated Learning module (Central University of Technology, Free State).
+Project
+Mr Auto & Turbo Workshop Management System - a Flutter mobile application and ASP.NET web application, sharing a Supabase backend, designed to manage customers, vehicles, repair jobs, appointments, parts, payments, and complaints for the workshop.
+Artefacts Reviewed
+Artefact	Reviewed
+System Architecture Diagram	☑Yes   ☐ No
+Use Case Diagram	☑Yes   ☐ No
+Sequence Diagrams	☑ Yes   ☐ No
+Entity Relationship Diagram (ERD)	☑ Yes   ☐ No
+Flutter Mobile Interface Design	☑Yes   ☐ No
+ASP.NET Web Interface Design	☑ Yes   ☐ No
+Stakeholder Statement
+I, the undersigned, confirm that I have reviewed the system design listed above, prepared by the project group for Mr Auto & Turbo. I confirm that the design reflects the business needs and workflow discussed with the group, and I approve the group to proceed to the next phase of development on this basis.
+I understand that this design may be refined during development, and that any significant change to scope will be discussed with me before implementation.
+
+
+Signatures
+	Name	Signature/Student no.	Date
+Stakeholder	Motlokoa Tsotesi (Owner, Mr Auto & Turbo)		25/09/26
+Group Member 1 	Lefa Lipali 	215135458	25/09/26
+Group Member 2	Ndivhuwo Netshituka	223013773	25/09/26
+Group Member 3	Rotondwa Madi	222066543	25/09/26
+Group Member 4	Lehlokoa Pule	219002738	25/09/26
+Group Member 5	Lekete Letsie	224099468	25/09/26
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

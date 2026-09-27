@@ -9,10 +9,10 @@ About
 The system digitises the vehicle servicing process, replacing manual paper-based records with a centralised digital system for managing customers, vehicles, job cards, quotations, repairs and payments.
 
 User Roles
-* 👤 Customer
-* 🧑‍💼 Receptionist
-* 🔧 Mechanic
-* 👨‍💼 Manager
+* Customer
+* Receptionist
+* Mechanic
+* Manager
 
 \
  Main Features

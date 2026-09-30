@@ -33,10 +33,10 @@ Git & GitHub
 
 Team Web Vortex
 
-* Le Letsie
+* LE Letsie
 * RG Madi
 * NM Netshituka
-* Le Lipali
+* LE Lipali
 * LTBG Pule
 
 Status

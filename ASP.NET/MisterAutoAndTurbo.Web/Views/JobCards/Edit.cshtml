@@ -1,0 +1,27 @@
+@model JobCard
+@{
+    ViewData["Title"] = "Edit job card";
+}
+<div class="page-header">
+    <div><h1>Edit job card</h1></div>
+    <a class="btn btn-ghost" asp-action="Details" asp-route-id="@Model.Id">Cancel</a>
+</div>
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div class="field"><label asp-for="VehichleId">Vehicle ID</label><input class="input" asp-for="VehichleId" /></div>
+            <div class="field"><label asp-for="MechanicId">Mechanic ID</label><input class="input" asp-for="MechanicId" /></div>
+            <div class="field"><label asp-for="Status">Status</label>
+                <select class="input" asp-for="Status">
+                    <option>Inspection</option><option>Quotation</option><option>In Progress</option>
+                    <option>Quality Check</option><option>Ready for Collection</option><option>Collected</option>
+                </select>
+            </div>
+            <div class="field"><label asp-for="Diagnosis">Diagnosis</label><textarea class="input" asp-for="Diagnosis" rows="3"></textarea></div>
+            <div class="field"><label asp-for="RepairNotes">Repair notes</label><textarea class="input" asp-for="RepairNotes" rows="3"></textarea></div>
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,46 @@
+@model IEnumerable<Quotation>
+@{
+    ViewData["Title"] = "Quotations";
+}
+<div class="page-header">
+    <div>
+        <h1>Quotations</h1>
+        <p>Labour, parts and customer-supplied differences</p>
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Job card</th>
+                <th>Labour</th>
+                <th>Parts</th>
+                <th>Customer-supplied Δ</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var q in Model)
+            {
+                <tr>
+                    <td>@q.JobCardId</td>
+                    <td>R @q.LabourCost.ToString("N2")</td>
+                    <td>R @q.PartsCost.ToString("N2")</td>
+                    <td>R @q.CustomerSuppliedDifference.ToString("N2")</td>
+                    <td><strong>R @q.TotalCost.ToString("N2")</strong></td>
+                    <td>@q.Status</td>
+                    <td><a asp-action="Details" asp-route-id="@q.Id">View</a></td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="7" style="color:var(--muted);">No quotations yet. Generate one from a job card.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

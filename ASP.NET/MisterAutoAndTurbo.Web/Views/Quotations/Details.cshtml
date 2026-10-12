@@ -1,0 +1,35 @@
+@model Quotation
+@{
+    ViewData["Title"] = "Quotation";
+}
+<div class="page-header">
+    <div>
+        <h1>Quotation</h1>
+        <p>Job: @Model.JobCardId · @Model.Status</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="Payments" asp-action="Create" asp-route-quotationId="@Model.Id">Record payment</a>
+</div>
+<div class="card" style="max-width:480px;">
+    <div class="card-body" style="padding:24px;">
+        <dl style="display:grid;grid-template-columns:200px 1fr;gap:8px 16px;margin:0;">
+            <dt style="color:var(--muted);">Labour</dt><dd>R @Model.LabourCost.ToString("N2")</dd>
+            <dt style="color:var(--muted);">Parts</dt><dd>R @Model.PartsCost.ToString("N2")</dd>
+            <dt style="color:var(--muted);">Customer-supplied Δ</dt><dd>R @Model.CustomerSuppliedDifference.ToString("N2")</dd>
+            <dt style="color:var(--muted);"><strong>Total</strong></dt><dd><strong>R @Model.TotalCost.ToString("N2")</strong></dd>
+            <dt style="color:var(--muted);">Created</dt><dd>@Model.CreatedAt.ToString("g")</dd>
+        </dl>
+        <form asp-action="UpdateStatus" method="post" style="margin-top:20px;display:flex;gap:8px;align-items:end;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="field" style="margin:0;flex:1;">
+                <label>Status</label>
+                <select class="input" name="status">
+                    <option>Pending</option>
+                    <option>Approved</option>
+                    <option>Rejected</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-ghost">Update</button>
+        </form>
+    </div>
+</div>

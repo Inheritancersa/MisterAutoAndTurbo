@@ -1,0 +1,33 @@
+@model VehicleCollection
+@{
+    ViewData["Title"] = "Manage collection";
+}
+<div class="page-header">
+    <div>
+        <h1>Manage vehicle collection</h1>
+        <p>Job card: @Model.JobCardId</p>
+    </div>
+    <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Details" asp-route-id="@Model.JobCardId">Back to job</a>
+</div>
+<div class="card" style="max-width:480px;">
+    <div class="card-body" style="padding:24px;">
+        <p style="color:var(--muted);margin-top:0;">Status must be Ready for Collection and payment recorded before marking Collected.</p>
+        <form asp-action="UpdateStatus" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="jobCardId" value="@Model.JobCardId" />
+            <div class="field">
+                <label>Collection status</label>
+                <select class="input" name="collectionStatus">
+                    <option>Pending</option>
+                    <option>Ready</option>
+                    <option>Collected</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Collected at (optional)</label>
+                <input class="input" type="datetime-local" name="collectedAt" />
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Update collection</button>
+        </form>
+    </div>
+</div>

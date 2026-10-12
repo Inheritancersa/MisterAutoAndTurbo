@@ -1,0 +1,50 @@
+@model JobCard
+@{
+    ViewData["Title"] = "Create job card";
+}
+<div class="page-header">
+    <div>
+        <h1>Create job card</h1>
+        <p>Customer and vehicle must already be registered</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Index">Back to list</a>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="field">
+                <label asp-for="VehichleId">Vehicle ID</label>
+                <input class="input" asp-for="VehichleId" value="@(ViewData["VehicleId"] ?? Model.VehichleId)" required />
+            </div>
+            <div class="field">
+                <label asp-for="CreatedById">Created by (staff ID)</label>
+                <input class="input" asp-for="CreatedById" />
+            </div>
+            <div class="field">
+                <label asp-for="MechanicId">Assign mechanic (optional)</label>
+                <input class="input" asp-for="MechanicId" />
+            </div>
+            <div class="field">
+                <label>Service / repair request</label>
+                <textarea class="input" name="serviceDescription" rows="3" placeholder="Reported issue or requested service"></textarea>
+            </div>
+            <div class="field">
+                <label asp-for="Status">Status</label>
+                <select class="input" asp-for="Status">
+                    <option>Inspection</option>
+                    <option>Quotation</option>
+                    <option>In Progress</option>
+                    <option>Quality Check</option>
+                    <option>Ready for Collection</option>
+                    <option>Collected</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Create job card</button>
+        </form>
+    </div>
+</div>

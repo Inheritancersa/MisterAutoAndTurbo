@@ -1,0 +1,26 @@
+@model Customer
+@{
+    ViewData["Title"] = "Customer details";
+}
+<div class="page-header">
+    <div>
+        <h1>@Model.Name @Model.Surname</h1>
+        <p>Customer record</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-primary" asp-controller="Vehicles" asp-action="Create" asp-route-customerId="@Model.Id">+ Register vehicle</a>
+    </div>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin:0;">
+            <dt style="color:var(--muted);">Phone</dt><dd>@Model.Phone</dd>
+            <dt style="color:var(--muted);">Email</dt><dd>@Model.Email</dd>
+            <dt style="color:var(--muted);">Address</dt><dd>@Model.Address</dd>
+            <dt style="color:var(--muted);">Work phone</dt><dd>@Model.WorkPhone</dd>
+            <dt style="color:var(--muted);">Work address</dt><dd>@Model.WorkAddress</dd>
+        </dl>
+    </div>
+</div>

@@ -1,0 +1,38 @@
+@model IEnumerable<Complaint>
+@{
+    ViewData["Title"] = "Complaints";
+}
+<div class="page-header">
+    <div>
+        <h1>Customer complaints</h1>
+        <p>Feedback and complaints linked to jobs</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Record complaint</a>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr><th>Customer</th><th>Job</th><th>Description</th><th>Status</th><th>Date</th><th></th></tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.CustomerId</td>
+                    <td>@c.JobCardId</td>
+                    <td>@(c.Description?.Length > 60 ? c.Description.Substring(0, 60) + "…" : c.Description)</td>
+                    <td>@c.Status</td>
+                    <td>@c.CreatedAt.ToString("yyyy-MM-dd")</td>
+                    <td><a asp-action="Details" asp-route-id="@c.Id">View</a></td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="6" style="color:var(--muted);">No complaints recorded.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

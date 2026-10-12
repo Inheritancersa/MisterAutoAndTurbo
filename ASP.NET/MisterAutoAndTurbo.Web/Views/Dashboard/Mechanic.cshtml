@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "Mechanic dashboard";
+}
+<div class="page-header">
+    <div>
+        <h1>Mechanic</h1>
+        <p>Assigned jobs, inspection and repair progress</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="JobCards" asp-action="Assigned">My jobs</a>
+</div>
+<div class="grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+    <a class="card" asp-controller="JobCards" asp-action="Assigned" style="padding:20px;"><h3>Assigned jobs</h3><p style="color:var(--muted);">Open job cards assigned to you</p></a>
+    <a class="card" asp-controller="Parts" asp-action="Index" style="padding:20px;"><h3>Parts</h3><p style="color:var(--muted);">Inventory and add parts to jobs</p></a>
+</div>

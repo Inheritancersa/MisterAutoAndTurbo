@@ -1,8 +1,80 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Dashboard";
 }
+<div class="page-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Here's what's happening across the workshop today.</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="JobCards" asp-action="Create">+ Create Job</a>
+</div>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="grid grid-5" style="margin-bottom:16px">
+    <a class="card stat" asp-controller="Vehicles" asp-action="Index" style="text-decoration:none;color:inherit;">
+        <div class="value">312</div>
+        <div class="label">Total Vehicles</div>
+    </a>
+    <a class="card stat" asp-controller="JobCards" asp-action="Active" style="text-decoration:none;color:inherit;">
+        <div class="value">18</div>
+        <div class="label">Currently in Repair</div>
+    </a>
+    <a class="card stat" asp-controller="VehicleCollections" asp-action="Index" style="text-decoration:none;color:inherit;">
+        <div class="value">4</div>
+        <div class="label">Ready for Collection</div>
+    </a>
+    <a class="card stat" asp-controller="Appointments" asp-action="Index" style="text-decoration:none;color:inherit;">
+        <div class="value">7</div>
+        <div class="label">Today's Appointments</div>
+    </a>
+    <a class="card stat" asp-controller="Payments" asp-action="Index" style="text-decoration:none;color:inherit;">
+        <div class="value">R48,320</div>
+        <div class="label">Outstanding Payments</div>
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        Recent Vehicles
+        <a asp-controller="Vehicles" asp-action="Index">View all &rarr;</a>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Registration</th>
+                <th>Vehicle</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><a asp-controller="Vehicles" asp-action="Index">ABC 123 FS</a></td>
+                <td>Toyota Hilux</td>
+                <td><span class="pill pill-blue">Repairing</span></td>
+            </tr>
+            <tr>
+                <td><a asp-controller="Vehicles" asp-action="Index">XYZ 456 GP</a></td>
+                <td>VW Polo</td>
+                <td><span class="pill pill-amber">Awaiting Parts</span></td>
+            </tr>
+            <tr>
+                <td><a asp-controller="Vehicles" asp-action="Index">DEF 789 FS</a></td>
+                <td>Ford Ranger</td>
+                <td><span class="pill pill-green">Ready</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card" style="margin-top:16px;">
+    <div class="card-head">Quick links</div>
+    <div class="card-body" style="padding:16px;display:flex;flex-wrap:wrap;gap:8px;">
+        <a class="btn btn-ghost" asp-controller="Customers" asp-action="Create">+ Register customer</a>
+        <a class="btn btn-ghost" asp-controller="Vehicles" asp-action="Create">+ Register vehicle</a>
+        <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Create">+ Create job card</a>
+        <a class="btn btn-ghost" asp-controller="Appointments" asp-action="Create">+ Book appointment</a>
+        <a class="btn btn-ghost" asp-controller="Quotations" asp-action="Index">Quotations</a>
+        <a class="btn btn-ghost" asp-controller="Payments" asp-action="Create">+ Record payment</a>
+        <a class="btn btn-ghost" asp-controller="Parts" asp-action="Index">Parts</a>
+        <a class="btn btn-ghost" asp-controller="Complaints" asp-action="Create">+ Complaint</a>
+    </div>
 </div>

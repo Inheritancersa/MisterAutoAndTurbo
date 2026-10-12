@@ -1,0 +1,38 @@
+@model IEnumerable<Payment>
+@{
+    ViewData["Title"] = "Payments";
+}
+<div class="page-header">
+    <div>
+        <h1>Payments</h1>
+        <p>Payment records against quotations</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Record payment</a>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr><th>Quotation</th><th>Amount</th><th>Method</th><th>Status</th><th>Paid at</th><th></th></tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.QuotationId</td>
+                    <td>R @p.Amount.ToString("N2")</td>
+                    <td>@p.Method</td>
+                    <td>@p.Status</td>
+                    <td>@p.PaidAt.ToString("g")</td>
+                    <td><a asp-action="Details" asp-route-id="@p.Id">View</a></td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="6" style="color:var(--muted);">No payments recorded.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

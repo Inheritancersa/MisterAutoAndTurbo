@@ -1,0 +1,47 @@
+@model IEnumerable<Customer>
+@{
+    ViewData["Title"] = "Customers";
+}
+<div class="page-header">
+    <div>
+        <h1>Customers</h1>
+        <p>Register and manage customer records</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Register customer</a>
+</div>
+
+<form method="get" asp-action="Search" style="margin-bottom:16px;display:flex;gap:8px;">
+    <input class="input" type="search" name="q" value="@ViewData["Query"]" placeholder="Search name, phone, email..." style="max-width:320px;" />
+    <button type="submit" class="btn btn-ghost">Search</button>
+</form>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.Name @c.Surname</td>
+                    <td>@c.Phone</td>
+                    <td>@c.Email</td>
+                    <td><a asp-action="Details" asp-route-id="@c.Id">View</a></td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="4" style="color:var(--muted);">No customers yet. Register the first customer to get started.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

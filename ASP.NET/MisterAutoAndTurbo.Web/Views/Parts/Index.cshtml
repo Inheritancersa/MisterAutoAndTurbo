@@ -1,0 +1,39 @@
+@model IEnumerable<Part>
+@{
+    ViewData["Title"] = "Parts / Inventory";
+}
+<div class="page-header">
+    <div>
+        <h1>Parts / Inventory</h1>
+        <p>Stock levels and unit prices</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Add part</a>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr><th>SKU</th><th>Name</th><th>Category</th><th>Stock</th><th>Unit price</th><th>Reorder</th><th></th></tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.StockKeepingUnit</td>
+                    <td>@p.Name</td>
+                    <td>@p.Category</td>
+                    <td>@p.QuantityInStock</td>
+                    <td>R @p.UnitPrice.ToString("N2")</td>
+                    <td>@p.ReorderLevel</td>
+                    <td><a asp-action="Details" asp-route-id="@p.Id">View</a></td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="7" style="color:var(--muted);">No parts in inventory yet.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

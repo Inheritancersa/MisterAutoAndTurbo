@@ -1,0 +1,27 @@
+@model Complaint
+@{
+    ViewData["Title"] = "Complaint";
+}
+<div class="page-header">
+    <div>
+        <h1>Complaint</h1>
+        <p>@Model.Status · @Model.CreatedAt.ToString("g")</p>
+    </div>
+</div>
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <p>@Model.Description</p>
+        <p style="color:var(--muted);">Customer: @Model.CustomerId · Job: @Model.JobCardId</p>
+        <form asp-action="UpdateStatus" method="post" style="margin-top:16px;display:flex;gap:8px;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <select class="input" name="status" style="max-width:180px;">
+                <option>Open</option>
+                <option>In Progress</option>
+                <option>Resolved</option>
+                <option>Closed</option>
+            </select>
+            <button type="submit" class="btn btn-ghost">Update status</button>
+        </form>
+    </div>
+</div>

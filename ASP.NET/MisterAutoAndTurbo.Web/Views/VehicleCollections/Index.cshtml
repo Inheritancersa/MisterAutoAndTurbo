@@ -1,0 +1,36 @@
+@model IEnumerable<VehicleCollection>
+@{
+    ViewData["Title"] = "Vehicle collection";
+}
+<div class="page-header">
+    <div>
+        <h1>Vehicle collection</h1>
+        <p>Ready for collection and handover</p>
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr><th>Job card</th><th>Status</th><th>Scheduled</th><th>Collected</th><th></th></tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.JobCardId</td>
+                    <td>@c.CollectionStatus</td>
+                    <td>@c.ScheduledAt.ToString("g")</td>
+                    <td>@(c.CollectedAt == default ? "—" : c.CollectedAt.ToString("g"))</td>
+                    <td><a asp-action="Manage" asp-route-jobCardId="@c.JobCardId">Manage</a></td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="5" style="color:var(--muted);">No collection records. Open a job card and use Collection.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,23 @@
+@model Vehicle
+@{
+    ViewData["Title"] = "Edit vehicle";
+}
+<div class="page-header">
+    <div><h1>Edit vehicle</h1></div>
+    <a class="btn btn-ghost" asp-action="Details" asp-route-id="@Model.Id">Cancel</a>
+</div>
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div class="field"><label asp-for="CustomerId">Customer ID</label><input class="input" asp-for="CustomerId" required /></div>
+            <div class="field"><label asp-for="RegistrationNumber">Registration</label><input class="input" asp-for="RegistrationNumber" required /></div>
+            <div class="field"><label asp-for="Make">Make</label><input class="input" asp-for="Make" /></div>
+            <div class="field"><label asp-for="Model">Model</label><input class="input" asp-for="Model" /></div>
+            <div class="field"><label asp-for="Year">Year</label><input class="input" asp-for="Year" type="number" /></div>
+            <div class="field"><label asp-for="Mileage">Mileage</label><input class="input" asp-for="Mileage" type="number" /></div>
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save changes</button>
+        </form>
+    </div>
+</div>

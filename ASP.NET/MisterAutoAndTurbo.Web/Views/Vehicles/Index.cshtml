@@ -1,0 +1,44 @@
+@model IEnumerable<Vehicle>
+@{
+    ViewData["Title"] = "Vehicles";
+}
+<div class="page-header">
+    <div>
+        <h1>Vehicles</h1>
+        <p>Registered vehicles linked to customers</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Register vehicle</a>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Registration</th>
+                <th>Make / Model</th>
+                <th>Year</th>
+                <th>Mileage</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var v in Model)
+            {
+                <tr>
+                    <td>@v.RegistrationNumber</td>
+                    <td>@v.Make @v.Model</td>
+                    <td>@v.Year</td>
+                    <td>@v.Mileage</td>
+                    <td><a asp-action="Details" asp-route-id="@v.Id">View</a></td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="5" style="color:var(--muted);">No vehicles registered yet.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

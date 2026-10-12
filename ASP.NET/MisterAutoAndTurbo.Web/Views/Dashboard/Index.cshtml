@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    var role = ViewData["Role"] as string ?? "Manager";
+}
+<div class="page-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Workshop overview — role: @role</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" asp-controller="Appointments" asp-action="Create">+ Appointment</a>
+        <a class="btn btn-primary" asp-controller="JobCards" asp-action="Create">+ Create Job</a>
+    </div>
+</div>
+
+<div class="grid grid-5" style="margin-bottom:16px">
+    <div class="card stat"><div class="value">—</div><div class="label">Total Vehicles</div></div>
+    <div class="card stat"><div class="value">—</div><div class="label">Currently in Repair</div></div>
+    <div class="card stat"><div class="value">—</div><div class="label">Ready for Collection</div></div>
+    <div class="card stat"><div class="value">—</div><div class="label">Today's Appointments</div></div>
+    <div class="card stat"><div class="value">—</div><div class="label">Outstanding Payments</div></div>
+</div>
+
+<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+        <div class="card-head">Quick actions</div>
+        <div class="card-body" style="display:flex;flex-wrap:wrap;gap:8px;padding:16px;">
+            <a class="btn btn-ghost" asp-controller="Customers" asp-action="Create">Register customer</a>
+            <a class="btn btn-ghost" asp-controller="Vehicles" asp-action="Create">Register vehicle</a>
+            <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Assigned">My assigned jobs</a>
+            <a class="btn btn-ghost" asp-controller="Quotations" asp-action="Index">Quotations</a>
+            <a class="btn btn-ghost" asp-controller="Payments" asp-action="Create">Record payment</a>
+            <a class="btn btn-ghost" asp-controller="VehicleCollections" asp-action="Index">Collections</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">Job pipeline</div>
+        <div class="card-body" style="padding:16px;">
+            <p style="color:var(--muted);margin:0;">Connect data store to show live counts for Inspection, Quotation, In Progress, Quality Check, Ready for Collection.</p>
+        </div>
+    </div>
+</div>

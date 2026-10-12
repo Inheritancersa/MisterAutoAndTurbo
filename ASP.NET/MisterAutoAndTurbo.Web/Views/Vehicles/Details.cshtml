@@ -1,0 +1,26 @@
+@model Vehicle
+@{
+    ViewData["Title"] = "Vehicle details";
+}
+<div class="page-header">
+    <div>
+        <h1>@Model.RegistrationNumber</h1>
+        <p>@Model.Make @Model.Model (@Model.Year)</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-primary" asp-controller="JobCards" asp-action="Create" asp-route-vehicleId="@Model.Id" asp-route-customerId="@Model.CustomerId">+ Create job card</a>
+    </div>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <dl style="display:grid;grid-template-columns:160px 1fr;gap:8px 16px;margin:0;">
+            <dt style="color:var(--muted);">Customer ID</dt><dd>@Model.CustomerId</dd>
+            <dt style="color:var(--muted);">Registration</dt><dd>@Model.RegistrationNumber</dd>
+            <dt style="color:var(--muted);">Make / Model</dt><dd>@Model.Make @Model.Model</dd>
+            <dt style="color:var(--muted);">Year</dt><dd>@Model.Year</dd>
+            <dt style="color:var(--muted);">Mileage</dt><dd>@Model.Mileage</dd>
+        </dl>
+    </div>
+</div>

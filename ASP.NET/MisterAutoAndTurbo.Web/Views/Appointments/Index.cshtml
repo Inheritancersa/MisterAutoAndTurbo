@@ -1,0 +1,62 @@
+@model IEnumerable<Appointment>
+@{
+    ViewData["Title"] = "Appointments";
+}
+<div class="page-header">
+    <div>
+        <h1>Appointments</h1>
+        <p>Scheduled workshop visits</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Book appointment</a>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Vehicle</th>
+                <th>Scheduled</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var a in Model)
+            {
+                var pillClass = a.Status switch
+                {
+                    "Arrived" => "pill pill-blue",
+                    "Completed" => "pill pill-green",
+                    "Cancelled" => "pill pill-amber",
+                    _ => "pill"
+                };
+                <tr>
+                    <td>@a.Id</td>
+                    <td>@a.CustomerId</td>
+                    <td>@a.VehicleId</td>
+                    <td>@a.ScheduledAt.ToString("ddd, dd MMM yyyy HH:mm")</td>
+                    <td><span class="@pillClass">@a.Status</span></td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@a.Id">View</a>
+                        &nbsp;|&nbsp;
+                        <a asp-action="Edit" asp-route-id="@a.Id">Edit</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" style="color:var(--muted);">
+                    No appointments yet.
+                    <a asp-action="Create">Book the first appointment</a>.
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

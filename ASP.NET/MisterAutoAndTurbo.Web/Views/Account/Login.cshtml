@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Sign in";
+    Layout = "_AuthLayout";
+}
+
+<h1 style="font-size:22px;margin-bottom:4px;">Welcome back</h1>
+<p style="color:var(--muted);margin-bottom:24px;">Sign in to Mister Auto &amp; Turbo staff portal</p>
+
+<form asp-action="Login" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+    <div class="field">
+        <label>Email</label>
+        <input class="input" type="email" name="email" placeholder="you@workshop.co.za" required autofocus />
+    </div>
+    <div class="field">
+        <label>Password</label>
+        <input class="input" type="password" name="password" placeholder="••••••••" required />
+    </div>
+
+    <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+    <button type="submit" class="btn btn-primary btn-block" style="width:100%;margin-top:8px;">Sign in</button>
+</form>
+
+<p style="margin-top:20px;text-align:center;color:var(--muted);font-size:13px;">
+    No account? <a asp-action="Register">Register staff account</a>
+</p>

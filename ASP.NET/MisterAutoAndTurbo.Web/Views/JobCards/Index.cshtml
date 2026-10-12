@@ -1,0 +1,52 @@
+@model IEnumerable<JobCard>
+@{
+    ViewData["Title"] = "Job cards";
+    var filter = ViewData["StatusFilter"] as string;
+}
+<div class="page-header">
+    <div>
+        <h1>Repairs / Jobs</h1>
+        <p>@(string.IsNullOrEmpty(filter) ? "All job cards" : $"Filtered: {filter}")</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" asp-action="Active">Active</a>
+        <a class="btn btn-ghost" asp-action="Completed">Completed</a>
+        <a class="btn btn-ghost" asp-action="Assigned">Assigned to me</a>
+        <a class="btn btn-primary" asp-action="Create">+ Create job card</a>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Job ID</th>
+                <th>Vehicle</th>
+                <th>Mechanic</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var j in Model)
+            {
+                <tr>
+                    <td>@j.Id</td>
+                    <td>@j.VehichleId</td>
+                    <td>@j.MechanicId</td>
+                    <td><span class="pill pill-blue">@j.Status</span></td>
+                    <td>@j.CreatedAt.ToString("yyyy-MM-dd")</td>
+                    <td><a asp-action="Details" asp-route-id="@j.Id">Open</a></td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="6" style="color:var(--muted);">No job cards found.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

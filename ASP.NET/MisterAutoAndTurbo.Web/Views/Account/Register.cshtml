@@ -1,0 +1,50 @@
+@model UserAccount
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_AuthLayout";
+}
+
+<h1 style="font-size:22px;margin-bottom:4px;">Create staff account</h1>
+<p style="color:var(--muted);margin-bottom:24px;">Receptionist, Mechanic or Manager access</p>
+
+<form asp-action="Register" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="field">
+        <label>Username</label>
+        <input class="input" asp-for="Username" placeholder="j.smith" required />
+    </div>
+    <div class="field">
+        <label>Email</label>
+        <input class="input" asp-for="Email" type="email" placeholder="you@workshop.co.za" required />
+    </div>
+    <div class="field">
+        <label>Phone</label>
+        <input class="input" asp-for="Phone" placeholder="07X XXX XXXX" />
+    </div>
+    <div class="field">
+        <label>Role</label>
+        <select class="input" asp-for="Role" required>
+            <option value="">Select role</option>
+            <option value="Receptionist">Receptionist</option>
+            <option value="Mechanic">Mechanic</option>
+            <option value="Manager">Manager / Owner</option>
+        </select>
+    </div>
+    <div class="field">
+        <label>Password</label>
+        <input class="input" asp-for="PasswordHash" type="password" name="PasswordHash" required />
+    </div>
+    <div class="field">
+        <label>Confirm password</label>
+        <input class="input" type="password" name="confirmPassword" required />
+    </div>
+
+    <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+    <button type="submit" class="btn btn-primary btn-block" style="width:100%;margin-top:8px;">Create account</button>
+</form>
+
+<p style="margin-top:20px;text-align:center;color:var(--muted);font-size:13px;">
+    Already registered? <a asp-action="Login">Sign in</a>
+</p>

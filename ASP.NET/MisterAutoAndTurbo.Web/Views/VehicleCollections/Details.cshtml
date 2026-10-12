@@ -1,0 +1,21 @@
+@model VehicleCollection
+@{
+    ViewData["Title"] = "Collection details";
+}
+<div class="page-header">
+    <div>
+        <h1>Collection</h1>
+        <p>@Model.CollectionStatus</p>
+    </div>
+</div>
+<div class="card" style="max-width:480px;">
+    <div class="card-body" style="padding:24px;">
+        <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin:0;">
+            <dt style="color:var(--muted);">Job card</dt><dd>@Model.JobCardId</dd>
+            <dt style="color:var(--muted);">Managed by</dt><dd>@Model.ManagedById</dd>
+            <dt style="color:var(--muted);">Status</dt><dd>@Model.CollectionStatus</dd>
+            <dt style="color:var(--muted);">Scheduled</dt><dd>@Model.ScheduledAt.ToString("g")</dd>
+            <dt style="color:var(--muted);">Collected</dt><dd>@Model.CollectedAt.ToString("g")</dd>
+        </dl>
+    </div>
+</div>

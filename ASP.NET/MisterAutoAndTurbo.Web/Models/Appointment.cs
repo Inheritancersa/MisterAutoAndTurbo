@@ -1,13 +1,12 @@
-﻿namespace MisterAutoAndTurbo.Web.Models
+namespace MisterAutoAndTurbo.Web.Models
 {
     public class Appointment
     {
-        public string Id { get; set; }
-        public string CustomerId { get; set; }
-        public string VehicleId { get; set; }
-        public string CreatedById { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string CustomerId { get; set; } = string.Empty;
+        public string VehicleId { get; set; } = string.Empty;
+        public string CreatedById { get; set; } = string.Empty;
         public DateTime ScheduledAt { get; set; }
-        public string Status { get; set; }
-
+        public string Status { get; set; } = string.Empty;
     }
 }

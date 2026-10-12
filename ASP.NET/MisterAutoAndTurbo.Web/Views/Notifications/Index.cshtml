@@ -1,0 +1,72 @@
+@model IEnumerable<Notification>
+@{
+    ViewData["Title"] = "Notifications";
+}
+<div class="page-header">
+    <div>
+        <h1>Notifications</h1>
+        <p>Job updates and system messages</p>
+    </div>
+</div>
+
+<div class="card" style="max-width:560px;margin-bottom:16px;">
+    <div class="card-head">Notify admin / owner</div>
+    <div class="card-body" style="padding:16px;">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div class="field">
+                <label>Message</label>
+                <textarea class="input" name="message" rows="2" required placeholder="Job update details..."></textarea>
+            </div>
+            <div class="field">
+                <label>Type</label>
+                <select class="input" name="type">
+                    <option>JobUpdate</option>
+                    <option>System</option>
+                    <option>Alert</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Target user account ID (optional)</label>
+                <input class="input" name="targetUserAccountId" />
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:8px;">Send notification</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr><th>Message</th><th>Type</th><th>Read</th><th>Date</th><th></th></tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var n in Model)
+            {
+                <tr>
+                    <td>@n.Message</td>
+                    <td>@n.Type</td>
+                    <td>@(n.IsRead ? "Yes" : "No")</td>
+                    <td>@n.CreatedAt.ToString("g")</td>
+                    <td>
+                        @if (!n.IsRead)
+                        {
+                            <form asp-action="MarkRead" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@n.Id" />
+                                <button type="submit" class="btn btn-ghost" style="padding:4px 8px;font-size:12px;">Mark read</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="5" style="color:var(--muted);">No notifications.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,47 @@
+@model Vehicle
+@{
+    ViewData["Title"] = "Register vehicle";
+}
+<div class="page-header">
+    <div>
+        <h1>Register vehicle</h1>
+        <p>Link a vehicle to a customer</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Index">Back to list</a>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="field">
+                <label asp-for="CustomerId">Customer ID</label>
+                <input class="input" asp-for="CustomerId" required placeholder="Customer record id" />
+            </div>
+            <div class="field">
+                <label asp-for="RegistrationNumber">Registration number</label>
+                <input class="input" asp-for="RegistrationNumber" required />
+            </div>
+            <div class="field">
+                <label asp-for="Make">Make</label>
+                <input class="input" asp-for="Make" />
+            </div>
+            <div class="field">
+                <label asp-for="Model">Model</label>
+                <input class="input" asp-for="Model" />
+            </div>
+            <div class="field">
+                <label asp-for="Year">Year</label>
+                <input class="input" asp-for="Year" type="number" />
+            </div>
+            <div class="field">
+                <label asp-for="Mileage">Mileage</label>
+                <input class="input" asp-for="Mileage" type="number" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save vehicle</button>
+        </form>
+    </div>
+</div>

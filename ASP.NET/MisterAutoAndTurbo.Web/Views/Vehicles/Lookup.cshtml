@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Vehicle lookup";
+}
+<div class="page-header">
+    <div>
+        <h1>Vehicle lookup</h1>
+        <p>Find a vehicle by registration number</p>
+    </div>
+</div>
+<div class="card" style="max-width:420px;">
+    <div class="card-body" style="padding:24px;">
+        <form method="get" asp-action="Lookup">
+            <div class="field">
+                <label>Registration number</label>
+                <input class="input" name="registration" value="@ViewData["Registration"]" placeholder="ABC 123 FS" />
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Search</button>
+        </form>
+    </div>
+</div>

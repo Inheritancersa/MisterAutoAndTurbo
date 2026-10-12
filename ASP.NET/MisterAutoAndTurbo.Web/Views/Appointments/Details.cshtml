@@ -1,0 +1,59 @@
+@model Appointment
+@{
+    ViewData["Title"] = "Appointment";
+}
+<div class="page-header">
+    <div>
+        <h1>Appointment @Model.Id</h1>
+        <p>
+            <span class="pill">@Model.Status</span>
+            &nbsp;@Model.ScheduledAt.ToString("dddd, dd MMMM yyyy · HH:mm")
+        </p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-ghost" asp-action="Index">All appointments</a>
+        <a class="btn btn-primary" asp-controller="JobCards" asp-action="Create"
+           asp-route-customerId="@Model.CustomerId" asp-route-vehicleId="@Model.VehicleId">+ Create job card</a>
+    </div>
+</div>
+
+<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+        <div class="card-head">Details</div>
+        <div class="card-body" style="padding:20px;">
+            <dl style="display:grid;grid-template-columns:130px 1fr;gap:10px 16px;margin:0;">
+                <dt style="color:var(--muted);">Customer</dt>
+                <dd>@Model.CustomerId</dd>
+                <dt style="color:var(--muted);">Vehicle</dt>
+                <dd>@Model.VehicleId</dd>
+                <dt style="color:var(--muted);">Created by</dt>
+                <dd>@Model.CreatedById</dd>
+                <dt style="color:var(--muted);">Scheduled</dt>
+                <dd>@Model.ScheduledAt.ToString("g")</dd>
+                <dt style="color:var(--muted);">Status</dt>
+                <dd>@Model.Status</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">Update status</div>
+        <div class="card-body" style="padding:20px;">
+            <form asp-action="UpdateStatus" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="field">
+                    <label>New status</label>
+                    <select class="input" name="status">
+                        <option value="Scheduled" selected="@(Model.Status == "Scheduled")">Scheduled</option>
+                        <option value="Arrived" selected="@(Model.Status == "Arrived")">Arrived</option>
+                        <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Cancelled</option>
+                        <option value="Completed" selected="@(Model.Status == "Completed")">Completed</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:8px;">Update status</button>
+            </form>
+        </div>
+    </div>
+</div>

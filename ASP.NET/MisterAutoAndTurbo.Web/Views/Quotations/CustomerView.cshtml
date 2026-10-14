@@ -1,0 +1,102 @@
+@model Quotation
+@{
+    Layout = null;
+    var customerName = ViewBag.CustomerName as string ?? "Customer";
+    var vehicleLabel = ViewBag.VehicleLabel as string ?? Model.VehicleId;
+    var canRespond = Model.Status == "Sent" || Model.Status == "Pending";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>Your quotation — Mister Auto &amp; Turbo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #0D1A2E; color: #151B2E; min-height: 100vh; }
+        .shell { max-width: 420px; margin: 0 auto; min-height: 100vh; background: #F3F5F9; display: flex; flex-direction: column; }
+        .top { background: #0D1A2E; color: #fff; padding: 20px 20px 28px; }
+        .top h1 { margin: 0; font-size: 18px; font-weight: 700; }
+        .top p { margin: 6px 0 0; opacity: .75; font-size: 13px; }
+        .card { background: #fff; margin: -12px 16px 16px; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #E3E7EF; font-size: 14px; }
+        .row:last-child { border-bottom: none; }
+        .muted { color: #6B7387; }
+        .total { font-size: 22px; font-weight: 800; color: #0D1A2E; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #e8f0fe; color: #1a365d; }
+        .badge.ok { background: #e8f8ef; color: #1b4332; }
+        .badge.no { background: #fde8e8; color: #7f1d1d; }
+        .actions { padding: 0 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+        .btn { display: block; width: 100%; text-align: center; padding: 14px; border-radius: 10px; font-weight: 600; font-size: 15px; border: none; cursor: pointer; font-family: inherit; }
+        .btn-approve { background: #2E9E5B; color: #fff; }
+        .btn-reject { background: #fff; color: #D64545; border: 1.5px solid #D64545; }
+        .msg { margin: 12px 16px; padding: 12px; border-radius: 8px; font-size: 13px; }
+        .msg.ok { background: #e8f8ef; color: #1b4332; }
+        .msg.err { background: #fde8e8; color: #7f1d1d; }
+        .brand { font-size: 12px; opacity: .6; margin-top: 8px; }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <div class="top">
+        <div class="brand">Mister Auto &amp; Turbo</div>
+        <h1>Your quotation</h1>
+        <p>@customerName · @vehicleLabel</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="msg ok">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="msg err">@TempData["Error"]</div>
+    }
+
+    <div class="card">
+        <div style="margin-bottom:12px;">
+            <span class="badge @(Model.Status == "Approved" ? "ok" : Model.Status == "Rejected" ? "no" : "")">@Model.Status</span>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p style="margin:0 0 12px;font-size:14px;">@Model.Description</p>
+        }
+        <div class="row"><span class="muted">Labour</span><span>R @Model.LabourCost.ToString("N2")</span></div>
+        <div class="row"><span class="muted">Parts</span><span>R @Model.PartsCost.ToString("N2")</span></div>
+        @if (Model.CustomerSuppliedDifference > 0)
+        {
+            <div class="row"><span class="muted">Your parts discount</span><span>− R @Model.CustomerSuppliedDifference.ToString("N2")</span></div>
+        }
+        <div class="row"><span class="muted">Total</span><span class="total">R @Model.TotalCost.ToString("N2")</span></div>
+    </div>
+
+    @if (canRespond)
+    {
+        <div class="actions">
+            <form asp-action="Approve" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-approve">Approve quotation</button>
+            </form>
+            <form asp-action="Reject" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-reject">Reject quotation</button>
+            </form>
+            <p style="text-align:center;color:#6B7387;font-size:12px;margin:0;">
+                Approving allows the workshop to start the work.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="actions">
+            <p style="text-align:center;color:#6B7387;font-size:13px;">
+                You already responded to this quotation.
+            </p>
+        </div>
+    }
+</div>
+</body>
+</html>

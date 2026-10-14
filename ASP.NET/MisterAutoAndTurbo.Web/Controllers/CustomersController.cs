@@ -1,43 +1,44 @@
 using Microsoft.AspNetCore.Mvc;
+using MisterAutoAndTurbo.Web.Data;
 using MisterAutoAndTurbo.Web.Models;
 
 namespace MisterAutoAndTurbo.Web.Controllers
 {
-    /// <summary>
-    /// Receptionist: Register Customer. Manager: View Customer Records.
-    /// </summary>
     public class CustomersController : Controller
     {
-        // GET: /Customers
         [HttpGet]
         public IActionResult Index()
         {
-            // TODO: Retrieve customer records from Supabase
-            // Manager: View Customer Records | Receptionist: list for intake
-            var customers = new List<Customer>();
+            var customers = AppDataStore.Customers
+                .OrderBy(c => c.Name)
+                .ThenBy(c => c.Surname)
+                .ToList();
             return View(customers);
         }
 
-        // GET: /Customers/Details/{id}
         [HttpGet]
         public IActionResult Details(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
                 return NotFound();
 
-            // TODO: Retrieve customer by id
-            var customer = new Customer { Id = id };
+            var customer = AppDataStore.Customers.FirstOrDefault(c => c.Id == id);
+            if (customer == null)
+                return NotFound();
+
+            ViewBag.Vehicles = AppDataStore.Vehicles
+                .Where(v => v.CustomerId == customer.Id)
+                .OrderBy(v => v.RegistrationNumber)
+                .ToList();
             return View(customer);
         }
 
-        // GET: /Customers/Create
         [HttpGet]
         public IActionResult Create()
         {
             return View(new Customer());
         }
 
-        // POST: /Customers/Create  (Register Customer – Receptionist sequence)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Customer model)
@@ -48,28 +49,32 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 return View(model);
             }
 
-            // TODO: Save customer details to Supabase
-            // alt [details valid] -> Customer record saved + Confirmation
-            // else -> Display validation error
+            model.Id = AppDataStore.NewId("cust");
+            model.Name = model.Name.Trim();
+            model.Surname = model.Surname?.Trim() ?? string.Empty;
+            model.Phone = model.Phone.Trim();
+            model.Email = model.Email?.Trim() ?? string.Empty;
+            model.Address = model.Address?.Trim() ?? string.Empty;
 
-            model.Id = Guid.NewGuid().ToString();
-            TempData["Success"] = "Customer registered successfully.";
+            AppDataStore.Customers.Add(model);
+
+            TempData["Success"] = $"Customer {model.Name} {model.Surname} registered.";
             return RedirectToAction(nameof(Details), new { id = model.Id });
         }
 
-        // GET: /Customers/Edit/{id}
         [HttpGet]
         public IActionResult Edit(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
                 return NotFound();
 
-            // TODO: Load customer
-            var customer = new Customer { Id = id };
+            var customer = AppDataStore.Customers.FirstOrDefault(c => c.Id == id);
+            if (customer == null)
+                return NotFound();
+
             return View(customer);
         }
 
-        // POST: /Customers/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(string id, Customer model)
@@ -77,18 +82,43 @@ namespace MisterAutoAndTurbo.Web.Controllers
             if (id != model.Id)
                 return NotFound();
 
-            // TODO: Update customer in Supabase
+            var existing = AppDataStore.Customers.FirstOrDefault(c => c.Id == id);
+            if (existing == null)
+                return NotFound();
+
+            if (string.IsNullOrWhiteSpace(model.Name) || string.IsNullOrWhiteSpace(model.Phone))
+            {
+                ModelState.AddModelError(string.Empty, "Name and phone are required.");
+                return View(model);
+            }
+
+            existing.Name = model.Name.Trim();
+            existing.Surname = model.Surname?.Trim() ?? string.Empty;
+            existing.Phone = model.Phone.Trim();
+            existing.Email = model.Email?.Trim() ?? string.Empty;
+            existing.Address = model.Address?.Trim() ?? string.Empty;
+            existing.WorkPhone = model.WorkPhone?.Trim() ?? string.Empty;
+            existing.WorkAddress = model.WorkAddress?.Trim() ?? string.Empty;
+
             TempData["Success"] = "Customer updated.";
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        // GET: /Customers/Search?q=
         [HttpGet]
         public IActionResult Search(string q)
         {
-            // TODO: Search customers by name, phone, email
-            var results = new List<Customer>();
             ViewData["Query"] = q;
+            if (string.IsNullOrWhiteSpace(q))
+                return View("Index", AppDataStore.Customers.OrderBy(c => c.Name).ToList());
+
+            var term = q.Trim();
+            var results = AppDataStore.Customers.Where(c =>
+                    (c.Name?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Surname?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Phone?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+                .OrderBy(c => c.Name)
+                .ToList();
             return View("Index", results);
         }
     }

@@ -1,6 +1,7 @@
 @model Customer
 @{
     ViewData["Title"] = "Customer details";
+    var vehicles = ViewBag.Vehicles as List<Vehicle> ?? new List<Vehicle>();
 }
 <div class="page-header">
     <div>
@@ -13,7 +14,7 @@
     </div>
 </div>
 
-<div class="card" style="max-width:560px;">
+<div class="card" style="max-width:560px;margin-bottom:16px;">
     <div class="card-body" style="padding:24px;">
         <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin:0;">
             <dt style="color:var(--muted);">Phone</dt><dd>@Model.Phone</dd>
@@ -22,5 +23,43 @@
             <dt style="color:var(--muted);">Work phone</dt><dd>@Model.WorkPhone</dd>
             <dt style="color:var(--muted);">Work address</dt><dd>@Model.WorkAddress</dd>
         </dl>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">Vehicles (@vehicles.Count)</div>
+    <div class="card-body" style="padding:16px;">
+        @if (vehicles.Count == 0)
+        {
+            <p style="color:var(--muted);margin:0;">No vehicles registered for this customer.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Registration</th>
+                        <th>Make</th>
+                        <th>Model</th>
+                        <th>Year</th>
+                        <th>Mileage</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in vehicles)
+                    {
+                        <tr>
+                            <td>@v.RegistrationNumber</td>
+                            <td>@v.Make</td>
+                            <td>@v.Model</td>
+                            <td>@v.Year</td>
+                            <td>@v.Mileage.ToString("N0") km</td>
+                            <td><a asp-controller="Vehicles" asp-action="Details" asp-route-id="@v.Id">View</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
     </div>
 </div>

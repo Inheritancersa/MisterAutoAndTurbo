@@ -1,21 +1,46 @@
 @model Quotation
 @{
-    ViewData["Title"] = "Generate quotation";
+    ViewData["Title"] = "Create quotation";
 }
 <div class="page-header">
     <div>
-        <h1>Generate quotation</h1>
-        <p>Job card: @Model.JobCardId</p>
+        <h1>Create quotation</h1>
+        <p>Quote a customer — labour, parts and any customer-supplied part discount</p>
     </div>
-    <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Details" asp-route-id="@Model.JobCardId">Back to job</a>
+    <a class="btn btn-ghost" asp-action="Index">Back to quotations</a>
 </div>
 
-<div class="card" style="max-width:560px;">
+<div class="card" style="max-width:640px;">
     <div class="card-body" style="padding:24px;">
         <form asp-action="Create" method="post" id="quoteForm">
             @Html.AntiForgeryToken()
-            <input type="hidden" asp-for="JobCardId" />
-            <div asp-validation-summary="All" class="text-danger"></div>
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+            <div class="field">
+                <label asp-for="CustomerId">Customer to quote</label>
+                <select class="input" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
+                    <option value="">— Select customer —</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label asp-for="JobCardId">Job card (optional)</label>
+                <select class="input" asp-for="JobCardId" asp-items="ViewBag.JobCards">
+                    <option value="">— No job card / select later —</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label asp-for="VehicleId">Vehicle (optional)</label>
+                <select class="input" asp-for="VehicleId" asp-items="ViewBag.Vehicles">
+                    <option value="">— Select vehicle —</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label asp-for="Description">Work / quote description</label>
+                <textarea class="input" asp-for="Description" rows="3" placeholder="e.g. Replace turbo hose, labour and parts"></textarea>
+            </div>
 
             <div class="field">
                 <label asp-for="LabourCost">Labour cost (R)</label>
@@ -28,20 +53,21 @@
             <div class="field">
                 <label asp-for="CustomerSuppliedDifference">Customer-supplied part difference (R)</label>
                 <input class="input" asp-for="CustomerSuppliedDifference" type="number" step="0.01" min="0" id="custDiff" />
-                <small style="color:var(--muted);">Amount discounted when customer supplies the part</small>
+                <small style="color:var(--muted);">Discount when the customer supplies their own part</small>
             </div>
             <div class="field">
                 <label>Total (R)</label>
-                <input class="input" id="totalCost" readonly value="0.00" />
+                <input class="input" id="totalCost" readonly value="0.00" style="font-weight:700;" />
             </div>
             <div class="field">
                 <label asp-for="Status">Status</label>
                 <select class="input" asp-for="Status">
-                    <option>Pending</option>
-                    <option>Approved</option>
-                    <option>Rejected</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
                 </select>
             </div>
+
             <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save quotation</button>
         </form>
     </div>
@@ -59,7 +85,8 @@
         document.getElementById('totalCost').value = t.toFixed(2);
     }
     ['labourCost','partsCost','custDiff'].forEach(function (id) {
-        document.getElementById(id).addEventListener('input', recalc);
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', recalc);
     });
     recalc();
 })();

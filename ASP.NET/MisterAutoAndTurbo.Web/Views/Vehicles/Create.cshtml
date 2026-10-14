@@ -5,7 +5,7 @@
 <div class="page-header">
     <div>
         <h1>Register vehicle</h1>
-        <p>Link a vehicle to a customer</p>
+        <p>Link a vehicle to a customer — it will appear on the Vehicles list after you save</p>
     </div>
     <a class="btn btn-ghost" asp-action="Index">Back to list</a>
 </div>
@@ -14,31 +14,44 @@
     <div class="card-body" style="padding:24px;">
         <form asp-action="Create" method="post">
             @Html.AntiForgeryToken()
-            <div asp-validation-summary="All" class="text-danger"></div>
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
 
             <div class="field">
-                <label asp-for="CustomerId">Customer ID</label>
-                <input class="input" asp-for="CustomerId" required placeholder="Customer record id" />
+                <label asp-for="CustomerId">Customer</label>
+                @if (ViewBag.Customers != null)
+                {
+                    <select class="input" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
+                        <option value="">— Select customer —</option>
+                    </select>
+                }
+                else
+                {
+                    <input class="input" asp-for="CustomerId" required placeholder="Customer ID" />
+                }
+                <small style="color:var(--muted);">
+                    No customer?
+                    <a asp-controller="Customers" asp-action="Create">Register customer first</a>
+                </small>
             </div>
             <div class="field">
                 <label asp-for="RegistrationNumber">Registration number</label>
-                <input class="input" asp-for="RegistrationNumber" required />
+                <input class="input" asp-for="RegistrationNumber" required placeholder="e.g. ABC 123 FS" />
             </div>
             <div class="field">
                 <label asp-for="Make">Make</label>
-                <input class="input" asp-for="Make" />
+                <input class="input" asp-for="Make" placeholder="e.g. Toyota" />
             </div>
             <div class="field">
                 <label asp-for="Model">Model</label>
-                <input class="input" asp-for="Model" />
+                <input class="input" asp-for="Model" placeholder="e.g. Hilux" />
             </div>
             <div class="field">
                 <label asp-for="Year">Year</label>
-                <input class="input" asp-for="Year" type="number" />
+                <input class="input" asp-for="Year" type="number" min="1980" max="2030" />
             </div>
             <div class="field">
                 <label asp-for="Mileage">Mileage</label>
-                <input class="input" asp-for="Mileage" type="number" />
+                <input class="input" asp-for="Mileage" type="number" min="0" />
             </div>
 
             <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save vehicle</button>

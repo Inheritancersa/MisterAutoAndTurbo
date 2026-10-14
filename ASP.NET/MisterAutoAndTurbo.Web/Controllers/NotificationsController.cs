@@ -1,57 +1,52 @@
 using Microsoft.AspNetCore.Mvc;
+using MisterAutoAndTurbo.Web.Data;
 using MisterAutoAndTurbo.Web.Models;
 
 namespace MisterAutoAndTurbo.Web.Controllers
 {
-    /// <summary>
-    /// Mechanic: Notify Admin/Owner of job update.
-    /// Staff can view notifications linked to UserAccount.
-    /// </summary>
     public class NotificationsController : Controller
     {
-        // GET: /Notifications
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(string? customerId = null)
         {
-            // TODO: Retrieve notifications for current user
-            var list = new List<Notification>();
-            return View(list);
+            // Staff see all; optional filter by customer (mobile would pass their id)
+            var list = AppDataStore.Notifications.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(customerId))
+                list = list.Where(n => n.UserAccountId == customerId);
+
+            return View(list.OrderByDescending(n => n.CreatedAt).ToList());
         }
 
-        // POST: /Notifications/Create  (Notify Admin/Owner)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(string message, string type, string? targetUserAccountId = null)
         {
-            // alt [job update entered] -> Save notification + Confirmation
-            // else -> Display validation error
             if (string.IsNullOrWhiteSpace(message))
             {
                 TempData["Error"] = "Notification message is required.";
                 return RedirectToAction(nameof(Index));
             }
 
-            var model = new Notification
+            AppDataStore.Notifications.Add(new Notification
             {
-                Id = Guid.NewGuid().ToString(),
-                UserAccountId = targetUserAccountId ?? string.Empty,
-                Message = message,
+                Id = AppDataStore.NewId("ntf"),
+                UserAccountId = targetUserAccountId ?? "staff",
+                Message = message.Trim(),
                 Type = string.IsNullOrWhiteSpace(type) ? "JobUpdate" : type,
                 IsRead = false,
-                CreatedAt = DateTime.UtcNow
-            };
+                CreatedAt = DateTime.Now
+            });
 
-            // TODO: Save notification to Supabase (real-time for Flutter/staff)
             TempData["Success"] = "Notification sent.";
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Notifications/MarkRead/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult MarkRead(string id)
         {
-            // TODO: Mark as read
+            var n = AppDataStore.Notifications.FirstOrDefault(x => x.Id == id);
+            if (n != null) n.IsRead = true;
             return RedirectToAction(nameof(Index));
         }
     }

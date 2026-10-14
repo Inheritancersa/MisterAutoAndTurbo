@@ -1,46 +1,113 @@
-@model IEnumerable<Quotation>
+@model IEnumerable<MisterAutoAndTurbo.Web.Controllers.QuotationCustomerGroup>
 @{
     ViewData["Title"] = "Quotations";
+    string? filter = ViewBag.CustomerFilter as string;
 }
 <div class="page-header">
     <div>
         <h1>Quotations</h1>
-        <p>Labour, parts and customer-supplied differences</p>
+        <p>Quotes grouped by customer — labour, parts and customer-supplied differences</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Create quotation</a>
+</div>
+
+@* Filter by customer *@
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+        <form method="get" asp-action="Index" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;flex:1;">
+            <div class="field" style="margin:0;min-width:240px;">
+                <label>Show quotations for customer</label>
+                <select class="input" name="customerId" asp-items="ViewBag.Customers">
+                    <option value="">— All customers —</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-ghost">Filter</button>
+            @if (!string.IsNullOrEmpty(filter))
+            {
+                <a class="btn btn-ghost" asp-action="Index">Clear filter</a>
+            }
+        </form>
+        <a class="btn btn-primary" asp-action="Create" asp-route-customerId="@filter">+ Quote this customer</a>
     </div>
 </div>
-<div class="card">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Job card</th>
-                <th>Labour</th>
-                <th>Parts</th>
-                <th>Customer-supplied Δ</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        @if (Model != null && Model.Any())
-        {
-            foreach (var q in Model)
-            {
-                <tr>
-                    <td>@q.JobCardId</td>
-                    <td>R @q.LabourCost.ToString("N2")</td>
-                    <td>R @q.PartsCost.ToString("N2")</td>
-                    <td>R @q.CustomerSuppliedDifference.ToString("N2")</td>
-                    <td><strong>R @q.TotalCost.ToString("N2")</strong></td>
-                    <td>@q.Status</td>
-                    <td><a asp-action="Details" asp-route-id="@q.Id">View</a></td>
-                </tr>
-            }
-        }
-        else
-        {
-            <tr><td colspan="7" style="color:var(--muted);">No quotations yet. Generate one from a job card.</td></tr>
-        }
-        </tbody>
-    </table>
-</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="card">
+        <div class="card-body" style="padding:24px;color:var(--muted);">
+            No quotations yet.
+            <a asp-action="Create">Create the first quotation</a> for a customer.
+        </div>
+    </div>
+}
+else
+{
+    @foreach (var group in Model)
+    {
+        <div class="card" style="margin-bottom:16px;">
+            <div class="card-head">
+                <span>
+                    <strong>@group.CustomerName</strong>
+                    @if (!string.IsNullOrEmpty(group.Phone))
+                    {
+                        <span style="color:var(--muted);font-weight:normal;"> · @group.Phone</span>
+                    }
+                    <span style="color:var(--muted);font-weight:normal;"> · @group.Quotations.Count quote(s)</span>
+                </span>
+                <a asp-action="Create" asp-route-customerId="@group.CustomerId">+ New quote</a>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Job</th>
+                        <th>Labour</th>
+                        <th>Parts</th>
+                        <th>Cust. supplied Δ</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var q in group.Quotations)
+                {
+                    var pill = q.Status switch
+                    {
+                        "Approved" => "pill pill-green",
+                        "Rejected" => "pill pill-red",
+                        "Sent" => "pill pill-blue",
+                        "Pending" => "pill pill-blue",
+                        _ => "pill"
+                    };
+                    <tr>
+                        <td>@q.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td>@(string.IsNullOrEmpty(q.Description) ? "—" : (q.Description.Length > 40 ? q.Description.Substring(0, 40) + "…" : q.Description))</td>
+                        <td>@(string.IsNullOrEmpty(q.JobCardId) ? "—" : q.JobCardId)</td>
+                        <td>R @q.LabourCost.ToString("N2")</td>
+                        <td>R @q.PartsCost.ToString("N2")</td>
+                        <td>R @q.CustomerSuppliedDifference.ToString("N2")</td>
+                        <td><strong>R @q.TotalCost.ToString("N2")</strong></td>
+                        <td><span class="@pill">@q.Status</span></td>
+                        <td>
+                        <a asp-action="Details" asp-route-id="@q.Id">View</a>
+                        @if (q.Status != "Approved" && q.Status != "Rejected")
+                        {
+                            <span> · </span>
+                            <a asp-action="Edit" asp-route-id="@q.Id">Edit</a>
+                        }
+                        <span> · </span>
+                        <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Delete quotation @q.Id? This cannot be undone.');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@q.Id" />
+                            <button type="submit" class="btn-link-danger" style="background:none;border:none;color:#D64545;cursor:pointer;padding:0;font:inherit;">Delete</button>
+                        </form>
+                    </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+}

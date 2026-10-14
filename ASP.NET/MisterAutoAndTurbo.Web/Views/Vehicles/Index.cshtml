@@ -7,7 +7,10 @@
         <h1>Vehicles</h1>
         <p>Registered vehicles linked to customers</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">+ Register vehicle</a>
+    <div style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" asp-action="Lookup">Lookup</a>
+        <a class="btn btn-primary" asp-action="Create">+ Register vehicle</a>
+    </div>
 </div>
 
 <div class="card">
@@ -18,6 +21,7 @@
                 <th>Make / Model</th>
                 <th>Year</th>
                 <th>Mileage</th>
+                <th>Customer</th>
                 <th></th>
             </tr>
         </thead>
@@ -27,17 +31,27 @@
             foreach (var v in Model)
             {
                 <tr>
-                    <td>@v.RegistrationNumber</td>
+                    <td><strong>@v.RegistrationNumber</strong></td>
                     <td>@v.Make @v.Model</td>
                     <td>@v.Year</td>
-                    <td>@v.Mileage</td>
-                    <td><a asp-action="Details" asp-route-id="@v.Id">View</a></td>
+                    <td>@v.Mileage.ToString("N0")</td>
+                    <td>@v.CustomerId</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@v.Id">View</a>
+                        &nbsp;|&nbsp;
+                        <a asp-action="Edit" asp-route-id="@v.Id">Edit</a>
+                    </td>
                 </tr>
             }
         }
         else
         {
-            <tr><td colspan="5" style="color:var(--muted);">No vehicles registered yet.</td></tr>
+            <tr>
+                <td colspan="6" style="color:var(--muted);">
+                    No vehicles registered yet.
+                    <a asp-action="Create">Register the first vehicle</a>.
+                </td>
+            </tr>
         }
         </tbody>
     </table>

@@ -1,20 +1,69 @@
 @{
     ViewData["Title"] = "Vehicle lookup";
+    var vehicle = ViewBag.Vehicle as Vehicle;
+    var customer = ViewBag.Customer as Customer;
 }
 <div class="page-header">
     <div>
         <h1>Vehicle lookup</h1>
         <p>Find a vehicle by registration number</p>
     </div>
+    <a class="btn btn-ghost" asp-action="Index">Back to list</a>
 </div>
 <div class="card" style="max-width:420px;">
     <div class="card-body" style="padding:24px;">
         <form method="get" asp-action="Lookup">
             <div class="field">
                 <label>Registration number</label>
-                <input class="input" name="registration" value="@ViewData["Registration"]" placeholder="ABC 123 FS" />
+                <input class="input" name="registration" value="@ViewData["Registration"]" placeholder="ABC 123 FS" autofocus />
             </div>
             <button type="submit" class="btn btn-primary" style="margin-top:12px;">Search</button>
         </form>
     </div>
 </div>
+
+@if (vehicle != null)
+{
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+        <div class="card">
+            <div class="card-head">Vehicle</div>
+            <div class="card-body" style="padding:16px;">
+                <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin:0;">
+                    <dt style="color:var(--muted);">Registration</dt><dd>@vehicle.RegistrationNumber</dd>
+                    <dt style="color:var(--muted);">Make</dt><dd>@vehicle.Make</dd>
+                    <dt style="color:var(--muted);">Model</dt><dd>@vehicle.Model</dd>
+                    <dt style="color:var(--muted);">Year</dt><dd>@vehicle.Year</dd>
+                    <dt style="color:var(--muted);">Mileage</dt><dd>@vehicle.Mileage.ToString("N0") km</dd>
+                </dl>
+                <a class="btn btn-ghost" style="margin-top:12px;" asp-action="Details" asp-route-id="@vehicle.Id">Full vehicle details</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">Customer</div>
+            <div class="card-body" style="padding:16px;">
+                @if (customer == null)
+                {
+                    <p style="color:var(--muted);margin:0;">No customer found for this vehicle.</p>
+                }
+                else
+                {
+                    <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin:0;">
+                        <dt style="color:var(--muted);">Name</dt><dd>@customer.Name @customer.Surname</dd>
+                        <dt style="color:var(--muted);">Phone</dt><dd>@customer.Phone</dd>
+                        <dt style="color:var(--muted);">Email</dt><dd>@customer.Email</dd>
+                        <dt style="color:var(--muted);">Address</dt><dd>@customer.Address</dd>
+                        @if (!string.IsNullOrWhiteSpace(customer.WorkPhone))
+                        {
+                            <dt style="color:var(--muted);">Work phone</dt><dd>@customer.WorkPhone</dd>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(customer.WorkAddress))
+                        {
+                            <dt style="color:var(--muted);">Work address</dt><dd>@customer.WorkAddress</dd>
+                        }
+                    </dl>
+                }
+            </div>
+        </div>
+    </div>
+}

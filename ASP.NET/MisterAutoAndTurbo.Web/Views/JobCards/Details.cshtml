@@ -1,6 +1,8 @@
 @model JobCard
 @{
     ViewData["Title"] = "Job card";
+    var vehicle = ViewBag.Vehicle as Vehicle;
+    var customer = ViewBag.Customer as Customer;
 }
 <div class="page-header">
     <div>
@@ -20,13 +22,60 @@
         <div class="card-head">Details</div>
         <div class="card-body" style="padding:16px;">
             <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin:0;">
-                <dt style="color:var(--muted);">Vehicle</dt><dd>@Model.VehichleId</dd>
+                <dt style="color:var(--muted);">Vehicle</dt><dd>@(vehicle != null ? $"{vehicle.RegistrationNumber} — {vehicle.Make} {vehicle.Model}" : Model.VehichleId)</dd>
                 <dt style="color:var(--muted);">Mechanic</dt><dd>@Model.MechanicId</dd>
                 <dt style="color:var(--muted);">Created by</dt><dd>@Model.CreatedById</dd>
                 <dt style="color:var(--muted);">Created</dt><dd>@Model.CreatedAt.ToString("g")</dd>
                 <dt style="color:var(--muted);">Diagnosis</dt><dd>@Model.Diagnosis</dd>
                 <dt style="color:var(--muted);">Repair notes</dt><dd>@Model.RepairNotes</dd>
             </dl>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">Customer</div>
+        <div class="card-body" style="padding:16px;">
+            @if (customer == null)
+            {
+                <p style="color:var(--muted);margin:0;">No customer found for this vehicle.</p>
+            }
+            else
+            {
+                <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin:0;">
+                    <dt style="color:var(--muted);">Name</dt><dd>@customer.Name @customer.Surname</dd>
+                    <dt style="color:var(--muted);">Phone</dt><dd>@customer.Phone</dd>
+                    <dt style="color:var(--muted);">Email</dt><dd>@customer.Email</dd>
+                    <dt style="color:var(--muted);">Address</dt><dd>@customer.Address</dd>
+                    @if (!string.IsNullOrWhiteSpace(customer.WorkPhone))
+                    {
+                        <dt style="color:var(--muted);">Work phone</dt><dd>@customer.WorkPhone</dd>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(customer.WorkAddress))
+                    {
+                        <dt style="color:var(--muted);">Work address</dt><dd>@customer.WorkAddress</dd>
+                    }
+                </dl>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">Vehicle</div>
+        <div class="card-body" style="padding:16px;">
+            @if (vehicle == null)
+            {
+                <p style="color:var(--muted);margin:0;">Vehicle not found (@Model.VehichleId).</p>
+            }
+            else
+            {
+                <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin:0;">
+                    <dt style="color:var(--muted);">Registration</dt><dd>@vehicle.RegistrationNumber</dd>
+                    <dt style="color:var(--muted);">Make</dt><dd>@vehicle.Make</dd>
+                    <dt style="color:var(--muted);">Model</dt><dd>@vehicle.Model</dd>
+                    <dt style="color:var(--muted);">Year</dt><dd>@vehicle.Year</dd>
+                    <dt style="color:var(--muted);">Mileage</dt><dd>@vehicle.Mileage.ToString("N0") km</dd>
+                </dl>
+            }
         </div>
     </div>
 
@@ -49,6 +98,7 @@
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top:8px;">Update status</button>
             </form>
+            <p>Current Status: @Model.Status</p>
         </div>
     </div>
 
@@ -60,7 +110,7 @@
                 <input type="hidden" name="id" value="@Model.Id" />
                 <div class="field">
                     <label>Diagnosis</label>
-                    <textarea class="input" name="diagnosis" rows="3" required></textarea>
+                    <textarea class="input" name="diagnosis" rows="3" required placeholder="@Model.Diagnosis"></textarea>
                 </div>
                 <button type="submit" class="btn btn-ghost" style="margin-top:8px;">Save diagnosis</button>
             </form>
@@ -75,10 +125,12 @@
                 <input type="hidden" name="id" value="@Model.Id" />
                 <div class="field">
                     <label>Notes</label>
-                    <textarea class="input" name="repairNotes" rows="3" required></textarea>
+                    <textarea class="input" name="repairNotes" rows="3" required placeholder="@Model.RepairNotes"></textarea>
                 </div>
                 <button type="submit" class="btn btn-ghost" style="margin-top:8px;">Save notes</button>
             </form>
         </div>
     </div>
+
+   
 </div>

@@ -1,6 +1,8 @@
 @model IEnumerable<Appointment>
 @{
     ViewData["Title"] = "Appointments";
+    var names = ViewBag.CustomerNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var vehicles = ViewBag.VehicleLabels as Dictionary<string, string> ?? new Dictionary<string, string>();
 }
 <div class="page-header">
     <div>
@@ -17,8 +19,10 @@
                 <th>ID</th>
                 <th>Customer</th>
                 <th>Vehicle</th>
+                <th>Job ID</th>
                 <th>Scheduled</th>
                 <th>Status</th>
+                <th>Sent</th>
                 <th></th>
             </tr>
         </thead>
@@ -31,15 +35,19 @@
                 {
                     "Arrived" => "pill pill-blue",
                     "Completed" => "pill pill-green",
-                    "Cancelled" => "pill pill-amber",
-                    _ => "pill"
+                    "Cancelled" => "pill pill-red",
+                    _ => "pill pill-blue"
                 };
+                var custName = names.ContainsKey(a.CustomerId) ? names[a.CustomerId] : a.CustomerId;
+                var vehLabel = vehicles.ContainsKey(a.VehicleId) ? vehicles[a.VehicleId] : a.VehicleId;
                 <tr>
                     <td>@a.Id</td>
-                    <td>@a.CustomerId</td>
-                    <td>@a.VehicleId</td>
+                    <td>@custName</td>
+                    <td>@vehLabel</td>
+                    <td>@(string.IsNullOrEmpty(a.JobCardId) ? "—" : a.JobCardId)</td>
                     <td>@a.ScheduledAt.ToString("ddd, dd MMM yyyy HH:mm")</td>
                     <td><span class="@pillClass">@a.Status</span></td>
+                    <td>@(a.SentAt != null ? "Yes" : "—")</td>
                     <td>
                         <a asp-action="Details" asp-route-id="@a.Id">View</a>
                         &nbsp;|&nbsp;
@@ -51,7 +59,7 @@
         else
         {
             <tr>
-                <td colspan="6" style="color:var(--muted);">
+                <td colspan="8" style="color:var(--muted);">
                     No appointments yet.
                     <a asp-action="Create">Book the first appointment</a>.
                 </td>

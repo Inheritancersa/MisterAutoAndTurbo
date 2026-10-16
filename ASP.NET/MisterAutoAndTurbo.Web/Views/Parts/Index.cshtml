@@ -1,38 +1,106 @@
 @model IEnumerable<Part>
 @{
     ViewData["Title"] = "Parts / Inventory";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var lowCount = ViewBag.LowStockCount as int? ?? 0;
+    var catFilter = ViewBag.Category as string;
+    var query = ViewBag.Query as string;
+    var lowOnly = ViewBag.LowStockOnly as bool? ?? false;
 }
 <div class="page-header">
     <div>
         <h1>Parts / Inventory</h1>
-        <p>Stock levels and unit prices</p>
+        <p>Stock levels and unit prices
+            @if (lowCount > 0)
+            {
+                <span class="pill pill-amber" style="margin-left:8px;">@lowCount low stock</span>
+            }
+        </p>
     </div>
     <a class="btn btn-primary" asp-action="Create">+ Add part</a>
 </div>
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;">
+        <form method="get" asp-action="Index" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <div class="field" style="margin:0;min-width:180px;">
+                <label>Search</label>
+                <input class="input" name="q" value="@query" placeholder="Name or category…" />
+            </div>
+            <div class="field" style="margin:0;min-width:160px;">
+                <label>Category</label>
+                <select class="input" name="category">
+                    <option value="">— All —</option>
+                    @foreach (var c in categories)
+                    {
+                        <option value="@c" selected="@(c == catFilter)">@c</option>
+                    }
+                </select>
+            </div>
+            <div class="field" style="margin:0;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" name="lowStockOnly" value="true" checked="@lowOnly" />
+                    Low stock only
+                </label>
+            </div>
+            <button type="submit" class="btn btn-ghost">Filter</button>
+            @if (!string.IsNullOrEmpty(query) || !string.IsNullOrEmpty(catFilter) || lowOnly)
+            {
+                <a class="btn btn-ghost" asp-action="Index">Clear</a>
+            }
+        </form>
+    </div>
+</div>
+
 <div class="card">
     <table class="table">
         <thead>
-            <tr><th>SKU</th><th>Name</th><th>Category</th><th>Stock</th><th>Unit price</th><th>Reorder</th><th></th></tr>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Unit price</th>
+                <th>Reorder at</th>
+                <th></th>
+            </tr>
         </thead>
         <tbody>
         @if (Model != null && Model.Any())
         {
             foreach (var p in Model)
             {
-                <tr>
-                    <td>@p.StockKeepingUnit</td>
-                    <td>@p.Name</td>
+                var low = p.QuantityInStock <= p.ReorderLevel;
+                <tr style="@(low ? "background:#FFF8E6;" : "")">
+                    <td><strong>@p.Name</strong></td>
                     <td>@p.Category</td>
-                    <td>@p.QuantityInStock</td>
+                    <td>
+                        @if (low)
+                        {
+                            <span class="pill pill-amber">@p.QuantityInStock</span>
+                        }
+                        else
+                        {
+                            @p.QuantityInStock
+                        }
+                    </td>
                     <td>R @p.UnitPrice.ToString("N2")</td>
                     <td>@p.ReorderLevel</td>
-                    <td><a asp-action="Details" asp-route-id="@p.Id">View</a></td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@p.Id">View</a>
+                        &nbsp;|&nbsp;
+                        <a asp-action="Edit" asp-route-id="@p.Id">Edit</a>
+                    </td>
                 </tr>
             }
         }
         else
         {
-            <tr><td colspan="7" style="color:var(--muted);">No parts in inventory yet.</td></tr>
+            <tr>
+                <td colspan="6" style="color:var(--muted);">
+                    No parts found.
+                    <a asp-action="Create">Add the first part</a>.
+                </td>
+            </tr>
         }
         </tbody>
     </table>

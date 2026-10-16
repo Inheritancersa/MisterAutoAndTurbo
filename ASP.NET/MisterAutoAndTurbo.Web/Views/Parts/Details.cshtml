@@ -1,33 +1,93 @@
 @model Part
 @{
     ViewData["Title"] = "Part details";
+    var low = Model.QuantityInStock <= Model.ReorderLevel;
 }
 <div class="page-header">
     <div>
         <h1>@Model.Name</h1>
-        <p>@Model.StockKeepingUnit · @Model.Category</p>
+        <p>
+            @if (!string.IsNullOrEmpty(Model.Category))
+            {
+                @Model.Category
+            }
+            @if (low)
+            {
+                <span class="pill pill-amber" style="margin-left:8px;">Low stock</span>
+            }
+        </p>
     </div>
-    <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
-</div>
-<div class="card" style="max-width:480px;">
-    <div class="card-body" style="padding:24px;">
-        <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin:0;">
-            <dt style="color:var(--muted);">Stock</dt><dd>@Model.QuantityInStock</dd>
-            <dt style="color:var(--muted);">Unit price</dt><dd>R @Model.UnitPrice.ToString("N2")</dd>
-            <dt style="color:var(--muted);">Reorder level</dt><dd>@Model.ReorderLevel</dd>
-        </dl>
-        <hr style="border:none;border-top:1px solid var(--border);margin:20px 0;" />
-        <h3 style="font-size:14px;margin-bottom:12px;">Add to job</h3>
-        <form asp-action="AddToJob" method="post">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Index">All parts</a>
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Remove this part from inventory?');">
             @Html.AntiForgeryToken()
-            <input type="hidden" name="partId" value="@Model.Id" />
-            <div class="field"><label>Job card ID</label><input class="input" name="jobCardId" required /></div>
-            <div class="field"><label>Quantity</label><input class="input" type="number" name="quantity" value="1" min="1" /></div>
-            <div class="field"><label>Unit price</label><input class="input" type="number" step="0.01" name="unitPrice" value="@Model.UnitPrice" /></div>
-            <div class="field">
-                <label><input type="checkbox" name="customerSupplied" value="true" /> Customer supplied</label>
-            </div>
-            <button type="submit" class="btn btn-primary" style="margin-top:8px;">Add to job</button>
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-ghost" style="color:#D64545;">Delete</button>
         </form>
+    </div>
+</div>
+
+<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+        <div class="card-head">Details</div>
+        <div class="card-body" style="padding:20px;">
+            <dl style="display:grid;grid-template-columns:140px 1fr;gap:10px 16px;margin:0;">
+                <dt style="color:var(--muted);">Name</dt><dd>@Model.Name</dd>
+                <dt style="color:var(--muted);">Category</dt><dd>@Model.Category</dd>
+                <dt style="color:var(--muted);">In stock</dt>
+                <dd>
+                    @if (low)
+                    {
+                        <span class="pill pill-amber">@Model.QuantityInStock</span>
+                    }
+                    else
+                    {
+                        <strong>@Model.QuantityInStock</strong>
+                    }
+                </dd>
+                <dt style="color:var(--muted);">Unit price</dt><dd>R @Model.UnitPrice.ToString("N2")</dd>
+                <dt style="color:var(--muted);">Reorder level</dt><dd>@Model.ReorderLevel</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">Adjust stock</div>
+        <div class="card-body" style="padding:20px;">
+            <p style="color:var(--muted);margin-top:0;font-size:14px;">Quick + / − without opening the full edit form.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <form asp-action="AdjustStock" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="delta" value="1" />
+                    <button type="submit" class="btn btn-ghost">+1</button>
+                </form>
+                <form asp-action="AdjustStock" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="delta" value="5" />
+                    <button type="submit" class="btn btn-ghost">+5</button>
+                </form>
+                <form asp-action="AdjustStock" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="delta" value="10" />
+                    <button type="submit" class="btn btn-ghost">+10</button>
+                </form>
+                <form asp-action="AdjustStock" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="delta" value="-1" />
+                    <button type="submit" class="btn btn-ghost">−1</button>
+                </form>
+                <form asp-action="AdjustStock" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="delta" value="-5" />
+                    <button type="submit" class="btn btn-ghost">−5</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>

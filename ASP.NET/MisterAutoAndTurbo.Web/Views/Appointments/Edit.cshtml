@@ -18,22 +18,35 @@
             <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
 
             <div class="field">
-                <label asp-for="CustomerId">Customer ID</label>
-                <input class="input" asp-for="CustomerId" required />
+                <label asp-for="CustomerId">Customer</label>
+                <select class="input" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
+                    <option value="">— Select customer —</option>
+                </select>
             </div>
+
             <div class="field">
-                <label asp-for="VehicleId">Vehicle ID</label>
-                <input class="input" asp-for="VehicleId" required />
+                <label asp-for="VehicleId">Vehicle</label>
+                <select class="input" asp-for="VehicleId" asp-items="ViewBag.Vehicles">
+                    <option value="">— Select vehicle —</option>
+                </select>
             </div>
+
+            <div class="field">
+                <label asp-for="JobCardId">Job ID (optional)</label>
+                <input class="input" asp-for="JobCardId" placeholder="e.g. job-001" />
+            </div>
+
             <div class="field">
                 <label asp-for="CreatedById">Created by</label>
                 <input class="input" asp-for="CreatedById" />
             </div>
+
             <div class="field">
                 <label asp-for="ScheduledAt">Scheduled date &amp; time</label>
                 <input class="input" name="ScheduledAt" type="datetime-local"
                        value="@Model.ScheduledAt.ToString("yyyy-MM-ddTHH:mm")" />
             </div>
+
             <div class="field">
                 <label asp-for="Status">Status</label>
                 <select class="input" asp-for="Status">

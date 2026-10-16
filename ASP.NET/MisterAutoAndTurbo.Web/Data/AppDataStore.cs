@@ -146,6 +146,89 @@ namespace MisterAutoAndTurbo.Web.Data
         };
 
 
+
+        public static List<Appointment> Appointments { get; } = new()
+        {
+            new Appointment
+            {
+                Id = "apt-001",
+                CustomerId = "cust-001",
+                VehicleId = "veh-001",
+                JobCardId = "job-001",
+                CreatedById = "staff-01",
+                ScheduledAt = DateTime.Today.AddHours(9),
+                Status = "Scheduled"
+            },
+            new Appointment
+            {
+                Id = "apt-002",
+                CustomerId = "cust-002",
+                VehicleId = "veh-002",
+                CreatedById = "staff-01",
+                ScheduledAt = DateTime.Today.AddHours(11),
+                Status = "Arrived"
+            },
+            new Appointment
+            {
+                Id = "apt-003",
+                CustomerId = "cust-003",
+                VehicleId = "veh-003",
+                CreatedById = "staff-01",
+                ScheduledAt = DateTime.Today.AddDays(1).AddHours(10),
+                Status = "Scheduled"
+            }
+        };
+
+
+        public static List<Part> Parts { get; } = new()
+        {
+            new Part
+            {
+                Id = "part-001",
+                Name = "Turbo boost hose",
+                Category = "Turbo",
+                QuantityInStock = 12,
+                UnitPrice = 450.00m,
+                ReorderLevel = 5
+            },
+            new Part
+            {
+                Id = "part-002",
+                Name = "Front brake pads (set)",
+                Category = "Brakes",
+                QuantityInStock = 8,
+                UnitPrice = 890.00m,
+                ReorderLevel = 4
+            },
+            new Part
+            {
+                Id = "part-003",
+                Name = "Engine oil 5W-30 5L",
+                Category = "Service",
+                QuantityInStock = 3,
+                UnitPrice = 520.00m,
+                ReorderLevel = 6
+            },
+            new Part
+            {
+                Id = "part-004",
+                Name = "Oil filter standard",
+                Category = "Service",
+                QuantityInStock = 25,
+                UnitPrice = 95.00m,
+                ReorderLevel = 10
+            },
+            new Part
+            {
+                Id = "part-005",
+                Name = "Sump gasket",
+                Category = "Engine",
+                QuantityInStock = 2,
+                UnitPrice = 180.00m,
+                ReorderLevel = 3
+            }
+        };
+
         public static List<Notification> Notifications { get; } = new();
 
         public static string NewId(string prefix)

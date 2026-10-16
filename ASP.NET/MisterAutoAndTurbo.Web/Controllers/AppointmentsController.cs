@@ -1,62 +1,52 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using MisterAutoAndTurbo.Web.Data;
 using MisterAutoAndTurbo.Web.Models;
 
 namespace MisterAutoAndTurbo.Web.Controllers
 {
     /// <summary>
-    /// Receptionist: Book and manage workshop appointments.
+    /// Receptionist: Book / manage appointments, send date to customer (mobile notification).
     /// </summary>
     public class AppointmentsController : Controller
     {
-        // Simple in-memory store so the page shows data while running (resets on app restart)
-        private static readonly List<Appointment> _store = new()
-        {
-            new Appointment
-            {
-                Id = "apt-001",
-                CustomerId = "cust-001",
-                VehicleId = "veh-001",
-                CreatedById = "staff-01",
-                ScheduledAt = DateTime.Today.AddHours(9),
-                Status = "Scheduled"
-            },
-            new Appointment
-            {
-                Id = "apt-002",
-                CustomerId = "cust-002",
-                VehicleId = "veh-002",
-                CreatedById = "staff-01",
-                ScheduledAt = DateTime.Today.AddHours(11),
-                Status = "Arrived"
-            },
-            new Appointment
-            {
-                Id = "apt-003",
-                CustomerId = "cust-003",
-                VehicleId = "veh-003",
-                CreatedById = "staff-01",
-                ScheduledAt = DateTime.Today.AddDays(1).AddHours(10),
-                Status = "Scheduled"
-            }
-        };
-
         [HttpGet]
         public IActionResult Index()
         {
-            var list = _store.OrderBy(a => a.ScheduledAt).ToList();
+            var list = AppDataStore.Appointments.OrderBy(a => a.ScheduledAt).ToList();
+            ViewBag.CustomerNames = AppDataStore.Customers.ToDictionary(
+                c => c.Id,
+                c => $"{c.Name} {c.Surname}".Trim());
+            ViewBag.VehicleLabels = AppDataStore.Vehicles.ToDictionary(
+                v => v.Id,
+                v => v.RegistrationNumber);
             return View(list);
         }
 
         [HttpGet]
-        public IActionResult Create(string? customerId = null, string? vehicleId = null)
+        public IActionResult Create(string? customerId = null, string? vehicleId = null, string? jobCardId = null)
         {
             var model = new Appointment
             {
                 CustomerId = customerId ?? string.Empty,
                 VehicleId = vehicleId ?? string.Empty,
+                JobCardId = jobCardId ?? string.Empty,
                 ScheduledAt = DateTime.Now.AddDays(1).Date.AddHours(9),
                 Status = "Scheduled"
             };
+
+            if (!string.IsNullOrWhiteSpace(jobCardId))
+            {
+                var job = AppDataStore.JobCards.FirstOrDefault(j => j.Id == jobCardId);
+                if (job != null)
+                {
+                    model.JobCardId = job.Id;
+                    model.CustomerId = job.CustomerId;
+                    model.VehicleId = job.VehichleId;
+                }
+            }
+
+            PopulateLookups(model);
             return View(model);
         }
 
@@ -64,9 +54,17 @@ namespace MisterAutoAndTurbo.Web.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Appointment model)
         {
-            if (string.IsNullOrWhiteSpace(model.CustomerId) || string.IsNullOrWhiteSpace(model.VehicleId))
+            PopulateLookups(model);
+
+            if (string.IsNullOrWhiteSpace(model.CustomerId))
             {
-                ModelState.AddModelError(string.Empty, "Customer and vehicle are required.");
+                ModelState.AddModelError(nameof(model.CustomerId), "Please select a customer.");
+                return View(model);
+            }
+
+            if (!AppDataStore.Customers.Any(c => c.Id == model.CustomerId))
+            {
+                ModelState.AddModelError(nameof(model.CustomerId), "Selected customer was not found.");
                 return View(model);
             }
 
@@ -76,14 +74,52 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 return View(model);
             }
 
-            model.Id = Guid.NewGuid().ToString("N")[..8];
+            // Optional vehicle must belong to customer if set
+            if (!string.IsNullOrWhiteSpace(model.VehicleId))
+            {
+                var veh = AppDataStore.Vehicles.FirstOrDefault(v => v.Id == model.VehicleId);
+                if (veh == null)
+                {
+                    ModelState.AddModelError(nameof(model.VehicleId), "Selected vehicle was not found.");
+                    return View(model);
+                }
+                if (veh.CustomerId != model.CustomerId)
+                {
+                    ModelState.AddModelError(nameof(model.VehicleId), "That vehicle does not belong to the selected customer.");
+                    return View(model);
+                }
+            }
+            else
+            {
+                // Default to first vehicle of customer if any
+                var first = AppDataStore.Vehicles.FirstOrDefault(v => v.CustomerId == model.CustomerId);
+                if (first != null)
+                    model.VehicleId = first.Id;
+            }
+
+            // Optional job card validation
+            if (!string.IsNullOrWhiteSpace(model.JobCardId))
+            {
+                var job = AppDataStore.JobCards.FirstOrDefault(j => j.Id == model.JobCardId.Trim());
+                if (job == null)
+                {
+                    ModelState.AddModelError(nameof(model.JobCardId), "Job ID not found. Leave blank or enter a valid job card id.");
+                    return View(model);
+                }
+                model.JobCardId = job.Id;
+            }
+
+            model.Id = AppDataStore.NewId("apt");
             if (string.IsNullOrWhiteSpace(model.Status))
                 model.Status = "Scheduled";
             if (string.IsNullOrWhiteSpace(model.CreatedById))
                 model.CreatedById = "staff";
+            model.CreatedById = model.CreatedById.Trim();
+            model.JobCardId = model.JobCardId?.Trim() ?? string.Empty;
 
-            _store.Add(model);
-            TempData["Success"] = "Appointment booked successfully.";
+            AppDataStore.Appointments.Add(model);
+
+            TempData["Success"] = "Appointment booked. You can send the date to the customer next.";
             return RedirectToAction(nameof(Details), new { id = model.Id });
         }
 
@@ -93,10 +129,15 @@ namespace MisterAutoAndTurbo.Web.Controllers
             if (string.IsNullOrWhiteSpace(id))
                 return NotFound();
 
-            var model = _store.FirstOrDefault(a => a.Id == id);
+            var model = AppDataStore.Appointments.FirstOrDefault(a => a.Id == id);
             if (model == null)
                 return NotFound();
 
+            var cust = AppDataStore.Customers.FirstOrDefault(c => c.Id == model.CustomerId);
+            var veh = AppDataStore.Vehicles.FirstOrDefault(v => v.Id == model.VehicleId);
+            ViewBag.CustomerName = cust != null ? $"{cust.Name} {cust.Surname}".Trim() : model.CustomerId;
+            ViewBag.CustomerPhone = cust?.Phone ?? "";
+            ViewBag.VehicleLabel = veh != null ? $"{veh.RegistrationNumber} — {veh.Make} {veh.Model}" : model.VehicleId;
             return View(model);
         }
 
@@ -106,10 +147,11 @@ namespace MisterAutoAndTurbo.Web.Controllers
             if (string.IsNullOrWhiteSpace(id))
                 return NotFound();
 
-            var model = _store.FirstOrDefault(a => a.Id == id);
+            var model = AppDataStore.Appointments.FirstOrDefault(a => a.Id == id);
             if (model == null)
                 return NotFound();
 
+            PopulateLookups(model);
             return View(model);
         }
 
@@ -120,19 +162,22 @@ namespace MisterAutoAndTurbo.Web.Controllers
             if (id != model.Id)
                 return NotFound();
 
-            var existing = _store.FirstOrDefault(a => a.Id == id);
+            var existing = AppDataStore.Appointments.FirstOrDefault(a => a.Id == id);
             if (existing == null)
                 return NotFound();
 
-            if (string.IsNullOrWhiteSpace(model.CustomerId) || string.IsNullOrWhiteSpace(model.VehicleId))
+            PopulateLookups(model);
+
+            if (string.IsNullOrWhiteSpace(model.CustomerId))
             {
-                ModelState.AddModelError(string.Empty, "Customer and vehicle are required.");
+                ModelState.AddModelError(nameof(model.CustomerId), "Please select a customer.");
                 return View(model);
             }
 
             existing.CustomerId = model.CustomerId;
-            existing.VehicleId = model.VehicleId;
-            existing.CreatedById = model.CreatedById;
+            existing.VehicleId = model.VehicleId ?? string.Empty;
+            existing.JobCardId = model.JobCardId?.Trim() ?? string.Empty;
+            existing.CreatedById = model.CreatedById?.Trim() ?? string.Empty;
             existing.ScheduledAt = model.ScheduledAt;
             existing.Status = model.Status;
 
@@ -144,7 +189,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult UpdateStatus(string id, string status)
         {
-            var existing = _store.FirstOrDefault(a => a.Id == id);
+            var existing = AppDataStore.Appointments.FirstOrDefault(a => a.Id == id);
             if (existing == null)
                 return NotFound();
 
@@ -158,6 +203,103 @@ namespace MisterAutoAndTurbo.Web.Controllers
             existing.Status = status;
             TempData["Success"] = $"Appointment status set to {status}.";
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        /// <summary>
+        /// Send appointment date/time to the customer as a mobile notification.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SendToCustomer(string id)
+        {
+            var apt = AppDataStore.Appointments.FirstOrDefault(a => a.Id == id);
+            if (apt == null)
+                return NotFound();
+
+            var customer = AppDataStore.Customers.FirstOrDefault(c => c.Id == apt.CustomerId);
+            var vehicle = AppDataStore.Vehicles.FirstOrDefault(v => v.Id == apt.VehicleId);
+            var name = customer != null ? $"{customer.Name} {customer.Surname}".Trim() : "Customer";
+            var reg = vehicle?.RegistrationNumber ?? "your vehicle";
+            var when = apt.ScheduledAt.ToString("dddd, dd MMMM yyyy 'at' HH:mm");
+
+            var message = $"Hi {name}, your appointment at Mister Auto & Turbo is scheduled for {when}" +
+                          (string.IsNullOrEmpty(reg) || reg == "your vehicle" ? "." : $" for {reg}.") +
+                          (string.IsNullOrWhiteSpace(apt.JobCardId) ? "" : $" Job: {apt.JobCardId}.");
+
+            AppDataStore.Notifications.Add(new Notification
+            {
+                Id = AppDataStore.NewId("ntf"),
+                UserAccountId = apt.CustomerId,
+                Type = "Appointment",
+                RelatedId = apt.Id,
+                IsRead = false,
+                CreatedAt = DateTime.Now,
+                Message = message
+            });
+
+            apt.SentAt = DateTime.Now;
+
+            TempData["Success"] = $"Appointment date sent to {name}. They will see a notification on the mobile app.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(string id)
+        {
+            var apt = AppDataStore.Appointments.FirstOrDefault(a => a.Id == id);
+            if (apt == null)
+                return NotFound();
+
+            AppDataStore.Appointments.Remove(apt);
+            foreach (var n in AppDataStore.Notifications.Where(n => n.RelatedId == id).ToList())
+                AppDataStore.Notifications.Remove(n);
+
+            TempData["Success"] = "Appointment deleted.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        private void PopulateLookups(Appointment model)
+        {
+            ViewBag.Customers = AppDataStore.Customers
+                .OrderBy(c => c.Name)
+                .ThenBy(c => c.Surname)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id,
+                    Text = $"{c.Name} {c.Surname} — {c.Phone} ({c.Id})",
+                    Selected = c.Id == model.CustomerId
+                })
+                .ToList();
+
+            // Vehicles for selected customer, or all if none selected
+            var vehicles = string.IsNullOrWhiteSpace(model.CustomerId)
+                ? AppDataStore.Vehicles
+                : AppDataStore.Vehicles.Where(v => v.CustomerId == model.CustomerId);
+
+            ViewBag.Vehicles = vehicles
+                .OrderBy(v => v.RegistrationNumber)
+                .Select(v => new SelectListItem
+                {
+                    Value = v.Id,
+                    Text = $"{v.RegistrationNumber} — {v.Make} {v.Model}",
+                    Selected = v.Id == model.VehicleId
+                })
+                .ToList();
+
+            ViewBag.JobCards = AppDataStore.JobCards
+                .OrderByDescending(j => j.CreatedAt)
+                .Select(j =>
+                {
+                    var v = AppDataStore.Vehicles.FirstOrDefault(x => x.Id == j.VehichleId);
+                    return new SelectListItem
+                    {
+                        Value = j.Id,
+                        Text = $"{j.Id} — {(v != null ? v.RegistrationNumber : j.VehichleId)} ({j.Status})",
+                        Selected = j.Id == model.JobCardId
+                    };
+                })
+                .ToList();
         }
     }
 }

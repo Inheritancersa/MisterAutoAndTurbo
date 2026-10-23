@@ -7,13 +7,13 @@ import 'workshop_viewmodel.dart';
 /// State of the Proof Of Payment screen.
 /// Supports multiple documents with a combined maximum size of 10 MB.
 class ProofOfPaymentViewModel extends ChangeNotifier {
-  ProofOfPaymentViewModel(this._workshop);
+  ProofOfPaymentViewModel(this._workshop) : _done = _workshop.proofUploaded;
 
   static const int maxTotalBytes = 10 * 1024 * 1024;
 
   final WorkshopViewModel _workshop;
   final List<PlatformFile> _files = [];
-  bool _done = false;
+  bool _done;
   bool _picking = false;
   bool _disposed = false;
 

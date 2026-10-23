@@ -228,6 +228,8 @@ class AuthViewModel extends ChangeNotifier {
     required String fullName,
     required String phone,
     required String address,
+    String? email,
+    String? newPassword,
   }) async {
     final current = _customer;
     if (current == null) return 'Not logged in';
@@ -235,14 +237,33 @@ class AuthViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
+      final newEmail = email?.trim();
+      final emailChanged = newEmail != null &&
+          newEmail.isNotEmpty &&
+          newEmail.toLowerCase() != current.email.toLowerCase();
+      final passwordChanged = newPassword != null && newPassword.isNotEmpty;
+      if (passwordChanged && newPassword.length < 6) {
+        _error = 'Password must be at least 6 characters.';
+        return _error;
+      }
+      if (emailChanged || passwordChanged) {
+        await SupabaseService.auth.updateUser(UserAttributes(
+          email: emailChanged ? newEmail : null,
+          password: passwordChanged ? newPassword : null,
+        ));
+      }
       final updated = await _repo.updateCustomerProfile(
         customerId: current.id,
         fullName: fullName.trim(),
         phone: phone.trim(),
         address: address.trim(),
+        email: emailChanged ? newEmail : null,
       );
       _customer = updated;
       return null;
+    } on AuthException catch (e) {
+      _error = _friendlyAuthError(e);
+      return _error;
     } catch (e) {
       debugPrint('updateProfile error: $e');
       _error = 'Could not update profile: $e';

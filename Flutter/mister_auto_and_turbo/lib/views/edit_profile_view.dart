@@ -19,6 +19,8 @@ class _EditProfileViewState extends State<EditProfileView> {
   late final TextEditingController _phone;
   late final TextEditingController _address;
   late final TextEditingController _email;
+  final _password = TextEditingController();
+  final _confirm = TextEditingController();
 
   @override
   void initState() {
@@ -32,7 +34,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   @override
   void dispose() {
-    for (final c in [_name, _phone, _address, _email]) {
+    for (final c in [_name, _phone, _address, _email, _password, _confirm]) {
       c.dispose();
     }
     super.dispose();
@@ -44,6 +46,8 @@ class _EditProfileViewState extends State<EditProfileView> {
           fullName: _name.text.trim(),
           phone: _phone.text.trim(),
           address: _address.text.trim(),
+          email: _email.text.trim(),
+          newPassword: _password.text,
         );
     if (!mounted) return;
     if (err != null) {
@@ -73,11 +77,19 @@ class _EditProfileViewState extends State<EditProfileView> {
                 validator: requiredField,
               ),
               LabeledField(
-                label: 'Email (read-only)',
+                label: 'Email',
                 labelStyle: label,
                 controller: _email,
                 icon: Icons.mail,
-                readOnly: true,
+                keyboard: TextInputType.emailAddress,
+                validator: (v) {
+                  final t = (v ?? '').trim();
+                  if (t.isEmpty) return 'Required';
+                  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(t)) {
+                    return 'Enter a valid email';
+                  }
+                  return null;
+                },
               ),
               LabeledField(
                 label: 'Phone Number',
@@ -95,6 +107,25 @@ class _EditProfileViewState extends State<EditProfileView> {
                 icon: Icons.home,
                 maxLines: 3,
                 validator: requiredField,
+              ),
+              LabeledField(
+                label: 'New Password (leave blank to keep)',
+                labelStyle: label,
+                controller: _password,
+                icon: Icons.lock,
+                obscure: true,
+                validator: (v) => (v == null || v.isEmpty || v.length >= 6)
+                    ? null
+                    : 'At least 6 characters',
+              ),
+              LabeledField(
+                label: 'Confirm New Password',
+                labelStyle: label,
+                controller: _confirm,
+                icon: Icons.lock_outline,
+                obscure: true,
+                validator: (v) =>
+                    v == _password.text ? null : 'Passwords do not match',
               ),
               const SizedBox(height: 12),
               WideButton(

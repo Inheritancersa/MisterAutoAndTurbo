@@ -147,6 +147,7 @@ class CustomerRepository {
     required String fullName,
     required String phone,
     required String address,
+    String? email,
   }) async {
     final parts = fullName.trim().split(RegExp(r'\s+'));
     final name = parts.isNotEmpty ? parts.first : fullName;
@@ -157,6 +158,7 @@ class CustomerRepository {
       'Surname': surname,
       'Phone': phone,
       'Address': address,
+      if (email != null && email.isNotEmpty) 'Email': email,
     }).eq('Id', customerId);
 
     final row = await _db.from('Customers').select().eq('Id', customerId).single();
@@ -398,6 +400,16 @@ class CustomerRepository {
 
     if ((rows as List).isEmpty) return null;
     return _quotationFromRow(rows.first /*as Map<String, dynamic>*/);
+  }
+
+  /// True when a proof of payment was already recorded for this quotation.
+  Future<bool> hasPaymentFor(String quotationId) async {
+    final rows = await _db
+        .from('Payments')
+        .select('Id')
+        .eq('QuotationId', quotationId)
+        .limit(1);
+    return (rows as List).isNotEmpty;
   }
 
   Future<void> respondToQuotation({

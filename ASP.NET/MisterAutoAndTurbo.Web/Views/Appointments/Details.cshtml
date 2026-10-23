@@ -31,14 +31,16 @@
             </button>
         </form>
         <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Create"
-           asp-route-customerId="@Model.CustomerId" asp-route-vehicleId="@Model.VehicleId">+ Create job card</a>
+           asp-route-customerId="@Model.CustomerId"
+           asp-route-vehicleId="@Model.VehicleId"
+           asp-route-appointmentId="@Model.Id">+ Create job card</a>
     </div>
 </div>
 
 @if (Model.SentAt != null)
 {
     <div style="margin-bottom:16px;padding:12px 16px;background:#e8f0fe;border:1px solid #b3d0ff;border-radius:8px;color:#1a365d;">
-        Appointment date was sent to the customer on <strong>@Model.SentAt.Value.ToString("g")</strong>.
+        Appointment date was sent to the customer on <strong>@Model.SentAt.Value.ToSa().ToString("g")</strong>.
         Check <a asp-controller="Notifications" asp-action="Index">Notifications</a>.
     </div>
 }
@@ -58,6 +60,10 @@
                 <dd>@Model.CreatedById</dd>
                 <dt style="color:var(--muted);">Scheduled</dt>
                 <dd>@Model.ScheduledAt.ToString("g")</dd>
+                <dt style="color:var(--muted);">Service</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.ServiceType) ? "—" : Model.ServiceType)</dd>
+                <dt style="color:var(--muted);">Description</dt>
+                <dd style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.Description) ? "—" : Model.Description)</dd>
                 <dt style="color:var(--muted);">Status</dt>
                 <dd><span class="@statusPill">@Model.Status</span></dd>
             </dl>

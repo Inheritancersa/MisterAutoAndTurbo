@@ -18,23 +18,25 @@
 
             <div class="field">
                 <label asp-for="CustomerId">Customer to quote</label>
-                <select class="input" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
+                <select class="js-filter-customer input" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
                     <option value="">— Select customer —</option>
                 </select>
             </div>
 
             <div class="field">
                 <label asp-for="JobCardId">Job card (optional)</label>
-                <select class="input" asp-for="JobCardId" asp-items="ViewBag.JobCards">
+                <select class="js-filter-jobs input" asp-for="JobCardId" asp-items="ViewBag.JobCards">
                     <option value="">— No job card / select later —</option>
                 </select>
+                <small style="color:var(--muted);">Only shows job cards for the selected customer.</small>
             </div>
 
             <div class="field">
                 <label asp-for="VehicleId">Vehicle (optional)</label>
-                <select class="input" asp-for="VehicleId" asp-items="ViewBag.Vehicles">
+                <select class="js-filter-vehicle input" asp-for="VehicleId" asp-items="ViewBag.Vehicles">
                     <option value="">— Select vehicle —</option>
                 </select>
+                <small style="color:var(--muted);">Only shows vehicles registered to the selected customer.</small>
             </div>
 
             <div class="field">

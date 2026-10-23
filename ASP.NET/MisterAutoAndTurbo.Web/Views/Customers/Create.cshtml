@@ -26,7 +26,8 @@
             </div>
             <div class="field">
                 <label asp-for="Phone">Phone</label>
-                <input class="input" asp-for="Phone" required />
+                <input class="input phone-input" asp-for="Phone" type="tel" inputmode="numeric" pattern="[0-9+\-\s()]*" placeholder="e.g. 082 000 0000" required />
+                <span asp-validation-for="Phone" class="field-error"></span>
             </div>
             <div class="field">
                 <label asp-for="Email">Email</label>
@@ -38,7 +39,8 @@
             </div>
             <div class="field">
                 <label asp-for="WorkPhone">Work phone</label>
-                <input class="input" asp-for="WorkPhone" />
+                <input class="input phone-input" asp-for="WorkPhone" type="tel" inputmode="numeric" pattern="[0-9+\-\s()]*" placeholder="e.g. 011 000 0000" />
+                <span asp-validation-for="WorkPhone" class="field-error"></span>
             </div>
             <div class="field">
                 <label asp-for="WorkAddress">Work address</label>

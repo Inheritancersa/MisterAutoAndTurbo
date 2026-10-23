@@ -1,29 +1,55 @@
 @using System.Security.Claims
+@using MisterAutoAndTurbo.Web.Data
+@using MisterAutoAndTurbo.Web.Controllers
 @{
-    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Manager";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
     var displayName = User.Identity?.IsAuthenticated == true ? User.Identity!.Name! : "Motlokoa Tsotesi";
-    var initials = string.Concat(displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpper(p[0])));
+    var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = string.Concat(parts.Take(2).Select(p => char.ToUpper(p[0])));
     var current = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 
-    var main = new List<(string Label, string Controller, string Icon, string[] Roles)>
+    // Role-based menu, built from the VSMS use-case and sequence diagrams.
+    // Manager/Owner : dashboard, jobs, customers, vehicles, quotations, payments,
+    //                 collection, complaints, reports + administration.
+    // Receptionist  : customers, vehicles, job cards, quotations, payments, collection, complaints.
+    // Mechanic      : own dashboard, assigned jobs (diagnosis, notes, progress), parts.
+    var M = UserRoles.Manager; var R = UserRoles.Receptionist; var Me = UserRoles.Mechanic;
+    var main = new List<(string Label, string Controller, string Action, string Icon, string[] Roles)>
     {
-        ("Dashboard",         "Dashboard",           "bi-grid",           new[] { "Manager", "Receptionist", "Mechanic" }),
-        ("Vehicles",          "Vehicles",            "bi-car-front",      new[] { "Manager", "Receptionist", "Mechanic" }),
-        ("Customers",         "Customers",           "bi-person",         new[] { "Manager", "Receptionist" }),
-        ("Repairs / Jobs",    "JobCards",            "bi-wrench",         new[] { "Manager", "Receptionist", "Mechanic" }),
-        ("Quotations",        "Quotations",          "bi-receipt",        new[] { "Manager", "Receptionist" }),
-        ("Appointments",      "Appointments",        "bi-calendar3",      new[] { "Manager", "Receptionist", "Mechanic" }),
-        ("Parts / Inventory", "Parts",               "bi-box-seam",       new[] { "Manager", "Mechanic" }),
-        ("Pricing",           "Pricing",             "bi-tags",           new[] { "Manager" }),
-        ("Payments",          "Payments",            "bi-credit-card",    new[] { "Manager", "Receptionist" }),
-        ("Collection",        "VehicleCollections",  "bi-key",            new[] { "Manager", "Receptionist" }),
-        ("Complaints",        "Complaints",          "bi-chat-left-text", new[] { "Manager", "Receptionist" }),
-        ("Reports",           "Dashboard",           "bi-bar-chart",      new[] { "Manager" }),
+        ("Dashboard",         "Home",                "Index",       "bi-grid",           new[] { M, R }),
+        ("Dashboard",         "Dashboard",           "Mechanic",    "bi-grid",           new[] { Me }),
+        ("My Assigned Jobs",  "JobCards",            "Assigned",    "bi-wrench",         new[] { Me }),
+        ("Vehicles",          "Vehicles",            "Index",       "bi-car-front",      new[] { M, R }),
+        ("Customers",         "Customers",           "Index",       "bi-person",         new[] { M, R }),
+        ("Repairs / Jobs",    "JobCards",            "Index",       "bi-wrench",         new[] { M, R }),
+        ("Appointments",      "Appointments",        "Index",       "bi-calendar3",      new[] { M, R }),
+        ("Quotations",        "Quotations",          "Index",       "bi-file-earmark-text", new[] { M, R }),
+        ("Parts / Inventory", "Parts",               "Index",       "bi-box-seam",       new[] { M, Me }),
+        ("Payments",          "Payments",            "Index",       "bi-credit-card",    new[] { M, R }),
+        ("Collection",        "VehicleCollections",  "Index",       "bi-key",            new[] { M, R }),
+        ("Complaints",        "Complaints",          "Index",       "bi-chat-left-text", new[] { M, R }),
+        ("Reports",           "Dashboard",           "Reports",     "bi-bar-chart",      new[] { M }),
     };
     var admin = new List<(string Label, string Controller, string Action, string Icon, string[] Roles)>
     {
-        ("Performance", "Dashboard", "Performance", "bi-speedometer2", new[] { "Manager" }),
-        ("Notifications", "Notifications", "Index", "bi-bell", new[] { "Manager", "Receptionist", "Mechanic" }),
+        ("Performance", "Dashboard", "Performance", "bi-speedometer2", new[] { M }),
+        ("Users",       "Users",     "Index",       "bi-shield-check", new[] { M }),
+        ("Settings",    "Settings",  "Index",       "bi-gear",         new[] { M }),
+    };
+    var visibleMain  = main.Where(i => i.Roles.Contains(role)).ToList();
+    var visibleAdmin = admin.Where(i => i.Roles.Contains(role)).ToList();
+
+    Func<string, string, bool> isActiveFor = (controller, action) =>
+    {
+        if (controller == "Home")
+            return string.Equals(current, "Home", StringComparison.OrdinalIgnoreCase)
+                || (string.Equals(current, "Dashboard", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase));
+        if (controller == "Dashboard")
+            return string.Equals(current, "Dashboard", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(current, controller, StringComparison.OrdinalIgnoreCase);
     };
 }
 <!DOCTYPE html>
@@ -42,40 +68,42 @@
     <div class="app">
         <aside class="sidebar">
             <div class="brand">
-                <div>Mister<br />Auto &amp; Turbo<small>Your car, my passion</small></div>
+                <a asp-controller="Home" asp-action="Index" class="brand-link" title="Mister Auto &amp; Turbo">
+                    <img src="~/images/mister-auto-logo.png" alt="Mister Auto &amp; Turbo" class="brand-logo" />
+                </a>
             </div>
 
             <nav>
-                @foreach (var item in main.Where(i => i.Roles.Contains(role)))
+                @foreach (var item in visibleMain)
                 {
-                    var isReports = item.Label == "Reports";
-                    var action = isReports ? "Reports" : "Index";
-                    <a class="nav-item @(string.Equals(current, item.Controller, StringComparison.OrdinalIgnoreCase) && !isReports ? "active" : "")"
-                       asp-controller="@item.Controller" asp-action="@action">
+                    var isActive = isActiveFor(item.Controller, item.Action);
+
+                    <a class="nav-item @(isActive ? "active" : "")"
+                       asp-controller="@item.Controller"
+                       asp-action="@item.Action">
                         <i class="bi @item.Icon"></i>@item.Label
                     </a>
                 }
 
-                @if (admin.Any(i => i.Roles.Contains(role)))
+                @if (visibleAdmin.Any())
                 {
                     <div class="nav-label">Administration</div>
-                    @foreach (var item in admin.Where(i => i.Roles.Contains(role)))
-                    {
-                        <a class="nav-item"
-                           asp-controller="@item.Controller" asp-action="@item.Action">
-                            <i class="bi @item.Icon"></i>@item.Label
-                        </a>
-                    }
+                }
+                @foreach (var item in visibleAdmin)
+                {
+                    var isActive = isActiveFor(item.Controller, item.Action);
+                    <a class="nav-item @(isActive ? "active" : "")"
+                       asp-controller="@item.Controller"
+                       asp-action="@item.Action">
+                        <i class="bi @item.Icon"></i>@item.Label
+                    </a>
                 }
             </nav>
 
             <div class="sidebar-footer">
-                <form asp-controller="Account" asp-action="Logout" method="post">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="nav-item" style="width:100%;background:none;border:none;text-align:left;cursor:pointer;color:inherit;font:inherit;padding:0;">
-                        <i class="bi bi-box-arrow-left"></i>Logout
-                    </button>
-                </form>
+                <a class="nav-item" asp-controller="Account" asp-action="Logout">
+                    <i class="bi bi-box-arrow-left"></i>Logout
+                </a>
             </div>
         </aside>
 
@@ -83,11 +111,20 @@
             <header class="topbar">
                 <div class="topbar-title">@ViewData["Title"]</div>
                 <div class="topbar-right">
-                    <div class="search">
-                        <i class="bi bi-search"></i>
-                        <input type="search" placeholder="Search vehicles, customers, jobs..." />
-                    </div>
-                    <a class="icon-btn" title="Notifications" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i></a>
+@{
+                        var staffTypes = NotificationsController.CustomerAppTypes;
+                        var unreadStaff = AppDataStore.Notifications.Count(n =>
+                            n.UserAccountId != NotificationsController.DismissedUserId
+                            && !n.IsRead && (
+                                n.UserAccountId == "staff"
+                                || staffTypes.Contains(n.Type, StringComparer.OrdinalIgnoreCase)));
+                    }
+                    <a class="icon-btn" id="notif-bell" title="Notifications" asp-controller="Notifications" asp-action="Index" asp-route-filter="staff" style="position:relative;">
+                        <i class="bi bi-bell"></i>
+                        <span id="notif-badge" class="notif-badge @(unreadStaff > 0 ? "" : "is-hidden")"
+                              data-count="@unreadStaff">@(unreadStaff > 99 ? "99+" : unreadStaff.ToString())</span>
+                    </a>
+                    <span id="live-clock" class="live-clock" title="South Africa time">—</span>
                     <div class="user-chip">
                         <div class="avatar">@initials</div>
                         <div>
@@ -98,23 +135,25 @@
                 </div>
             </header>
 
-            <main class="content">
+            <main class="content page-enter">
                 @if (TempData["Success"] != null)
                 {
-                    <div class="alert alert-success" style="margin-bottom:16px;padding:12px 16px;background:#e8f8ef;border:1px solid #b7e4c7;border-radius:8px;color:#1b4332;">
+                    <div class="flash flash-success auto-dismiss">
                         @TempData["Success"]
                     </div>
                 }
                 @if (TempData["Error"] != null)
                 {
-                    <div class="alert alert-danger" style="margin-bottom:16px;padding:12px 16px;background:#fde8e8;border:1px solid #f5c2c2;border-radius:8px;color:#7f1d1d;">
+                    <div class="flash flash-error auto-dismiss">
                         @TempData["Error"]
                     </div>
                 }
                 @RenderBody()
             </main>
+            <div id="live-toast-host" class="live-toast-host" aria-live="polite"></div>
         </div>
     </div>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

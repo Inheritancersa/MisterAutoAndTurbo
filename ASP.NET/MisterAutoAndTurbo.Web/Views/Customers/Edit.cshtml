@@ -16,10 +16,18 @@
             <input type="hidden" asp-for="Id" />
             <div class="field"><label asp-for="Name">Name</label><input class="input" asp-for="Name" required /></div>
             <div class="field"><label asp-for="Surname">Surname</label><input class="input" asp-for="Surname" /></div>
-            <div class="field"><label asp-for="Phone">Phone</label><input class="input" asp-for="Phone" required /></div>
+            <div class="field">
+                <label asp-for="Phone">Phone</label>
+                <input class="input phone-input" asp-for="Phone" type="tel" inputmode="numeric" pattern="[0-9+\-\s()]*" placeholder="e.g. 082 000 0000" required />
+                <span asp-validation-for="Phone" class="field-error"></span>
+            </div>
             <div class="field"><label asp-for="Email">Email</label><input class="input" asp-for="Email" type="email" /></div>
             <div class="field"><label asp-for="Address">Address</label><input class="input" asp-for="Address" /></div>
-            <div class="field"><label asp-for="WorkPhone">Work phone</label><input class="input" asp-for="WorkPhone" /></div>
+            <div class="field">
+                <label asp-for="WorkPhone">Work phone</label>
+                <input class="input phone-input" asp-for="WorkPhone" type="tel" inputmode="numeric" pattern="[0-9+\-\s()]*" placeholder="e.g. 011 000 0000" />
+                <span asp-validation-for="WorkPhone" class="field-error"></span>
+            </div>
             <div class="field"><label asp-for="WorkAddress">Work address</label><input class="input" asp-for="WorkAddress" /></div>
             <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save changes</button>
         </form>

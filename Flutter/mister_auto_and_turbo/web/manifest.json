@@ -1,6 +1,6 @@
 {
-    "name": "mister_auto_and_turbo",
-    "short_name": "mister_auto_and_turbo",
+    "name": "Mister Auto & Turbo",
+    "short_name": "Mister Auto",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

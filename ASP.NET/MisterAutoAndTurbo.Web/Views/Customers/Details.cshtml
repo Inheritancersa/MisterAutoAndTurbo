@@ -1,4 +1,4 @@
-@model Customer
+﻿@model Customer
 @{
     ViewData["Title"] = "Customer details";
     var vehicles = ViewBag.Vehicles as List<Vehicle> ?? new List<Vehicle>();
@@ -10,6 +10,9 @@
     </div>
     <div style="display:flex;gap:8px;">
         <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline;" onsubmit="return confirm('Delete this customer? All their vehicles, job cards, quotations, payments, appointments and complaints will also be permanently deleted. This cannot be undone.');">
+            <button type="submit" class="btn btn-ghost" style="color:#D64545;border-color:#f5c2c2;">Delete</button>
+        </form>
         <a class="btn btn-primary" asp-controller="Vehicles" asp-action="Create" asp-route-customerId="@Model.Id">+ Register vehicle</a>
     </div>
 </div>
@@ -55,7 +58,7 @@
                             <td>@v.Model</td>
                             <td>@v.Year</td>
                             <td>@v.Mileage.ToString("N0") km</td>
-                            <td><a asp-controller="Vehicles" asp-action="Details" asp-route-id="@v.Id">View</a></td>
+                            <td><a asp-controller="Vehicles" asp-action="Details" asp-route-id="@v.Id">View</a> &middot; <a asp-controller="Appointments" asp-action="Create" asp-route-customerId="@Model.Id" asp-route-vehicleId="@v.Id">Book appointment</a></td>
                         </tr>
                     }
                 </tbody>

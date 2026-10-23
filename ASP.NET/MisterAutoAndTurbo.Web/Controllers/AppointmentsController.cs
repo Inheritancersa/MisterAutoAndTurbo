@@ -1,3 +1,5 @@
+using MisterAutoAndTurbo.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MisterAutoAndTurbo.Web.Data;
@@ -8,19 +10,57 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// <summary>
     /// Receptionist: Book / manage appointments, send date to customer (mobile notification).
     /// </summary>
+    [Authorize(Roles = "Manager,Receptionist,Mechanic")]
+    
     public class AppointmentsController : Controller
     {
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(string? q = null)
         {
-            var list = AppDataStore.Appointments.OrderBy(a => a.ScheduledAt).ToList();
-            ViewBag.CustomerNames = AppDataStore.Customers.ToDictionary(
+            IEnumerable<Appointment> list = AppDataStore.Appointments;
+
+            // Back-fill service/description from ServiceRequests for older mobile bookings
+            foreach (var a in list)
+            {
+                if (!string.IsNullOrWhiteSpace(a.ServiceType) && !string.IsNullOrWhiteSpace(a.Description))
+                    continue;
+                var sr = AppDataStore.ServiceRequests
+                    .Where(r => r.CustomerId == a.CustomerId && r.VehicleId == a.VehicleId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .FirstOrDefault();
+                if (sr == null) continue;
+                if (string.IsNullOrWhiteSpace(a.ServiceType))
+                    a.ServiceType = sr.RequestedService ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(a.Description))
+                    a.Description = sr.Description ?? string.Empty;
+            }
+
+            var customerNames = AppDataStore.Customers.ToDictionary(
                 c => c.Id,
                 c => $"{c.Name} {c.Surname}".Trim());
-            ViewBag.VehicleLabels = AppDataStore.Vehicles.ToDictionary(
+            var vehicleLabels = AppDataStore.Vehicles.ToDictionary(
                 v => v.Id,
                 v => v.RegistrationNumber);
-            return View(list);
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                list = list.Where(a =>
+                    (a.Id?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (a.Status?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (a.ServiceType?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (a.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (a.JobCardId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (a.CustomerId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (a.VehicleId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (customerNames.TryGetValue(a.CustomerId, out var cn) && cn.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (vehicleLabels.TryGetValue(a.VehicleId, out var vl) && vl.Contains(term, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            ViewBag.Query = q;
+            ViewBag.CustomerNames = customerNames;
+            ViewBag.VehicleLabels = vehicleLabels;
+            return View(list.OrderBy(a => a.ScheduledAt).ToList());
         }
 
         [HttpGet]
@@ -31,7 +71,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 CustomerId = customerId ?? string.Empty,
                 VehicleId = vehicleId ?? string.Empty,
                 JobCardId = jobCardId ?? string.Empty,
-                ScheduledAt = DateTime.Now.AddDays(1).Date.AddHours(9),
+                ScheduledAt = SaTime.Now.AddDays(1).Date.AddHours(9),
                 Status = "Scheduled"
             };
 
@@ -133,6 +173,22 @@ namespace MisterAutoAndTurbo.Web.Controllers
             if (model == null)
                 return NotFound();
 
+            // Enrich from ServiceRequest when Flutter only stored service there.
+            if (string.IsNullOrWhiteSpace(model.ServiceType) || string.IsNullOrWhiteSpace(model.Description))
+            {
+                var sr = AppDataStore.ServiceRequests
+                    .Where(r => r.CustomerId == model.CustomerId && r.VehicleId == model.VehicleId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .FirstOrDefault();
+                if (sr != null)
+                {
+                    if (string.IsNullOrWhiteSpace(model.ServiceType))
+                        model.ServiceType = sr.RequestedService ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(model.Description))
+                        model.Description = sr.Description ?? string.Empty;
+                }
+            }
+
             var cust = AppDataStore.Customers.FirstOrDefault(c => c.Id == model.CustomerId);
             var veh = AppDataStore.Vehicles.FirstOrDefault(v => v.Id == model.VehicleId);
             ViewBag.CustomerName = cust != null ? $"{cust.Name} {cust.Surname}".Trim() : model.CustomerId;
@@ -233,11 +289,11 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 Type = "Appointment",
                 RelatedId = apt.Id,
                 IsRead = false,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 Message = message
             });
 
-            apt.SentAt = DateTime.Now;
+            apt.SentAt = DateTime.UtcNow;
 
             TempData["Success"] = $"Appointment date sent to {name}. They will see a notification on the mobile app.";
             return RedirectToAction(nameof(Details), new { id });
@@ -259,6 +315,27 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+
+        /// <summary>JSON: vehicles for one customer (used by Create/Edit dropdown filter).</summary>
+        [HttpGet]
+        public IActionResult VehiclesByCustomer(string customerId)
+        {
+            if (string.IsNullOrWhiteSpace(customerId))
+                return Json(Array.Empty<object>());
+
+            var list = AppDataStore.Vehicles
+                .Where(v => v.CustomerId == customerId)
+                .OrderBy(v => v.RegistrationNumber)
+                .Select(v => new
+                {
+                    id = v.Id,
+                    text = $"{v.RegistrationNumber} — {v.Make} {v.Model}"
+                })
+                .ToList();
+
+            return Json(list);
+        }
+
         private void PopulateLookups(Appointment model)
         {
             ViewBag.Customers = AppDataStore.Customers
@@ -272,34 +349,37 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 })
                 .ToList();
 
-            // Vehicles for selected customer, or all if none selected
-            var vehicles = string.IsNullOrWhiteSpace(model.CustomerId)
-                ? AppDataStore.Vehicles
-                : AppDataStore.Vehicles.Where(v => v.CustomerId == model.CustomerId);
-
-            ViewBag.Vehicles = vehicles
-                .OrderBy(v => v.RegistrationNumber)
-                .Select(v => new SelectListItem
-                {
-                    Value = v.Id,
-                    Text = $"{v.RegistrationNumber} — {v.Make} {v.Model}",
-                    Selected = v.Id == model.VehicleId
-                })
-                .ToList();
-
-            ViewBag.JobCards = AppDataStore.JobCards
-                .OrderByDescending(j => j.CreatedAt)
-                .Select(j =>
-                {
-                    var v = AppDataStore.Vehicles.FirstOrDefault(x => x.Id == j.VehichleId);
-                    return new SelectListItem
+            // Only vehicles that belong to the selected customer (never the full fleet).
+            ViewBag.Vehicles = string.IsNullOrWhiteSpace(model.CustomerId)
+                ? new List<SelectListItem>()
+                : AppDataStore.Vehicles
+                    .Where(v => v.CustomerId == model.CustomerId)
+                    .OrderBy(v => v.RegistrationNumber)
+                    .Select(v => new SelectListItem
                     {
-                        Value = j.Id,
-                        Text = $"{j.Id} — {(v != null ? v.RegistrationNumber : j.VehichleId)} ({j.Status})",
-                        Selected = j.Id == model.JobCardId
-                    };
-                })
-                .ToList();
+                        Value = v.Id,
+                        Text = $"{v.RegistrationNumber} — {v.Make} {v.Model}",
+                        Selected = v.Id == model.VehicleId
+                    })
+                    .ToList();
+
+            // Only job cards for the selected customer.
+            ViewBag.JobCards = string.IsNullOrWhiteSpace(model.CustomerId)
+                ? new List<SelectListItem>()
+                : AppDataStore.JobCards
+                    .Where(j => j.CustomerId == model.CustomerId)
+                    .OrderByDescending(j => j.CreatedAt)
+                    .Select(j =>
+                    {
+                        var v = AppDataStore.Vehicles.FirstOrDefault(x => x.Id == j.VehichleId);
+                        return new SelectListItem
+                        {
+                            Value = j.Id,
+                            Text = $"{j.Id} — {(v != null ? v.RegistrationNumber : j.VehichleId)} ({j.Status})",
+                            Selected = j.Id == model.JobCardId
+                        };
+                    })
+                    .ToList();
         }
     }
 }

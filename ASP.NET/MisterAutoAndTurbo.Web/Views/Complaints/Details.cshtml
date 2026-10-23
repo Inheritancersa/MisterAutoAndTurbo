@@ -1,27 +1,91 @@
 @model Complaint
 @{
     ViewData["Title"] = "Complaint";
+    var customerName = ViewBag.CustomerName as string ?? Model.CustomerId;
+    var vehicleLabel = ViewBag.VehicleLabel as string ?? Model.VehicleId;
+    var pill = Model.Status switch
+    {
+        "Open" => "pill pill-amber",
+        "In Progress" => "pill pill-blue",
+        "Resolved" => "pill pill-green",
+        "Closed" => "pill",
+        _ => "pill"
+    };
 }
 <div class="page-header">
     <div>
-        <h1>Complaint</h1>
-        <p>@Model.Status · @Model.CreatedAt.ToString("g")</p>
+        <h1>Complaint @Model.Id</h1>
+        <p>
+            <span class="@pill">@Model.Status</span>
+            · @Model.Source
+            · @Model.CreatedAt.ToSa().ToString("g")
+        </p>
     </div>
-</div>
-<div class="card" style="max-width:560px;">
-    <div class="card-body" style="padding:24px;">
-        <p>@Model.Description</p>
-        <p style="color:var(--muted);">Customer: @Model.CustomerId · Job: @Model.JobCardId</p>
-        <form asp-action="UpdateStatus" method="post" style="margin-top:16px;display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Index">All complaints</a>
+        <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Delete this complaint?');">
             @Html.AntiForgeryToken()
             <input type="hidden" name="id" value="@Model.Id" />
-            <select class="input" name="status" style="max-width:180px;">
-                <option>Open</option>
-                <option>In Progress</option>
-                <option>Resolved</option>
-                <option>Closed</option>
-            </select>
-            <button type="submit" class="btn btn-ghost">Update status</button>
+            <button type="submit" class="btn btn-ghost" style="color:#D64545;">Delete</button>
         </form>
+    </div>
+</div>
+
+<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+        <div class="card-head">Complaint</div>
+        <div class="card-body" style="padding:20px;">
+            <dl style="display:grid;grid-template-columns:120px 1fr;gap:8px 16px;margin:0 0 16px;">
+                <dt style="color:var(--muted);">Customer</dt><dd>@customerName</dd>
+                <dt style="color:var(--muted);">Vehicle</dt><dd>@(string.IsNullOrEmpty(vehicleLabel) ? "—" : vehicleLabel)</dd>
+                <dt style="color:var(--muted);">Job</dt>
+                <dd>
+                    @if (!string.IsNullOrEmpty(Model.JobCardId))
+                    {
+                        <a asp-controller="JobCards" asp-action="Details" asp-route-id="@Model.JobCardId">@Model.JobCardId</a>
+                    }
+                    else { <span>—</span> }
+                </dd>
+                <dt style="color:var(--muted);">Source</dt><dd>@Model.Source</dd>
+            </dl>
+            @if (!string.IsNullOrEmpty(Model.Subject))
+            {
+                <p style="margin:0 0 8px;"><strong>@Model.Subject</strong></p>
+            }
+            <p style="margin:0;white-space:pre-wrap;">@Model.Description</p>
+            @if (!string.IsNullOrEmpty(Model.StaffNotes))
+            {
+                <p style="margin:16px 0 0;padding-top:12px;border-top:1px solid #E3E7EF;">
+                    <strong>Staff notes</strong><br />@Model.StaffNotes
+                </p>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">Handle complaint</div>
+        <div class="card-body" style="padding:20px;">
+            <form asp-action="UpdateStatus" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="field">
+                    <label>Status</label>
+                    <select class="input" name="status">
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Staff notes</label>
+                    <textarea class="input" name="staffNotes" rows="3" placeholder="Action taken / resolution">@Model.StaffNotes</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:8px;">Update</button>
+            </form>
+            <p style="color:var(--muted);font-size:13px;margin:12px 0 0;">
+                Resolving or closing also notifies the customer on mobile.
+            </p>
+        </div>
     </div>
 </div>

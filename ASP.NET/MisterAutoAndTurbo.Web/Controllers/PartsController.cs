@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MisterAutoAndTurbo.Web.Data;
 using MisterAutoAndTurbo.Web.Models;
@@ -7,6 +8,8 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// <summary>
     /// Manager / Mechanic: Parts inventory — list, add, edit, adjust stock, delete.
     /// </summary>
+    [Authorize(Roles = "Manager,Mechanic")]
+    
     public class PartsController : Controller
     {
         [HttpGet]

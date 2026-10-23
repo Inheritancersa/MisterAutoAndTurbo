@@ -5,42 +5,67 @@
 <div class="page-header">
     <div>
         <h1>Create job card</h1>
-        <p>Customer and vehicle must already be registered</p>
+        <p>Open a repair / service job for a registered vehicle</p>
     </div>
-    <a class="btn btn-ghost" asp-action="Index">Back to list</a>
+    <a class="btn btn-ghost" asp-action="Index">Back to jobs</a>
 </div>
 
 <div class="card" style="max-width:560px;">
     <div class="card-body" style="padding:24px;">
         <form asp-action="Create" method="post">
             @Html.AntiForgeryToken()
-            <div asp-validation-summary="All" class="text-danger"></div>
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+            <input type="hidden" name="appointmentId" value="@(ViewBag.AppointmentId as string ?? "")" />
 
             <div class="field">
-                <label asp-for="VehichleId">Vehicle ID</label>
-                <input class="input" asp-for="VehichleId" value="@(ViewData["VehicleId"] ?? Model.VehichleId)" required />
+                <label asp-for="VehichleId">Vehicle</label>
+                <select class="input" asp-for="VehichleId" asp-items="ViewBag.Vehicles" required>
+                    <option value="">— Select vehicle —</option>
+                </select>
+                <small style="color:var(--muted);">
+                    Vehicle not listed?
+                    <a asp-controller="Vehicles" asp-action="Create">Register vehicle first</a>
+                </small>
             </div>
+
             <div class="field">
-                <label asp-for="CreatedById">Created by (staff ID)</label>
-                <input class="input" asp-for="CreatedById" />
+                <label>Service</label>
+                <input class="input" name="serviceType" type="text"
+                       value="@(ViewBag.ServiceType as string ?? "")"
+                       placeholder="e.g. Diagnostic, Full service, Brakes" />
             </div>
+
+            <div class="field">
+                <label>Description</label>
+                <textarea class="input" name="serviceDescription" rows="3"
+                          placeholder="What the customer asked for (e.g. brakes noisy, full service)">@(ViewBag.ServiceDescription as string ?? "")</textarea>
+            </div>
+
+            <div class="field">
+                <label asp-for="Diagnosis">Initial diagnosis (optional)</label>
+                <textarea class="input" asp-for="Diagnosis" rows="2"></textarea>
+            </div>
+
             <div class="field">
                 <label asp-for="MechanicId">Assign mechanic (optional)</label>
-                <input class="input" asp-for="MechanicId" />
+                <input class="input" asp-for="MechanicId" placeholder="e.g. mech-01" />
             </div>
+
             <div class="field">
-                <label>Service / repair request</label>
-                <textarea class="input" name="serviceDescription" rows="3" placeholder="Reported issue or requested service"></textarea>
+                <label asp-for="CreatedById">Created by (staff ID)</label>
+                <input class="input" asp-for="CreatedById" placeholder="Your staff id" />
             </div>
+
             <div class="field">
                 <label asp-for="Status">Status</label>
                 <select class="input" asp-for="Status">
-                    <option>Inspection</option>
-                    <option>Quotation</option>
-                    <option>In Progress</option>
-                    <option>Quality Check</option>
-                    <option>Ready for Collection</option>
-                    <option>Collected</option>
+                    <option value="Inspection">Inspection</option>
+                    <option value="Quotation">Quotation</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Quality Check">Quality Check</option>
+                    <option value="Ready for Collection">Ready for Collection</option>
+                    <option value="Collected">Collected</option>
                 </select>
             </div>
 

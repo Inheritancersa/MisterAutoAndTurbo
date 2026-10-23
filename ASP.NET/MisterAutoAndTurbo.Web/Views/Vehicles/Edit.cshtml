@@ -30,7 +30,13 @@
             </div>
             <div class="field">
                 <label asp-for="Make">Make</label>
-                <input class="input" asp-for="Make" />
+                <select class="input" asp-for="Make" required>
+                    <option value="">— Select make —</option>
+                    @foreach (var make in MisterAutoAndTurbo.Web.Data.CarMakes.All)
+                    {
+                        <option value="@make">@make</option>
+                    }
+                </select>
             </div>
             <div class="field">
                 <label asp-for="Model">Model</label>

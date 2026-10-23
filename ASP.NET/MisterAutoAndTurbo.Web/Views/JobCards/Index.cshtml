@@ -1,18 +1,64 @@
 @model IEnumerable<JobCard>
 @{
-    ViewData["Title"] = "Job cards";
-    var filter = ViewData["StatusFilter"] as string;
+    var q = ViewBag.Query as string;
+    ViewData["Title"] = "Repairs / Jobs";
+    string filter = ViewData["StatusFilter"] as string ?? "";
+    var labels = ViewBag.VehicleLabels as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var names = ViewBag.CustomerNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+    bool isMechanic = User.IsInRole("Mechanic");
+    string subtitle = filter == "" ? "All job cards" : "Filtered: " + filter;
+    var statusOptions = new List<string[]>
+    {
+        new[] { "Active", "Active (not collected)" },
+        new[] { "Inspection", "Inspection" },
+        new[] { "Quotation", "Quotation" },
+        new[] { "In Progress", "In Progress" },
+        new[] { "Quality Check", "Quality Check" },
+        new[] { "Ready for Collection", "Ready for Collection" },
+        new[] { "Collected", "Collected" }
+    };
 }
 <div class="page-header">
     <div>
         <h1>Repairs / Jobs</h1>
-        <p>@(string.IsNullOrEmpty(filter) ? "All job cards" : $"Filtered: {filter}")</p>
+        <p>@subtitle</p>
     </div>
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Index">All</a>
         <a class="btn btn-ghost" asp-action="Active">Active</a>
-        <a class="btn btn-ghost" asp-action="Completed">Completed</a>
-        <a class="btn btn-ghost" asp-action="Assigned">Assigned to me</a>
-        <a class="btn btn-primary" asp-action="Create">+ Create job card</a>
+        <a class="btn btn-ghost" asp-action="Completed">Collected</a>
+        <a class="btn btn-ghost" asp-action="Assigned">Assigned</a>
+        <a class="btn btn-ghost" asp-action="Progress">Progress board</a>
+        @if (!isMechanic)
+        {
+            <a class="btn btn-primary" asp-action="Create">+ Create job card</a>
+        }
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;">
+        <form method="get" asp-action="Index" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <div class="field" style="margin:0;min-width:200px;">
+                <label>Status</label>
+                <select class="input" name="status">
+                    <option value="">— All statuses —</option>
+                    @foreach (var opt in statusOptions)
+                    {
+                        <option value="@opt[0]" selected="@(filter == opt[0])">@opt[1]</option>
+                    }
+                </select>
+            </div>
+            <div class="field" style="margin:0;flex:1;min-width:200px;">
+                <label>Search</label>
+                <input class="input" type="search" name="q" value="@q" placeholder="Job ID, customer, vehicle, diagnosis…" />
+            </div>
+            <button type="submit" class="btn btn-ghost">Filter</button>
+            @if (filter != "")
+            {
+                <a class="btn btn-ghost" asp-action="Index">Clear</a>
+            }
+        </form>
     </div>
 </div>
 
@@ -22,6 +68,7 @@
             <tr>
                 <th>Job ID</th>
                 <th>Vehicle</th>
+                <th>Customer</th>
                 <th>Mechanic</th>
                 <th>Status</th>
                 <th>Created</th>
@@ -29,24 +76,47 @@
             </tr>
         </thead>
         <tbody>
-        @if (Model != null && Model.Any())
-        {
-            foreach (var j in Model)
+            @if (Model != null && Model.Any())
+            {
+                foreach (var j in Model)
+                {
+                    string pill = "pill";
+                    if (j.Status == "Inspection" || j.Status == "In Progress") { pill = "pill pill-blue"; }
+                    else if (j.Status == "Quotation" || j.Status == "Quality Check") { pill = "pill pill-amber"; }
+                    else if (j.Status == "Ready for Collection" || j.Status == "Collected") { pill = "pill pill-green"; }
+
+                    string veh = labels.ContainsKey(j.VehichleId) ? labels[j.VehichleId] : j.VehichleId;
+                    string cust = names.ContainsKey(j.CustomerId) ? names[j.CustomerId] : j.CustomerId;
+                    string mech = string.IsNullOrEmpty(j.MechanicId) ? "—" : j.MechanicId;
+                    string created = j.CreatedAt.ToSa().ToString("dd MMM yyyy");
+
+                    <tr>
+                        <td><strong>@j.Id</strong></td>
+                        <td>@veh</td>
+                        <td>@cust</td>
+                        <td>@mech</td>
+                        <td><span class="@pill">@j.Status</span></td>
+                        <td>@created</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@j.Id">Open</a>
+                            &nbsp;|&nbsp;
+                            <a asp-action="Edit" asp-route-id="@j.Id">Edit</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
             {
                 <tr>
-                    <td>@j.Id</td>
-                    <td>@j.VehichleId</td>
-                    <td>@j.MechanicId</td>
-                    <td><span class="pill pill-blue">@j.Status</span></td>
-                    <td>@j.CreatedAt.ToString("yyyy-MM-dd")</td>
-                    <td><a asp-action="Details" asp-route-id="@j.Id">Open</a></td>
+                    <td colspan="7" style="color:var(--muted);">
+                        No job cards found.
+                        @if (!isMechanic)
+                        {
+                            <a asp-action="Create">Create the first job card</a>
+                        }
+                    </td>
                 </tr>
             }
-        }
-        else
-        {
-            <tr><td colspan="6" style="color:var(--muted);">No job cards found.</td></tr>
-        }
         </tbody>
     </table>
 </div>

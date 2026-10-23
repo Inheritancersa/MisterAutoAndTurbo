@@ -1,22 +1,145 @@
 @model Payment
 @{
-    ViewData["Title"] = "Payment details";
+    ViewData["Title"] = "Payment";
+    var customerName = ViewBag.CustomerName as string ?? Model.CustomerId;
+    var quoteTotal = ViewBag.QuoteTotal as decimal?;
+    var allProofs = ViewBag.AllProofPayments as IList<Payment> ?? new List<Payment>();
+    var statusPill = Model.Status switch
+    {
+        "Confirmed" => "pill pill-green",
+        "Refunded" => "pill pill-red",
+        _ => "pill pill-blue"
+    };
 }
 <div class="page-header">
     <div>
-        <h1>Payment</h1>
-        <p>R @Model.Amount.ToString("N2") · @Model.Status</p>
+        <h1>Payment @Model.Id</h1>
+        <p>
+            <span class="@statusPill">@Model.Status</span>
+            · @customerName
+            · R @Model.Amount.ToString("N2")
+        </p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Index">All payments</a>
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        @if (!string.IsNullOrEmpty(Model.QuotationId))
+        {
+            <a class="btn btn-ghost" asp-controller="Quotations" asp-action="Details" asp-route-id="@Model.QuotationId">Quotation</a>
+        }
     </div>
 </div>
-<div class="card" style="max-width:480px;">
-    <div class="card-body" style="padding:24px;">
-        <dl style="display:grid;grid-template-columns:160px 1fr;gap:8px 16px;margin:0;">
-            <dt style="color:var(--muted);">Quotation</dt><dd>@Model.QuotationId</dd>
-            <dt style="color:var(--muted);">Amount</dt><dd>R @Model.Amount.ToString("N2")</dd>
-            <dt style="color:var(--muted);">Method</dt><dd>@Model.Method</dd>
-            <dt style="color:var(--muted);">Proof</dt><dd>@Model.ProofOfPaymentUrl</dd>
-            <dt style="color:var(--muted);">Paid at</dt><dd>@Model.PaidAt.ToString("g")</dd>
-            <dt style="color:var(--muted);">Recorded by</dt><dd>@Model.RecordedById</dd>
-        </dl>
+
+<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card">
+        <div class="card-head">Payment details</div>
+        <div class="card-body" style="padding:20px;">
+            <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin:0;">
+                <dt style="color:var(--muted);">Customer</dt><dd>@customerName</dd>
+                <dt style="color:var(--muted);">Quotation</dt>
+                <dd>
+                    @if (!string.IsNullOrEmpty(Model.QuotationId))
+                    {
+                        <a asp-controller="Quotations" asp-action="Details" asp-route-id="@Model.QuotationId">@Model.QuotationId</a>
+                        if (quoteTotal.HasValue) { <span style="color:var(--muted);"> · quote R @quoteTotal.Value.ToString("N2")</span> }
+                    }
+                    else { <text>—</text> }
+                </dd>
+                <dt style="color:var(--muted);">Amount</dt><dd><strong>R @Model.Amount.ToString("N2")</strong></dd>
+                <dt style="color:var(--muted);">Method</dt><dd>@Model.Method</dd>
+                <dt style="color:var(--muted);">Paid at</dt><dd>@Model.PaidAt.ToSa().ToString("g")</dd>
+                <dt style="color:var(--muted);">Recorded by</dt><dd>@(string.IsNullOrEmpty(Model.RecordedById) ? "—" : Model.RecordedById)</dd>
+                <dt style="color:var(--muted);">Status</dt><dd><span class="@statusPill">@Model.Status</span></dd>
+            </dl>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">Update status</div>
+        <div class="card-body" style="padding:20px;">
+            <form asp-action="UpdateStatus" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="field">
+                    <label>Status</label>
+                    <select class="input" name="status">
+                        <option value="Recorded" selected="@(Model.Status == "Recorded")">Recorded</option>
+                        <option value="Confirmed" selected="@(Model.Status == "Confirmed")">Confirmed</option>
+                        <option value="Refunded" selected="@(Model.Status == "Refunded")">Refunded</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:8px;">Update</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@{
+    // Flatten every proof URL across all related payment rows (today + tomorrow + …).
+    var proofItems = allProofs
+        .SelectMany(p => p.ProofUrls.Select(url => new { Payment = p, Url = url }))
+        .ToList();
+}
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-head">
+        Proof of payment
+        @if (proofItems.Count > 0)
+        {
+            <span class="pill pill-blue" style="margin-left:8px;">@proofItems.Count file(s)</span>
+        }
+    </div>
+    <div class="card-body" style="padding:20px;">
+        @if (proofItems.Count == 0)
+        {
+            <p style="color:var(--muted);margin:0;">No proof of payment uploaded yet.</p>
+        }
+        else
+        {
+            <p style="color:var(--muted);margin:0 0 16px;">
+                All uploads for this quotation / customer — including separate uploads on different days.
+            </p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
+                @foreach (var item in proofItems)
+                {
+                    var url = item.Url;
+                    var isPdf = url.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+                    var isLink = url.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase)
+                                 || url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                                 || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+                    <div style="border:1px solid var(--border,#e3e7ef);border-radius:8px;padding:12px;background:#fbfcfe;">
+                        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">
+                            @item.Payment.PaidAt.ToSa().ToString("dd MMM yyyy HH:mm")
+                            · R @item.Payment.Amount.ToString("N2")
+                            · <span class="pill" style="font-size:10px;">@item.Payment.Status</span>
+                        </div>
+                        @if (isLink)
+                        {
+                            <a href="@url" target="_blank" rel="noopener noreferrer" style="font-weight:600;">Open proof</a>
+                            if (!isPdf)
+                            {
+                                <div style="margin-top:8px;">
+                                    <a href="@url" target="_blank" rel="noopener noreferrer">
+                                        <img src="@url" alt="Proof of payment"
+                                             style="max-width:100%;max-height:200px;border-radius:6px;border:1px solid var(--border,#ddd);object-fit:contain;background:#fff;" />
+                                    </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="margin-top:8px;padding:24px;text-align:center;background:#f3f5f9;border-radius:6px;color:var(--muted);">
+                                    PDF document
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <span style="word-break:break-all;">@url</span>
+                        }
+                        <div style="margin-top:8px;font-size:11px;color:var(--muted);">
+                            Payment <a asp-action="Details" asp-route-id="@item.Payment.Id">@item.Payment.Id</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
 </div>

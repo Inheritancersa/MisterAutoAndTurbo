@@ -1,0 +1,50 @@
+@model IEnumerable<MisterAutoAndTurbo.Web.Controllers.OutstandingRow>
+@{
+    ViewData["Title"] = "Outstanding payments";
+}
+<div class="page-header">
+    <div>
+        <h1>Outstanding</h1>
+        <p>Quote totals minus payments received</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Index">All payments</a>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Quotation</th>
+                <th>Quote total</th>
+                <th>Paid</th>
+                <th>Balance</th>
+                <th>Quote status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.CustomerName</td>
+                    <td>@r.QuotationId</td>
+                    <td>R @r.QuoteTotal.ToString("N2")</td>
+                    <td>R @r.Paid.ToString("N2")</td>
+                    <td><strong style="color:@(r.Balance > 0 ? "#B07D00" : "inherit");">R @r.Balance.ToString("N2")</strong></td>
+                    <td>@r.QuoteStatus</td>
+                    <td>
+                        <a asp-action="Create" asp-route-quotationId="@r.QuotationId">Record payment</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="7" style="color:var(--muted);">Nothing outstanding.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

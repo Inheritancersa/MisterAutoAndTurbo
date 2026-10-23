@@ -1,37 +1,126 @@
 @model IEnumerable<Payment>
 @{
+    var q = ViewBag.Query as string;
     ViewData["Title"] = "Payments";
+    var names = ViewBag.CustomerNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var outstandingTotal = ViewBag.OutstandingTotal as decimal? ?? 0;
+    var outstandingCount = ViewBag.OutstandingCount as int? ?? 0;
+    var customerFilter = ViewBag.CustomerFilter as string;
+    var statusFilter = ViewBag.StatusFilter as string;
 }
 <div class="page-header">
     <div>
         <h1>Payments</h1>
-        <p>Payment records against quotations</p>
+        <p>Payment records against quotations
+            @if (outstandingCount > 0)
+            {
+                <span class="pill pill-amber" style="margin-left:8px;">R @outstandingTotal.ToString("N2") outstanding</span>
+            }
+        </p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">+ Record payment</a>
+    <div style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" asp-action="Outstanding">Outstanding</a>
+        <a class="btn btn-primary" asp-action="Create">+ Record payment</a>
+    </div>
 </div>
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;">
+        <form method="get" asp-action="Index" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <div class="field" style="margin:0;min-width:200px;">
+                <label>Customer</label>
+                <select class="input" name="customerId" asp-items="ViewBag.Customers">
+                    <option value="">— All customers —</option>
+                </select>
+            </div>
+            <div class="field" style="margin:0;min-width:140px;">
+                <label>Status</label>
+                <select class="input" name="status">
+                    <option value="">— All —</option>
+                    <option value="Recorded" selected="@(statusFilter == "Recorded")">Recorded</option>
+                    <option value="Confirmed" selected="@(statusFilter == "Confirmed")">Confirmed</option>
+                    <option value="Refunded" selected="@(statusFilter == "Refunded")">Refunded</option>
+                </select>
+            </div>
+            <div class="field" style="margin:0;flex:1;min-width:200px;">
+                <label>Search</label>
+                <input class="input" type="search" name="q" value="@q" placeholder="Customer, quotation, amount, method…" />
+            </div>
+            <button type="submit" class="btn btn-ghost">Filter</button>
+            @if (!string.IsNullOrEmpty(customerFilter) || !string.IsNullOrEmpty(statusFilter) || !string.IsNullOrEmpty(q))
+            {
+                <a class="btn btn-ghost" asp-action="Index">Clear</a>
+            }
+        </form>
+    </div>
+</div>
+
 <div class="card">
     <table class="table">
         <thead>
-            <tr><th>Quotation</th><th>Amount</th><th>Method</th><th>Status</th><th>Paid at</th><th></th></tr>
+            <tr>
+                <th>Paid at</th>
+                <th>Customer</th>
+                <th>Quotation</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th>Proof</th>
+                <th></th>
+            </tr>
         </thead>
         <tbody>
         @if (Model != null && Model.Any())
         {
             foreach (var p in Model)
             {
+                var pill = p.Status switch
+                {
+                    "Confirmed" => "pill pill-green",
+                    "Refunded" => "pill pill-red",
+                    _ => "pill pill-blue"
+                };
+                var name = names.ContainsKey(p.CustomerId) ? names[p.CustomerId] : p.CustomerId;
                 <tr>
+                    <td>@p.PaidAt.ToSa().ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@name</td>
                     <td>@p.QuotationId</td>
-                    <td>R @p.Amount.ToString("N2")</td>
+                    <td><strong>R @p.Amount.ToString("N2")</strong></td>
                     <td>@p.Method</td>
-                    <td>@p.Status</td>
-                    <td>@p.PaidAt.ToString("g")</td>
-                    <td><a asp-action="Details" asp-route-id="@p.Id">View</a></td>
+                    <td><span class="@pill">@p.Status</span></td>
+                    <td>
+                        @{
+                            var urls = p.ProofUrls;
+                        }
+                        @if (urls.Count == 0)
+                        {
+                            <text>—</text>
+                        }
+                        else if (urls.Count == 1 && (urls[0].StartsWith("/uploads/") || urls[0].StartsWith("http", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            <a href="@urls[0]" target="_blank" rel="noopener noreferrer">View proof</a>
+                        }
+                        else
+                        {
+                            <a asp-action="Details" asp-route-id="@p.Id">@urls.Count proof(s)</a>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@p.Id">View</a>
+                        &nbsp;|&nbsp;
+                        <a asp-action="Edit" asp-route-id="@p.Id">Edit</a>
+                    </td>
                 </tr>
             }
         }
         else
         {
-            <tr><td colspan="6" style="color:var(--muted);">No payments recorded.</td></tr>
+            <tr>
+                <td colspan="8" style="color:var(--muted);">
+                    No payments recorded.
+                    <a asp-action="Create">Record the first payment</a>.
+                </td>
+            </tr>
         }
         </tbody>
     </table>

@@ -1,5 +1,6 @@
 @model IEnumerable<Appointment>
 @{
+    var q = ViewBag.Query as string;
     ViewData["Title"] = "Appointments";
     var names = ViewBag.CustomerNames as Dictionary<string, string> ?? new Dictionary<string, string>();
     var vehicles = ViewBag.VehicleLabels as Dictionary<string, string> ?? new Dictionary<string, string>();
@@ -12,6 +13,23 @@
     <a class="btn btn-primary" asp-action="Create">+ Book appointment</a>
 </div>
 
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;">
+        <form method="get" asp-action="Index" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <div class="field" style="margin:0;flex:1;min-width:200px;">
+                <label>Search</label>
+                <input class="input" type="search" name="q" value="@q" placeholder="Customer, vehicle, service, status…" />
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            @if (!string.IsNullOrEmpty(q))
+            {
+                <a class="btn btn-ghost" asp-action="Index">Clear</a>
+            }
+        </form>
+    </div>
+</div>
+
 <div class="card">
     <table class="table">
         <thead>
@@ -19,6 +37,8 @@
                 <th>ID</th>
                 <th>Customer</th>
                 <th>Vehicle</th>
+                <th>Service</th>
+                <th>Description</th>
                 <th>Job ID</th>
                 <th>Scheduled</th>
                 <th>Status</th>
@@ -44,6 +64,10 @@
                     <td>@a.Id</td>
                     <td>@custName</td>
                     <td>@vehLabel</td>
+                    <td>@(string.IsNullOrWhiteSpace(a.ServiceType) ? "—" : a.ServiceType)</td>
+                    <td style="max-width:220px;white-space:normal;">
+                        @(string.IsNullOrWhiteSpace(a.Description) ? "—" : a.Description)
+                    </td>
                     <td>@(string.IsNullOrEmpty(a.JobCardId) ? "—" : a.JobCardId)</td>
                     <td>@a.ScheduledAt.ToString("ddd, dd MMM yyyy HH:mm")</td>
                     <td><span class="@pillClass">@a.Status</span></td>
@@ -59,7 +83,7 @@
         else
         {
             <tr>
-                <td colspan="8" style="color:var(--muted);">
+                <td colspan="10" style="color:var(--muted);">
                     No appointments yet.
                     <a asp-action="Create">Book the first appointment</a>.
                 </td>

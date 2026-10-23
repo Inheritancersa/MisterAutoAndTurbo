@@ -1,0 +1,68 @@
+@using MisterAutoAndTurbo.Web.Models
+@model MisterAutoAndTurbo.Web.ViewModels.UserFormViewModel
+@{
+    var isEdit = !string.IsNullOrEmpty(Model.Id);
+}
+
+<div class="page-header">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <p>@ViewData["Subtitle"]</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Index">Back to users</a>
+</div>
+
+<div class="card" style="max-width:600px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@(isEdit ? Model.Id : null)" method="post" novalidate>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="field">
+                <label asp-for="Username">Username</label>
+                <input class="input" asp-for="Username" placeholder="e.g. j.smith" autocomplete="off" />
+                <span asp-validation-for="Username" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Email">Email</label>
+                <input class="input" asp-for="Email" type="email" placeholder="name@workshop.co.za" autocomplete="off" />
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Phone">Phone (optional)</label>
+                <input class="input phone-input" asp-for="Phone" type="tel" inputmode="numeric" pattern="[0-9+\-\s()]*" placeholder="e.g. 082 000 0000" />
+                <span asp-validation-for="Phone" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Role">Role</label>
+                <select class="input" asp-for="Role">
+                    <option value="">Select role</option>
+                    @foreach (var r in UserRoles.All)
+                    {
+                        <option value="@r">@r</option>
+                    }
+                </select>
+                <span asp-validation-for="Role" class="field-error"></span>
+            </div>
+
+            @if (!isEdit)
+            {
+                <div class="field">
+                    <label asp-for="Password">Password</label>
+                    <input class="input" asp-for="Password" type="password" autocomplete="new-password" />
+                    <span asp-validation-for="Password" class="field-error"></span>
+                    <small style="color:var(--muted);">At least 8 characters, with a letter and a number.</small>
+                </div>
+                <div class="field">
+                    <label asp-for="ConfirmPassword">Confirm password</label>
+                    <input class="input" asp-for="ConfirmPassword" type="password" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                </div>
+            }
+
+            <div style="display:flex;gap:10px;margin-top:18px;">
+                <a class="btn btn-ghost" asp-action="Index">Cancel</a>
+                <button type="submit" class="btn btn-primary">@(isEdit ? "Save changes" : "Create account")</button>
+            </div>
+        </form>
+    </div>
+</div>

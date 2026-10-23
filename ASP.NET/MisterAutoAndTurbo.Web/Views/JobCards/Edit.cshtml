@@ -3,25 +3,49 @@
     ViewData["Title"] = "Edit job card";
 }
 <div class="page-header">
-    <div><h1>Edit job card</h1></div>
+    <div>
+        <h1>Edit job card</h1>
+        <p>@Model.Id</p>
+    </div>
     <a class="btn btn-ghost" asp-action="Details" asp-route-id="@Model.Id">Cancel</a>
 </div>
+
 <div class="card" style="max-width:560px;">
     <div class="card-body" style="padding:24px;">
         <form asp-action="Edit" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
-            <div class="field"><label asp-for="VehichleId">Vehicle ID</label><input class="input" asp-for="VehichleId" /></div>
-            <div class="field"><label asp-for="MechanicId">Mechanic ID</label><input class="input" asp-for="MechanicId" /></div>
-            <div class="field"><label asp-for="Status">Status</label>
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+            <div class="field">
+                <label asp-for="VehichleId">Vehicle</label>
+                <select class="input" asp-for="VehichleId" asp-items="ViewBag.Vehicles" required></select>
+            </div>
+            <div class="field">
+                <label asp-for="MechanicId">Mechanic</label>
+                <input class="input" asp-for="MechanicId" />
+            </div>
+            <div class="field">
+                <label asp-for="Status">Status</label>
                 <select class="input" asp-for="Status">
-                    <option>Inspection</option><option>Quotation</option><option>In Progress</option>
-                    <option>Quality Check</option><option>Ready for Collection</option><option>Collected</option>
+                    <option value="Inspection">Inspection</option>
+                    <option value="Quotation">Quotation</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Quality Check">Quality Check</option>
+                    <option value="Ready for Collection">Ready for Collection</option>
+                    <option value="Collected">Collected</option>
                 </select>
             </div>
-            <div class="field"><label asp-for="Diagnosis">Diagnosis</label><textarea class="input" asp-for="Diagnosis" rows="3"></textarea></div>
-            <div class="field"><label asp-for="RepairNotes">Repair notes</label><textarea class="input" asp-for="RepairNotes" rows="3"></textarea></div>
-            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save</button>
+            <div class="field">
+                <label asp-for="Diagnosis">Diagnosis</label>
+                <textarea class="input" asp-for="Diagnosis" rows="3"></textarea>
+            </div>
+            <div class="field">
+                <label asp-for="RepairNotes">Repair notes</label>
+                <textarea class="input" asp-for="RepairNotes" rows="4"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save changes</button>
         </form>
     </div>
 </div>

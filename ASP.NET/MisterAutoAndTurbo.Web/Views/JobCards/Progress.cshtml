@@ -1,33 +1,56 @@
 @model IEnumerable<JobCard>
 @{
     ViewData["Title"] = "Job progress";
+    var labels = ViewBag.VehicleLabels as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var statuses = new[]
+    {
+        "Inspection", "Quotation", "In Progress", "Quality Check", "Ready for Collection", "Collected"
+    };
 }
 <div class="page-header">
     <div>
-        <h1>Monitor job progress</h1>
-        <p>Status updates across the workshop</p>
+        <h1>Progress board</h1>
+        <p>Jobs by status across the workshop</p>
     </div>
+    <a class="btn btn-ghost" asp-action="Index">All jobs</a>
 </div>
-<div class="card">
-    <table class="table">
-        <thead><tr><th>Job</th><th>Vehicle</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-        @if (Model != null && Model.Any())
-        {
-            foreach (var j in Model)
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+@foreach (var status in statuses)
+{
+    var jobs = Model?.Where(j => j.Status == status).ToList() ?? new List<JobCard>();
+    var pill = status switch
+    {
+        "Inspection" => "pill pill-blue",
+        "Quotation" => "pill pill-amber",
+        "In Progress" => "pill pill-blue",
+        "Quality Check" => "pill pill-amber",
+        "Ready for Collection" => "pill pill-green",
+        "Collected" => "pill pill-green",
+        _ => "pill"
+    };
+    <div class="card">
+        <div class="card-head">
+            <span class="@pill">@status</span>
+            <span style="color:var(--muted);">@jobs.Count</span>
+        </div>
+        <div class="card-body" style="padding:12px;">
+            @if (jobs.Any())
             {
-                <tr>
-                    <td>@j.Id</td>
-                    <td>@j.VehichleId</td>
-                    <td>@j.Status</td>
-                    <td><a asp-action="Details" asp-route-id="@j.Id">Open</a></td>
-                </tr>
+                foreach (var j in jobs)
+                {
+                    var veh = labels.ContainsKey(j.VehichleId) ? labels[j.VehichleId] : j.VehichleId;
+                    <div style="padding:8px 0;border-bottom:1px solid #E3E7EF;">
+                        <a asp-action="Details" asp-route-id="@j.Id"><strong>@j.Id</strong></a>
+                        <div style="font-size:13px;color:var(--muted);">@veh</div>
+                    </div>
+                }
             }
-        }
-        else
-        {
-            <tr><td colspan="4" style="color:var(--muted);">No progress data yet.</td></tr>
-        }
-        </tbody>
-    </table>
+            else
+            {
+                <p style="color:var(--muted);margin:0;font-size:13px;">None</p>
+            }
+        </div>
+    </div>
+}
 </div>

@@ -1,3 +1,5 @@
+using MisterAutoAndTurbo.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MisterAutoAndTurbo.Web.Data;
@@ -9,20 +11,41 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// Staff: create quotations, send to customer (notification).
     /// Customer (mobile): view quote, Approve or Reject.
     /// </summary>
+    [Authorize(Roles = "Manager,Receptionist")]
+    
     public class QuotationsController : Controller
     {
         [HttpGet]
-        public IActionResult Index(string? customerId = null)
+        public IActionResult Index(string? customerId = null, string? q = null)
         {
             var quotes = AppDataStore.Quotations.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(customerId))
-                quotes = quotes.Where(q => q.CustomerId == customerId);
+                quotes = quotes.Where(x => x.CustomerId == customerId);
 
-            var list = quotes.OrderByDescending(q => q.CreatedAt).ToList();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                var customerNames = AppDataStore.Customers.ToDictionary(
+                    c => c.Id, c => $"{c.Name} {c.Surname}".Trim());
+                var vehicleLabels = AppDataStore.Vehicles.ToDictionary(
+                    v => v.Id, v => v.RegistrationNumber ?? "");
+                quotes = quotes.Where(x =>
+                    (x.Id?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (x.Status?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (x.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (x.JobCardId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (x.CustomerId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (x.VehicleId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    x.TotalCost.ToString("N2").Contains(term) ||
+                    (customerNames.TryGetValue(x.CustomerId, out var cn) && cn.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (vehicleLabels.TryGetValue(x.VehicleId ?? "", out var vl) && vl.Contains(term, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            var list = quotes.OrderByDescending(x => x.CreatedAt).ToList();
 
             var groups = list
-                .GroupBy(q => q.CustomerId)
+                .GroupBy(x => x.CustomerId)
                 .Select(g =>
                 {
                     var cust = AppDataStore.Customers.FirstOrDefault(c => c.Id == g.Key);
@@ -34,13 +57,14 @@ namespace MisterAutoAndTurbo.Web.Controllers
                         CustomerId = g.Key,
                         CustomerName = name,
                         Phone = cust?.Phone ?? "",
-                        Quotations = g.OrderByDescending(q => q.CreatedAt).ToList()
+                        Quotations = g.OrderByDescending(x => x.CreatedAt).ToList()
                     };
                 })
                 .OrderBy(g => g.CustomerName)
                 .ToList();
 
             ViewBag.CustomerFilter = customerId;
+            ViewBag.Query = q;
             ViewBag.Customers = BuildCustomerSelect(customerId);
             return View(groups);
         }
@@ -58,6 +82,17 @@ namespace MisterAutoAndTurbo.Web.Controllers
             ViewBag.CustomerName = CustomerName(quote.CustomerId);
             ViewBag.VehicleLabel = VehicleLabel(quote.VehicleId);
             ViewBag.CustomerPhone = AppDataStore.Customers.FirstOrDefault(c => c.Id == quote.CustomerId)?.Phone ?? "";
+
+            // Every payment / proof upload linked to this quotation (today, tomorrow, …).
+            ViewBag.Payments = AppDataStore.Payments
+                .Where(p => p.QuotationId == quote.Id)
+                .OrderByDescending(p => p.PaidAt)
+                .ToList();
+            ViewBag.ProofPayments = AppDataStore.Payments
+                .Where(p => p.QuotationId == quote.Id && p.HasProof)
+                .OrderByDescending(p => p.PaidAt)
+                .ToList();
+
             return View(quote);
         }
 
@@ -70,7 +105,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 JobCardId = jobCardId ?? string.Empty,
                 VehicleId = vehicleId ?? string.Empty,
                 Status = QuotationStatus.Pending,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
 
             if (!string.IsNullOrWhiteSpace(jobCardId))
@@ -126,7 +161,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             if (model.TotalCost < 0) model.TotalCost = 0;
 
             model.Id = AppDataStore.NewId("quot");
-            model.CreatedAt = DateTime.Now;
+            model.CreatedAt = DateTime.UtcNow;
             model.Status = QuotationStatus.Pending;
             model.Description = model.Description?.Trim() ?? string.Empty;
 
@@ -167,37 +202,17 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 Type = "Quotation",
                 RelatedId = quote.Id,
                 IsRead = false,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 Message = $"Hi {name}, Mister Auto & Turbo has sent you a quotation for {reg}. " +
                           $"Total: R {quote.TotalCost:N2}. Open the app to Approve or Reject."
             };
             AppDataStore.Notifications.Add(notification);
 
             quote.Status = QuotationStatus.Sent;
-            quote.SentAt = DateTime.Now;
+            quote.SentAt = DateTime.UtcNow;
 
             TempData["Success"] = $"Quotation sent to {name}. They will see a notification on the mobile app.";
             return RedirectToAction(nameof(Details), new { id });
-        }
-
-        /// <summary>
-        /// Customer mobile screen: view quotation and Approve / Reject.
-        /// (Also usable in browser for demo until Flutter is connected.)
-        /// GET /Quotations/CustomerView/{id}
-        /// </summary>
-        [HttpGet]
-        public IActionResult CustomerView(string id)
-        {
-            if (string.IsNullOrWhiteSpace(id))
-                return NotFound();
-
-            var quote = AppDataStore.Quotations.FirstOrDefault(q => q.Id == id);
-            if (quote == null)
-                return NotFound();
-
-            ViewBag.CustomerName = CustomerName(quote.CustomerId);
-            ViewBag.VehicleLabel = VehicleLabel(quote.VehicleId);
-            return View(quote);
         }
 
         /// <summary>Customer approves the quotation (mobile or demo page).</summary>
@@ -225,17 +240,17 @@ namespace MisterAutoAndTurbo.Web.Controllers
             if (quote.Status == QuotationStatus.Approved || quote.Status == QuotationStatus.Rejected)
             {
                 TempData["Error"] = "You already responded to this quotation.";
-                return RedirectToAction(nameof(CustomerView), new { id });
+                return RedirectToAction(nameof(Details), new { id });
             }
 
             if (quote.Status != QuotationStatus.Sent && quote.Status != QuotationStatus.Pending)
             {
                 TempData["Error"] = "This quotation cannot be updated.";
-                return RedirectToAction(nameof(CustomerView), new { id });
+                return RedirectToAction(nameof(Details), new { id });
             }
 
             quote.Status = newStatus;
-            quote.RespondedAt = DateTime.Now;
+            quote.RespondedAt = DateTime.UtcNow;
 
             // Mark related customer notifications as read
             foreach (var n in AppDataStore.Notifications.Where(n => n.RelatedId == id && !n.IsRead))
@@ -249,7 +264,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 Type = "QuotationResponse",
                 RelatedId = quote.Id,
                 IsRead = false,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 Message = $"Customer {CustomerName(quote.CustomerId)} {newStatus.ToLower()} quotation {quote.Id} (R {quote.TotalCost:N2})."
             });
 
@@ -265,7 +280,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 ? "Thank you — you approved the quotation. The workshop will proceed with the work."
                 : "You rejected the quotation. The workshop has been notified.";
 
-            return RedirectToAction(nameof(CustomerView), new { id });
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         [HttpPost]
@@ -412,7 +427,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
 
             quote.Status = status;
             if (status == QuotationStatus.Approved || status == QuotationStatus.Rejected)
-                quote.RespondedAt = DateTime.Now;
+                quote.RespondedAt = DateTime.UtcNow;
 
             TempData["Success"] = $"Quotation status set to {status}.";
             return RedirectToAction(nameof(Details), new { id });
@@ -428,26 +443,32 @@ namespace MisterAutoAndTurbo.Web.Controllers
         {
             ViewBag.Customers = BuildCustomerSelect(model.CustomerId);
 
-            ViewBag.JobCards = AppDataStore.JobCards
-                .OrderByDescending(j => j.CreatedAt)
-                .Select(j =>
-                {
-                    var v = AppDataStore.Vehicles.FirstOrDefault(x => x.Id == j.VehichleId);
-                    var c = AppDataStore.Customers.FirstOrDefault(x => x.Id == j.CustomerId);
-                    var label = $"{j.Id} — {(c != null ? c.Name + " " + c.Surname : j.CustomerId)} / {(v != null ? v.RegistrationNumber : j.VehichleId)} ({j.Status})";
-                    return new SelectListItem { Value = j.Id, Text = label, Selected = j.Id == model.JobCardId };
-                })
-                .ToList();
+            ViewBag.Vehicles = string.IsNullOrWhiteSpace(model.CustomerId)
+                ? new List<SelectListItem>()
+                : AppDataStore.Vehicles
+                    .Where(v => v.CustomerId == model.CustomerId)
+                    .OrderBy(v => v.RegistrationNumber)
+                    .Select(v => new SelectListItem
+                    {
+                        Value = v.Id,
+                        Text = $"{v.RegistrationNumber} — {v.Make} {v.Model}",
+                        Selected = v.Id == model.VehicleId
+                    })
+                    .ToList();
 
-            ViewBag.Vehicles = AppDataStore.Vehicles
-                .OrderBy(v => v.RegistrationNumber)
-                .Select(v =>
-                {
-                    var c = AppDataStore.Customers.FirstOrDefault(x => x.Id == v.CustomerId);
-                    var label = $"{v.RegistrationNumber} — {v.Make} {v.Model} ({(c != null ? c.Name : v.CustomerId)})";
-                    return new SelectListItem { Value = v.Id, Text = label, Selected = v.Id == model.VehicleId };
-                })
-                .ToList();
+            // Only job cards for the selected customer.
+            ViewBag.JobCards = string.IsNullOrWhiteSpace(model.CustomerId)
+                ? new List<SelectListItem>()
+                : AppDataStore.JobCards
+                    .Where(j => j.CustomerId == model.CustomerId)
+                    .OrderByDescending(j => j.CreatedAt)
+                    .Select(j =>
+                    {
+                        var v = AppDataStore.Vehicles.FirstOrDefault(x => x.Id == j.VehichleId);
+                        var label = $"{j.Id} — {(v != null ? v.RegistrationNumber : j.VehichleId)} ({j.Status})";
+                        return new SelectListItem { Value = j.Id, Text = label, Selected = j.Id == model.JobCardId };
+                    })
+                    .ToList();
         }
 
         private static List<SelectListItem> BuildCustomerSelect(string? selectedId) =>

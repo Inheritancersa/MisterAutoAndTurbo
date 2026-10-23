@@ -1,6 +1,8 @@
 @model IEnumerable<Vehicle>
 @{
     ViewData["Title"] = "Vehicles";
+    var q = ViewBag.Query as string;
+    var names = ViewBag.CustomerNames as Dictionary<string, string> ?? new Dictionary<string, string>();
 }
 <div class="page-header">
     <div>
@@ -10,6 +12,23 @@
     <div style="display:flex;gap:8px;">
         <a class="btn btn-ghost" asp-action="Lookup">Lookup</a>
         <a class="btn btn-primary" asp-action="Create">+ Register vehicle</a>
+    </div>
+</div>
+
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;">
+        <form method="get" asp-action="Index" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <div class="field" style="margin:0;flex:1;min-width:220px;">
+                <label>Search</label>
+                <input class="input" type="search" name="q" value="@q" placeholder="Registration, make, model, customer…" />
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            @if (!string.IsNullOrEmpty(q))
+            {
+                <a class="btn btn-ghost" asp-action="Index">Clear</a>
+            }
+        </form>
     </div>
 </div>
 
@@ -35,11 +54,17 @@
                     <td>@v.Make @v.Model</td>
                     <td>@v.Year</td>
                     <td>@v.Mileage.ToString("N0")</td>
-                    <td>@v.CustomerId</td>
+                    <td>@(names.ContainsKey(v.CustomerId) ? names[v.CustomerId] : v.CustomerId)</td>
                     <td>
                         <a asp-action="Details" asp-route-id="@v.Id">View</a>
                         &nbsp;|&nbsp;
                         <a asp-action="Edit" asp-route-id="@v.Id">Edit</a>
+                        &nbsp;|&nbsp;
+                        <form asp-action="Delete" asp-route-id="@v.Id" method="post" style="display:inline;"
+                              onsubmit="return confirm('Delete vehicle @v.RegistrationNumber? All linked job cards, quotations, payments, appointments and complaints will also be permanently deleted. This cannot be undone.');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-link" style="background:none;border:none;color:#D64545;cursor:pointer;padding:0;font:inherit;">Delete</button>
+                        </form>
                     </td>
                 </tr>
             }

@@ -1,0 +1,15 @@
+{
+  "Email": {
+    "SmtpHost": "smtp.gmail.com",
+    "SmtpPort": "587",
+    "SmtpUser": "letsielekete45@gmail.com",
+    "SmtpPass": "tkxzephsakmveafo",
+    "FromEmail": "letsielekete45@gmail.com",
+    "FromName": "Mister Auto And Turbo",
+    "ServiceRoleKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZleGtoaGRmanVtbXBrY2RvcWNtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODE2MTk1NywiZXhwIjoyMTAzNzM3OTU3fQ.EXWeoVDxj1JXdJ8onnjtfHyT0PuEfv0GodutSUHirBo",
+    "RecoveryCodeSecret": "vB7#nM2$xQ9!pL4&wR6*tY1^cK8@zH3"
+  },
+  "Supabase": {
+    "ServiceRoleKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZleGtoaGRmanVtbXBrY2RvcWNtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODE2MTk1NywiZXhwIjoyMTAzNzM3OTU3fQ.EXWeoVDxj1JXdJ8onnjtfHyT0PuEfv0GodutSUHirBo"  }
+}
+

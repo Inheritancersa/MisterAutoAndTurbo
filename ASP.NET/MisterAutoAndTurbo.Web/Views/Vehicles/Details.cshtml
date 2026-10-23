@@ -1,4 +1,4 @@
-@model Vehicle
+﻿@model Vehicle
 @{
     ViewData["Title"] = "Vehicle details";
     var customer = ViewBag.Customer as Customer;
@@ -8,11 +8,18 @@
         <h1>@Model.RegistrationNumber</h1>
         <p>@Model.Make @Model.Model (@Model.Year)</p>
     </div>
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <a class="btn btn-ghost" asp-action="Index">All vehicles</a>
         <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
-        <a class="btn btn-primary" asp-controller="JobCards" asp-action="Create"
+        <a class="btn btn-primary" asp-controller="Appointments" asp-action="Create"
+           asp-route-vehicleId="@Model.Id" asp-route-customerId="@Model.CustomerId">Book appointment</a>
+        <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Create"
            asp-route-vehicleId="@Model.Id" asp-route-customerId="@Model.CustomerId">+ Create job card</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline;"
+              onsubmit="return confirm('Delete this vehicle? All linked job cards, quotations, payments, appointments and complaints will also be permanently deleted. This cannot be undone.');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-ghost" style="color:#D64545;border-color:#f5c2c2;">Delete</button>
+        </form>
     </div>
 </div>
 

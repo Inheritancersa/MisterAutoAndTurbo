@@ -12,5 +12,11 @@ namespace MisterAutoAndTurbo.Web.Models
         public string Status { get; set; } = string.Empty;
         /// <summary>When the appointment date was sent to the customer.</summary>
         public DateTime? SentAt { get; set; }
+
+        /// <summary>Service type requested by the customer (e.g. Diagnostic, Repair).</summary>
+        public string ServiceType { get; set; } = string.Empty;
+
+        /// <summary>Customer notes / description of the work requested.</summary>
+        public string Description { get; set; } = string.Empty;
     }
 }

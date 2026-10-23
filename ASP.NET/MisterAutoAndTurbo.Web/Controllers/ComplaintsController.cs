@@ -1,24 +1,75 @@
+using MisterAutoAndTurbo.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using MisterAutoAndTurbo.Web.Data;
 using MisterAutoAndTurbo.Web.Models;
 
 namespace MisterAutoAndTurbo.Web.Controllers
 {
     /// <summary>
-    /// Receptionist: Record Customer Complaints.
-    /// Manager: View Customer Complaints.
+    /// Customer (mobile): submit complaint → staff notification.
+    /// Receptionist: record complaint. Manager: view and resolve.
     /// </summary>
+    [Authorize(Roles = "Manager,Receptionist")]
+    
     public class ComplaintsController : Controller
     {
-        // GET: /Complaints
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(string? status = null, string? customerId = null, string? q = null)
         {
-            // TODO: Retrieve complaint records
-            var list = new List<Complaint>();
-            return View(list);
+            var list = AppDataStore.Complaints.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(status))
+                list = list.Where(c => string.Equals(c.Status, status, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(customerId))
+                list = list.Where(c => c.CustomerId == customerId);
+
+            var customerNames = AppDataStore.Customers.ToDictionary(
+                c => c.Id, c => $"{c.Name} {c.Surname}".Trim());
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                list = list.Where(c =>
+                    (c.Id?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Subject?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Status?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Source?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.JobCardId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.CustomerId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.VehicleId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (customerNames.TryGetValue(c.CustomerId ?? "", out var cn) && cn.Contains(term, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            ViewBag.StatusFilter = status;
+            ViewBag.CustomerFilter = customerId;
+            ViewBag.Query = q;
+            ViewBag.CustomerNames = customerNames;
+            ViewBag.OpenCount = AppDataStore.Complaints.Count(c => c.Status == "Open" || c.Status == "In Progress");
+            ViewBag.Customers = BuildCustomerSelect(customerId);
+
+            return View(list.OrderByDescending(c => c.CreatedAt).ToList());
         }
 
-        // GET: /Complaints/Create
+        [HttpGet]
+        public IActionResult Details(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return NotFound();
+
+            var model = AppDataStore.Complaints.FirstOrDefault(c => c.Id == id);
+            if (model == null)
+                return NotFound();
+
+            ViewBag.CustomerName = CustomerName(model.CustomerId);
+            ViewBag.VehicleLabel = VehicleLabel(model.VehicleId);
+            return View(model);
+        }
+
+        /// <summary>Staff records a complaint (phone / walk-in).</summary>
         [HttpGet]
         public IActionResult Create(string? customerId = null, string? jobCardId = null)
         {
@@ -27,53 +78,257 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 CustomerId = customerId ?? string.Empty,
                 JobCardId = jobCardId ?? string.Empty,
                 Status = "Open",
+                Source = "Staff",
                 CreatedAt = DateTime.UtcNow
             };
+
+            if (!string.IsNullOrWhiteSpace(jobCardId))
+            {
+                var job = AppDataStore.JobCards.FirstOrDefault(j => j.Id == jobCardId);
+                if (job != null)
+                {
+                    model.JobCardId = job.Id;
+                    model.CustomerId = job.CustomerId;
+                    model.VehicleId = job.VehichleId;
+                }
+            }
+
+            PopulateLookups(model);
             return View(model);
         }
 
-        // POST: /Complaints/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Complaint model)
         {
-            // alt [complaint details valid] -> Save complaint + Confirmation
-            // else -> Display validation error
+            PopulateLookups(model);
+
             if (string.IsNullOrWhiteSpace(model.CustomerId) || string.IsNullOrWhiteSpace(model.Description))
             {
                 ModelState.AddModelError(string.Empty, "Customer and description are required.");
                 return View(model);
             }
 
-            model.Id = Guid.NewGuid().ToString();
-            model.CreatedAt = DateTime.UtcNow;
-            if (string.IsNullOrWhiteSpace(model.Status))
-                model.Status = "Open";
+            SaveComplaint(model, source: string.IsNullOrWhiteSpace(model.Source) ? "Staff" : model.Source, notifyStaff: true);
 
-            // TODO: Save complaint to Supabase
-            TempData["Success"] = "Complaint recorded.";
-            return RedirectToAction(nameof(Index));
+            TempData["Success"] = "Complaint recorded and staff notified.";
+            return RedirectToAction(nameof(Details), new { id = model.Id });
         }
 
-        // GET: /Complaints/Details/{id}
+        /// <summary>
+        /// Mobile-style form for the customer to submit a complaint.
+        /// GET /Complaints/CustomerSubmit?customerId=cust-001
+        /// </summary>
         [HttpGet]
-        public IActionResult Details(string id)
+        public IActionResult CustomerSubmit(string? customerId = null)
         {
-            if (string.IsNullOrWhiteSpace(id))
-                return NotFound();
-
-            var model = new Complaint { Id = id };
+            var model = new Complaint
+            {
+                CustomerId = customerId ?? string.Empty,
+                Status = "Open",
+                Source = "Mobile",
+                CreatedAt = DateTime.UtcNow
+            };
+            PopulateLookups(model);
             return View(model);
         }
 
-        // POST: /Complaints/UpdateStatus/{id}
+        /// <summary>Customer posts complaint from mobile → saved + notification to staff.</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UpdateStatus(string id, string status)
+        public IActionResult CustomerSubmit(Complaint model)
         {
-            // TODO: Update complaint status
+            PopulateLookups(model);
+
+            if (string.IsNullOrWhiteSpace(model.CustomerId))
+            {
+                ModelState.AddModelError(nameof(model.CustomerId), "Please select your account / customer.");
+                return View(model);
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Description))
+            {
+                ModelState.AddModelError(nameof(model.Description), "Please describe the complaint.");
+                return View(model);
+            }
+
+            SaveComplaint(model, source: "Mobile", notifyStaff: true);
+
+            TempData["Success"] = "Your complaint was submitted. Mister Auto & Turbo will follow up soon.";
+            return RedirectToAction(nameof(CustomerSubmitDone), new { id = model.Id });
+        }
+
+        [HttpGet]
+        public IActionResult CustomerSubmitDone(string id)
+        {
+            var model = AppDataStore.Complaints.FirstOrDefault(c => c.Id == id);
+            if (model == null)
+                return RedirectToAction(nameof(CustomerSubmit));
+            ViewBag.CustomerName = CustomerName(model.CustomerId);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateStatus(string id, string status, string? staffNotes = null)
+        {
+            var model = AppDataStore.Complaints.FirstOrDefault(c => c.Id == id);
+            if (model == null)
+                return NotFound();
+
+            var allowed = new[] { "Open", "In Progress", "Resolved", "Closed" };
+            if (!allowed.Contains(status))
+            {
+                TempData["Error"] = "Invalid status.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            model.Status = status;
+            if (!string.IsNullOrWhiteSpace(staffNotes))
+                model.StaffNotes = staffNotes.Trim();
+
+            if (status == "Resolved" || status == "Closed")
+                model.ResolvedAt = DateTime.UtcNow;
+
+            // Notify customer when resolved
+            if (status == "Resolved" || status == "Closed")
+            {
+                AppDataStore.Notifications.Add(new Notification
+                {
+                    Id = AppDataStore.NewId("ntf"),
+                    UserAccountId = model.CustomerId,
+                    Type = "Complaint",
+                    RelatedId = model.Id,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow,
+                    Message = $"Your complaint “{(string.IsNullOrEmpty(model.Subject) ? model.Id : model.Subject)}” was marked {status} by Mister Auto & Turbo."
+                });
+            }
+
             TempData["Success"] = $"Complaint status set to {status}.";
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(string id)
+        {
+            var model = AppDataStore.Complaints.FirstOrDefault(c => c.Id == id);
+            if (model == null)
+                return NotFound();
+
+            AppDataStore.Complaints.Remove(model);
+            foreach (var n in AppDataStore.Notifications.Where(n => n.RelatedId == id).ToList())
+                AppDataStore.Notifications.Remove(n);
+
+            TempData["Success"] = "Complaint deleted.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // --- helpers ---
+
+        private void SaveComplaint(Complaint model, string source, bool notifyStaff)
+        {
+            model.Id = AppDataStore.NewId("cmp");
+            model.CreatedAt = DateTime.UtcNow;
+            model.Source = source;
+            model.Status = "Open";
+            model.Subject = model.Subject?.Trim() ?? string.Empty;
+            model.Description = model.Description.Trim();
+            model.JobCardId = model.JobCardId?.Trim() ?? string.Empty;
+            model.VehicleId = model.VehicleId?.Trim() ?? string.Empty;
+
+            // Fill vehicle from job if needed
+            if (string.IsNullOrWhiteSpace(model.VehicleId) && !string.IsNullOrWhiteSpace(model.JobCardId))
+            {
+                var job = AppDataStore.JobCards.FirstOrDefault(j => j.Id == model.JobCardId);
+                if (job != null)
+                {
+                    model.VehicleId = job.VehichleId;
+                    if (string.IsNullOrWhiteSpace(model.CustomerId))
+                        model.CustomerId = job.CustomerId;
+                }
+            }
+
+            AppDataStore.Complaints.Add(model);
+
+            if (notifyStaff)
+            {
+                var name = CustomerName(model.CustomerId);
+                var preview = model.Description.Length > 80
+                    ? model.Description.Substring(0, 80) + "…"
+                    : model.Description;
+
+                AppDataStore.Notifications.Add(new Notification
+                {
+                    Id = AppDataStore.NewId("ntf"),
+                    UserAccountId = "staff",
+                    Type = "Complaint",
+                    RelatedId = model.Id,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow,
+                    Message = $"New complaint from {name} ({source}): {(string.IsNullOrEmpty(model.Subject) ? preview : model.Subject + " — " + preview)}"
+                });
+            }
+        }
+
+        private void PopulateLookups(Complaint model)
+        {
+            ViewBag.Customers = BuildCustomerSelect(model.CustomerId);
+
+            // Only vehicles + job cards for the selected customer.
+            ViewBag.Vehicles = string.IsNullOrWhiteSpace(model.CustomerId)
+                ? new List<SelectListItem>()
+                : AppDataStore.Vehicles
+                    .Where(v => v.CustomerId == model.CustomerId)
+                    .OrderBy(v => v.RegistrationNumber)
+                    .Select(v => new SelectListItem
+                    {
+                        Value = v.Id,
+                        Text = $"{v.RegistrationNumber} — {v.Make} {v.Model}",
+                        Selected = v.Id == model.VehicleId
+                    })
+                    .ToList();
+
+            ViewBag.JobCards = string.IsNullOrWhiteSpace(model.CustomerId)
+                ? new List<SelectListItem>()
+                : AppDataStore.JobCards
+                    .Where(j => j.CustomerId == model.CustomerId)
+                    .OrderByDescending(j => j.CreatedAt)
+                    .Select(j =>
+                    {
+                        var v = AppDataStore.Vehicles.FirstOrDefault(x => x.Id == j.VehichleId);
+                        return new SelectListItem
+                        {
+                            Value = j.Id,
+                            Text = $"{j.Id} — {v?.RegistrationNumber ?? j.VehichleId} ({j.Status})",
+                            Selected = j.Id == model.JobCardId
+                        };
+                    })
+                    .ToList();
+        }
+
+        private static List<SelectListItem> BuildCustomerSelect(string? selectedId) =>
+            AppDataStore.Customers
+                .OrderBy(c => c.Name)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id,
+                    Text = $"{c.Name} {c.Surname} ({c.Phone})",
+                    Selected = c.Id == selectedId
+                })
+                .ToList();
+
+        private static string CustomerName(string customerId)
+        {
+            var c = AppDataStore.Customers.FirstOrDefault(x => x.Id == customerId);
+            return c != null ? $"{c.Name} {c.Surname}".Trim() : customerId;
+        }
+
+        private static string VehicleLabel(string vehicleId)
+        {
+            var v = AppDataStore.Vehicles.FirstOrDefault(x => x.Id == vehicleId);
+            return v != null ? $"{v.RegistrationNumber} — {v.Make} {v.Model}" : vehicleId;
         }
     }
 }

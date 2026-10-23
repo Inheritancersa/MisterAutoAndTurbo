@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Quotations";
     string? filter = ViewBag.CustomerFilter as string;
+    var searchQ = ViewBag.Query as string;
 }
 <div class="page-header">
     <div>
@@ -21,8 +22,12 @@
                     <option value="">— All customers —</option>
                 </select>
             </div>
+            <div class="field" style="margin:0;flex:1;min-width:200px;">
+                <label>Search</label>
+                <input class="input" type="search" name="q" value="@searchQ" placeholder="Quote ID, customer, vehicle, description…" />
+            </div>
             <button type="submit" class="btn btn-ghost">Filter</button>
-            @if (!string.IsNullOrEmpty(filter))
+            @if (!string.IsNullOrEmpty(filter) || !string.IsNullOrEmpty(searchQ))
             {
                 <a class="btn btn-ghost" asp-action="Index">Clear filter</a>
             }
@@ -82,7 +87,7 @@ else
                         _ => "pill"
                     };
                     <tr>
-                        <td>@q.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td>@q.CreatedAt.ToSa().ToString("dd MMM yyyy")</td>
                         <td>@(string.IsNullOrEmpty(q.Description) ? "—" : (q.Description.Length > 40 ? q.Description.Substring(0, 40) + "…" : q.Description))</td>
                         <td>@(string.IsNullOrEmpty(q.JobCardId) ? "—" : q.JobCardId)</td>
                         <td>R @q.LabourCost.ToString("N2")</td>

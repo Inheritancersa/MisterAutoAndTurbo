@@ -1,11 +1,17 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MisterAutoAndTurbo.Web.Data;
 using MisterAutoAndTurbo.Web.Models;
+using MisterAutoAndTurbo.Web.Services;
 
 namespace MisterAutoAndTurbo.Web.Controllers
 {
     /// <summary>
-    /// Mechanic: Record Inspection (findings + recommended action).
+    /// Mechanic / Manager: record inspection findings and recommended action on a job card.
+    /// Saving moves the job from Inspection → Quotation when appropriate.
     /// </summary>
+    [Authorize(Roles = "Manager,Mechanic")]
     public class InspectionsController : Controller
     {
         // GET: /Inspections/Create?jobCardId=
@@ -15,11 +21,25 @@ namespace MisterAutoAndTurbo.Web.Controllers
             if (string.IsNullOrWhiteSpace(jobCardId))
                 return RedirectToAction("Index", "JobCards");
 
+            var job = AppDataStore.JobCards.FirstOrDefault(j => j.Id == jobCardId);
+            if (job == null)
+            {
+                TempData["Error"] = "Job card not found.";
+                return RedirectToAction("Index", "JobCards");
+            }
+
+            var mechanicId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                             ?? User.Identity?.Name
+                             ?? string.Empty;
+
             var model = new Inspection
             {
                 JobCardId = jobCardId,
-                InspectedAt = DateTime.UtcNow
+                MechanicId = mechanicId,
+                InspectedAt = SaTime.Now
             };
+
+            ViewBag.JobStatus = job.Status;
             return View(model);
         }
 
@@ -28,19 +48,46 @@ namespace MisterAutoAndTurbo.Web.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Inspection model)
         {
-            // alt [findings entered] -> Save inspection
-            // else -> Display validation error
+            if (string.IsNullOrWhiteSpace(model.JobCardId))
+            {
+                TempData["Error"] = "Job card is required.";
+                return RedirectToAction("Index", "JobCards");
+            }
+
+            var job = AppDataStore.JobCards.FirstOrDefault(j => j.Id == model.JobCardId);
+            if (job == null)
+            {
+                TempData["Error"] = "Job card not found.";
+                return RedirectToAction("Index", "JobCards");
+            }
+
             if (string.IsNullOrWhiteSpace(model.Findings))
             {
-                ModelState.AddModelError(string.Empty, "Inspection findings are required.");
+                ModelState.AddModelError(nameof(model.Findings), "Inspection findings are required.");
+                ViewBag.JobStatus = job.Status;
                 return View(model);
             }
 
-            // TODO: Save inspection to Supabase; set job status to Quotation if needed
-            model.Id = Guid.NewGuid().ToString();
+            model.Id = AppDataStore.NewId("insp");
             model.InspectedAt = DateTime.UtcNow;
+            if (string.IsNullOrWhiteSpace(model.MechanicId))
+            {
+                model.MechanicId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                                   ?? User.Identity?.Name
+                                   ?? string.Empty;
+            }
+            model.Findings = model.Findings.Trim();
+            model.RecommendedAction = model.RecommendedAction?.Trim() ?? string.Empty;
 
-            TempData["Success"] = "Inspection saved.";
+            AppDataStore.Inspections.Add(model);
+
+            // After inspection, job is ready for quotation (unless already further along).
+            if (job.Status == JobStatus.Inspection || string.IsNullOrWhiteSpace(job.Status))
+            {
+                job.Status = JobStatus.Quotation;
+            }
+
+            TempData["Success"] = "Inspection saved. Job is ready for quotation.";
             return RedirectToAction("Details", "JobCards", new { id = model.JobCardId });
         }
 
@@ -48,8 +95,14 @@ namespace MisterAutoAndTurbo.Web.Controllers
         [HttpGet]
         public IActionResult ByJobCard(string jobCardId)
         {
-            // TODO: Retrieve inspections for job card
-            var list = new List<Inspection>();
+            if (string.IsNullOrWhiteSpace(jobCardId))
+                return RedirectToAction("Index", "JobCards");
+
+            var list = AppDataStore.Inspections
+                .Where(i => i.JobCardId == jobCardId)
+                .OrderByDescending(i => i.InspectedAt)
+                .ToList();
+
             ViewData["JobCardId"] = jobCardId;
             return View(list);
         }

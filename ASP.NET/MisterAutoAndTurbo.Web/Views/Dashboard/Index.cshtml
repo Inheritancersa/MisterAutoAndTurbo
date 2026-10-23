@@ -1,42 +1,214 @@
+@model MisterAutoAndTurbo.Web.Controllers.DashboardVm
 @{
     ViewData["Title"] = "Dashboard";
-    var role = ViewData["Role"] as string ?? "Manager";
 }
-<div class="page-header">
+<div class="page-header" data-live-dashboard="1">
     <div>
         <h1>Dashboard</h1>
-        <p>Workshop overview — role: @role</p>
+        <p>Live workshop overview from your current data</p>
     </div>
-    <div style="display:flex;gap:8px;">
-        <a class="btn btn-ghost" asp-controller="Appointments" asp-action="Create">+ Appointment</a>
-        <a class="btn btn-primary" asp-controller="JobCards" asp-action="Create">+ Create Job</a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-controller="Dashboard" asp-action="Reports">Reports</a>
+        <a class="btn btn-primary" asp-controller="JobCards" asp-action="Create">+ Create job</a>
     </div>
 </div>
 
+@* KPI cards *@
 <div class="grid grid-5" style="margin-bottom:16px">
-    <div class="card stat"><div class="value">—</div><div class="label">Total Vehicles</div></div>
-    <div class="card stat"><div class="value">—</div><div class="label">Currently in Repair</div></div>
-    <div class="card stat"><div class="value">—</div><div class="label">Ready for Collection</div></div>
-    <div class="card stat"><div class="value">—</div><div class="label">Today's Appointments</div></div>
-    <div class="card stat"><div class="value">—</div><div class="label">Outstanding Payments</div></div>
+    <a class="card stat" asp-controller="Vehicles" asp-action="Index" style="text-decoration:none;color:inherit;">
+        <div class="value" data-live="totalVehicles">@Model.TotalVehicles</div>
+        <div class="label">Total vehicles</div>
+    </a>
+    <a class="card stat" asp-controller="JobCards" asp-action="Active" style="text-decoration:none;color:inherit;">
+        <div class="value" data-live="activeJobs">@Model.ActiveJobs</div>
+        <div class="label">Currently in repair</div>
+    </a>
+    <a class="card stat" asp-controller="VehicleCollections" asp-action="Index" style="text-decoration:none;color:inherit;">
+        <div class="value" data-live="readyForCollection">@Model.ReadyForCollection</div>
+        <div class="label">Ready for collection</div>
+    </a>
+    <a class="card stat" asp-controller="Appointments" asp-action="Index" style="text-decoration:none;color:inherit;">
+        <div class="value" data-live="todaysAppointments">@Model.TodaysAppointments</div>
+        <div class="label">Today's appointments</div>
+    </a>
+    <a class="card stat" asp-controller="Payments" asp-action="Outstanding" style="text-decoration:none;color:inherit;">
+        <div class="value" data-live="outstandingPayments" data-live-format="currency">R @Model.OutstandingPayments.ToString("N0")</div>
+        <div class="label">Outstanding</div>
+    </a>
 </div>
 
-<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+@if (Model.OpenComplaints > 0 || Model.LowStockParts > 0 || Model.UnreadNotifications > 0)
+{
+    <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px;">
+        @if (Model.UnreadNotifications > 0)
+        {
+            <a class="pill pill-blue" asp-controller="Notifications" asp-action="Index">@Model.UnreadNotifications notification(s)</a>
+        }
+        @if (Model.OpenComplaints > 0)
+        {
+            <a class="pill pill-amber" asp-controller="Complaints" asp-action="Index">@Model.OpenComplaints open complaint(s)</a>
+        }
+        @if (Model.LowStockParts > 0)
+        {
+            <a class="pill pill-amber" asp-controller="Parts" asp-action="Index" asp-route-lowStockOnly="true">@Model.LowStockParts low stock part(s)</a>
+        }
+        @if (Model.PaymentsToday > 0)
+        {
+            <span class="pill pill-green">R @Model.PaymentsToday.ToString("N0") paid today</span>
+        }
+    </div>
+}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    @* Job pipeline *@
     <div class="card">
-        <div class="card-head">Quick actions</div>
-        <div class="card-body" style="display:flex;flex-wrap:wrap;gap:8px;padding:16px;">
-            
-            <a class="btn btn-ghost" asp-controller="Vehicles" asp-action="Create">Register vehicle</a>
-            <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Assigned">My assigned jobs</a>
-            <a class="btn btn-ghost" asp-controller="Quotations" asp-action="Index">Quotations</a>
-            <a class="btn btn-ghost" asp-controller="Payments" asp-action="Create">Record payment</a>
-            <a class="btn btn-ghost" asp-controller="VehicleCollections" asp-action="Index">Collections</a>
+        <div class="card-head">
+            Job pipeline
+            <a asp-controller="JobCards" asp-action="Progress">Board</a>
+        </div>
+        <div class="card-body" style="padding:16px;">
+            <table class="table" style="margin:0;">
+                <tbody>
+                @foreach (var kv in Model.JobsByStatus)
+                {
+                    var pill = kv.Key switch
+                    {
+                        "Inspection" => "pill pill-blue",
+                        "Quotation" => "pill pill-amber",
+                        "In Progress" => "pill pill-blue",
+                        "Quality Check" => "pill pill-amber",
+                        "Ready for Collection" => "pill pill-green",
+                        "Collected" => "pill pill-green",
+                        _ => "pill"
+                    };
+                    <tr>
+                        <td><span class="@pill">@kv.Key</span></td>
+                        <td style="text-align:right;"><strong>@kv.Value</strong></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
         </div>
     </div>
+
+    @* Today's appointments *@
     <div class="card">
-        <div class="card-head">Job pipeline</div>
-        <div class="card-body" style="padding:16px;">
-            <p style="color:var(--muted);margin:0;">Connect data store to show live counts for Inspection, Quotation, In Progress, Quality Check, Ready for Collection.</p>
+        <div class="card-head">
+            Today's appointments
+            <a asp-controller="Appointments" asp-action="Index">All</a>
         </div>
+        <div class="card-body" style="padding:0;">
+            @if (Model.TodaysAppointmentList.Any())
+            {
+                <table class="table" style="margin:0;">
+                    <thead>
+                        <tr><th>Time</th><th>Customer</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var a in Model.TodaysAppointmentList)
+                    {
+                        <tr>
+                            <td>@a.Time.ToString("HH:mm")</td>
+                            <td>
+                                <a asp-controller="Appointments" asp-action="Details" asp-route-id="@a.Id">@a.Customer</a>
+                            </td>
+                            <td>@a.Status</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p style="color:var(--muted);padding:16px;margin:0;">No appointments scheduled for today.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    @* Recent jobs *@
+    <div class="card">
+        <div class="card-head">
+            Recent jobs
+            <a asp-controller="JobCards" asp-action="Index">View all</a>
+        </div>
+        <table class="table">
+            <thead>
+                <tr><th>Job</th><th>Vehicle</th><th>Customer</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+            @if (Model.RecentJobs.Any())
+            {
+                foreach (var j in Model.RecentJobs)
+                {
+                    var pill = j.Status switch
+                    {
+                        "Ready for Collection" or "Collected" => "pill pill-green",
+                        "Quotation" or "Quality Check" => "pill pill-amber",
+                        _ => "pill pill-blue"
+                    };
+                    <tr>
+                        <td><a asp-controller="JobCards" asp-action="Details" asp-route-id="@j.Id">@j.Id</a></td>
+                        <td>@j.Vehicle</td>
+                        <td>@j.Customer</td>
+                        <td><span class="@pill">@j.Status</span></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="4" style="color:var(--muted);">No jobs yet. <a asp-controller="JobCards" asp-action="Create">Create one</a>.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    @* Recent vehicles *@
+    <div class="card">
+        <div class="card-head">
+            Recent vehicles
+            <a asp-controller="Vehicles" asp-action="Index">View all</a>
+        </div>
+        <table class="table">
+            <thead>
+                <tr><th>Registration</th><th>Vehicle</th><th>Owner</th><th>Job status</th></tr>
+            </thead>
+            <tbody>
+            @if (Model.RecentVehicles.Any())
+            {
+                foreach (var v in Model.RecentVehicles)
+                {
+                    <tr>
+                        <td><a asp-controller="Vehicles" asp-action="Details" asp-route-id="@v.Id">@v.Registration</a></td>
+                        <td>@v.MakeModel</td>
+                        <td>@v.Owner</td>
+                        <td>@v.JobStatus</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="4" style="color:var(--muted);">No vehicles registered. <a asp-controller="Vehicles" asp-action="Create">Add one</a>.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">Quick actions</div>
+    <div class="card-body" style="padding:16px;display:flex;flex-wrap:wrap;gap:8px;">
+        <a class="btn btn-ghost" asp-controller="Customers" asp-action="Create">+ Register customer</a>
+        <a class="btn btn-ghost" asp-controller="Vehicles" asp-action="Create">+ Register vehicle</a>
+        <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Create">+ Create job card</a>
+        <a class="btn btn-ghost" asp-controller="Appointments" asp-action="Create">+ Book appointment</a>
+        @if (!User.IsInRole("Mechanic"))
+        {
+            <a class="btn btn-ghost" asp-controller="Quotations" asp-action="Index">Quotations</a>
+        <a class="btn btn-ghost" asp-controller="Payments" asp-action="Create">+ Record payment</a>
+        }
+        <a class="btn btn-ghost" asp-controller="Parts" asp-action="Index">Parts</a>
+        <a class="btn btn-ghost" asp-controller="Complaints" asp-action="Create">+ Complaint</a>
     </div>
 </div>

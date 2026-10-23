@@ -16,7 +16,7 @@
         {
             foreach (var i in Model)
             {
-                <tr><td>@i.Findings</td><td>@i.RecommendedAction</td><td>@i.InspectedAt.ToString("g")</td></tr>
+                <tr><td>@i.Findings</td><td>@i.RecommendedAction</td><td>@i.InspectedAt.ToSa().ToString("g")</td></tr>
             }
         }
         else

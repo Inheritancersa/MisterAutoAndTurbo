@@ -1,21 +1,56 @@
 @model VehicleCollection
 @{
     ViewData["Title"] = "Collection details";
+    var customerName = ViewBag.CustomerName as string ?? Model.CustomerId;
+    var vehicleLabel = ViewBag.VehicleLabel as string ?? Model.VehicleId;
+    var job = ViewBag.Job as JobCard;
+    var pill = Model.CollectionStatus switch
+    {
+        "Ready" => "pill pill-green",
+        "Collected" => "pill pill-blue",
+        "Cancelled" => "pill pill-red",
+        _ => "pill pill-amber"
+    };
 }
 <div class="page-header">
     <div>
-        <h1>Collection</h1>
-        <p>@Model.CollectionStatus</p>
+        <h1>Collection @Model.Id</h1>
+        <p>
+            <span class="@pill">@Model.CollectionStatus</span>
+            · @vehicleLabel · @customerName
+        </p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Index">All collections</a>
+        <a class="btn btn-ghost" asp-action="Manage" asp-route-id="@Model.Id">Manage</a>
+        <form asp-action="NotifyCustomer" method="post" style="display:inline;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-primary">Notify customer</button>
+        </form>
+        <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Delete this collection record?');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-ghost" style="color:#D64545;">Delete</button>
+        </form>
     </div>
 </div>
-<div class="card" style="max-width:480px;">
+
+<div class="card" style="max-width:520px;">
     <div class="card-body" style="padding:24px;">
         <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin:0;">
-            <dt style="color:var(--muted);">Job card</dt><dd>@Model.JobCardId</dd>
-            <dt style="color:var(--muted);">Managed by</dt><dd>@Model.ManagedById</dd>
-            <dt style="color:var(--muted);">Status</dt><dd>@Model.CollectionStatus</dd>
+            <dt style="color:var(--muted);">Customer</dt><dd>@customerName</dd>
+            <dt style="color:var(--muted);">Vehicle</dt><dd>@vehicleLabel</dd>
+            <dt style="color:var(--muted);">Job card</dt>
+            <dd>
+                <a asp-controller="JobCards" asp-action="Details" asp-route-id="@Model.JobCardId">@Model.JobCardId</a>
+                @if (job != null) { <span style="color:var(--muted);">(@job.Status)</span> }
+            </dd>
+            <dt style="color:var(--muted);">Status</dt><dd><span class="@pill">@Model.CollectionStatus</span></dd>
             <dt style="color:var(--muted);">Scheduled</dt><dd>@Model.ScheduledAt.ToString("g")</dd>
-            <dt style="color:var(--muted);">Collected</dt><dd>@Model.CollectedAt.ToString("g")</dd>
+            <dt style="color:var(--muted);">Collected</dt><dd>@(Model.CollectedAt?.ToString("g") ?? "—")</dd>
+            <dt style="color:var(--muted);">Managed by</dt><dd>@Model.ManagedById</dd>
+            <dt style="color:var(--muted);">Notes</dt><dd>@(string.IsNullOrEmpty(Model.Notes) ? "—" : Model.Notes)</dd>
         </dl>
     </div>
 </div>

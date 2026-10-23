@@ -1,0 +1,75 @@
+@using MisterAutoAndTurbo.Web.Models
+@model MisterAutoAndTurbo.Web.ViewModels.UsersIndexViewModel
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Users</h1>
+        <p>Staff accounts and the role that decides what each person can open.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Add user</a>
+</div>
+
+<form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+    <input type="search" name="search" value="@Model.Search" class="input" style="width:280px;" placeholder="Search username, email or phone" />
+    <select name="role" class="input" style="width:170px;">
+        <option value="">All roles</option>
+        @foreach (var r in UserRoles.All)
+        {
+            <option value="@r" selected="@(string.Equals(r, Model.Role, StringComparison.OrdinalIgnoreCase))">@r</option>
+        }
+    </select>
+    <button type="submit" class="btn btn-ghost">Filter</button>
+    @if (!string.IsNullOrWhiteSpace(Model.Search) || !string.IsNullOrWhiteSpace(Model.Role))
+    {
+        <a class="btn btn-ghost" asp-action="Index">Clear</a>
+    }
+</form>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr><th>User</th><th>Email</th><th>Phone</th><th>Role</th><th>Created</th><th></th></tr>
+        </thead>
+        <tbody>
+        @foreach (var u in Model.Users)
+        {
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="avatar">@(string.IsNullOrEmpty(u.Username) ? "?" : u.Username.Substring(0, 1).ToUpper())</div>
+                        <strong>@u.Username</strong>
+                        @if (u.IsCurrentUser)
+                        {
+                            <span class="pill">You</span>
+                        }
+                    </div>
+                </td>
+                <td style="color:var(--muted);">@u.Email</td>
+                <td style="color:var(--muted);">@(string.IsNullOrWhiteSpace(u.Phone) ? "—" : u.Phone)</td>
+                <td><span class="pill @UserRoles.PillClass(u.Role)">@u.Role</span></td>
+                <td style="color:var(--muted);">@u.CreatedAt.ToSa().ToString("dd MMM yyyy")</td>
+                <td style="white-space:nowrap;">
+                    <a asp-action="Edit" asp-route-id="@u.Id">Edit</a>
+                    &nbsp;|&nbsp;
+                    <a asp-action="ResetPassword" asp-route-id="@u.Id">Reset password</a>
+                    @if (!u.IsCurrentUser)
+                    {
+                        <text>&nbsp;|&nbsp;</text>
+                        <a asp-action="Delete" asp-route-id="@u.Id">Delete</a>
+                    }
+                </td>
+            </tr>
+        }
+        @if (!Model.Users.Any())
+        {
+            <tr><td colspan="6" style="color:var(--muted);">No users found.</td></tr>
+        }
+        </tbody>
+    </table>
+    <div style="padding:12px 18px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);">
+        Showing @Model.Users.Count of @Model.TotalUsers user@(Model.TotalUsers == 1 ? "" : "s")
+    </div>
+</div>

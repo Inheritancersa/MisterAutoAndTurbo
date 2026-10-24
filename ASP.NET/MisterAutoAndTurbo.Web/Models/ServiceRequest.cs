@@ -1,14 +1,16 @@
-﻿namespace MisterAutoAndTurbo.Web.Models
+namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// A service request made by a customer for one of their vehicles.
+    /// </summary>
     public class ServiceRequest
     {
-        public string Id { get; set; }
-        public string CustomerId { get; set; }
-        public string VehicleId { get; set; }
-        public string RequestedService { get; set; }
-        public string Description { get; set; }
-        public string Status { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string CustomerId { get; set; } = string.Empty;
+        public string VehicleId { get; set; } = string.Empty;
+        public string RequestedService { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
-
     }
 }

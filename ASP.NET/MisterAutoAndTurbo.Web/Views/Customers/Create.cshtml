@@ -1,0 +1,53 @@
+@model Customer
+@{
+    ViewData["Title"] = "Register customer";
+}
+<div class="page-header">
+    <div>
+        <h1>Register customer</h1>
+        <p>Capture contact details for a new customer</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Index">Back to list</a>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="field">
+                <label asp-for="Name">Name</label>
+                <input class="input" asp-for="Name" required />
+            </div>
+            <div class="field">
+                <label asp-for="Surname">Surname</label>
+                <input class="input" asp-for="Surname" />
+            </div>
+            <div class="field">
+                <label asp-for="Phone">Phone</label>
+                <input class="input phone-input" asp-for="Phone" type="tel" inputmode="numeric" pattern="[0-9+\-\s()]*" placeholder="e.g. 082 000 0000" required />
+                <span asp-validation-for="Phone" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Email">Email</label>
+                <input class="input" asp-for="Email" type="email" />
+            </div>
+            <div class="field">
+                <label asp-for="Address">Address</label>
+                <input class="input" asp-for="Address" />
+            </div>
+            <div class="field">
+                <label asp-for="WorkPhone">Work phone</label>
+                <input class="input phone-input" asp-for="WorkPhone" type="tel" inputmode="numeric" pattern="[0-9+\-\s()]*" placeholder="e.g. 011 000 0000" />
+                <span asp-validation-for="WorkPhone" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="WorkAddress">Work address</label>
+                <input class="input" asp-for="WorkAddress" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save customer</button>
+        </form>
+    </div>
+</div>

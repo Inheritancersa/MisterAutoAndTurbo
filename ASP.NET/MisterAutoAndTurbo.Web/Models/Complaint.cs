@@ -1,17 +1,22 @@
-﻿namespace MisterAutoAndTurbo.Web.Models
+namespace MisterAutoAndTurbo.Web.Models
 {
-    /*This class is NOT limited to the comments of unhappy customers.
-     * This class serves to store the comments of happy customers as well as the complaints of customers 
-     * who are not satisfied with the service provided by the company.
-     */
+    /// <summary>
+    /// A customer complaint about a job or vehicle. It can come from the mobile app, staff or phone, and is tracked from Open to Closed with staff notes.
+    /// </summary>
     public class Complaint
     {
-        public string Id { get; set; }
-        public string CustomerId { get; set; }
-        public string JobCardId { get; set; }
-        public string Description { get; set; }
-        public string Status { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string CustomerId { get; set; } = string.Empty;
+        public string JobCardId { get; set; } = string.Empty;
+        public string VehicleId { get; set; } = string.Empty;
+        public string Subject { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        /// <summary>Open | In Progress | Resolved | Closed</summary>
+        public string Status { get; set; } = "Open";
+        /// <summary>Mobile | Staff | Phone</summary>
+        public string Source { get; set; } = "Staff";
+        public string StaffNotes { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
-
+        public DateTime? ResolvedAt { get; set; }
     }
 }

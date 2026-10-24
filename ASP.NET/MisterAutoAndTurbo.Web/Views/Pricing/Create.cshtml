@@ -1,0 +1,22 @@
+@model Pricing
+@{
+    ViewData["Title"] = "Add pricing";
+}
+<div class="page-header">
+    <div><h1>Add pricing</h1></div>
+    <a class="btn btn-ghost" asp-action="Index">Back</a>
+</div>
+<div class="card" style="max-width:480px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="field"><label asp-for="PartId">Part ID</label><input class="input" asp-for="PartId" required /></div>
+            <div class="field"><label asp-for="Price">Price (R)</label><input class="input" asp-for="Price" type="number" step="0.01" min="0" required /></div>
+            <div class="field"><label asp-for="EffectiveFrom">Effective from</label><input class="input" asp-for="EffectiveFrom" type="date" /></div>
+            <div class="field"><label asp-for="EffectiveTo">Effective to</label><input class="input" asp-for="EffectiveTo" type="date" /></div>
+            <div class="field"><label asp-for="UpdatedById">Updated by (staff ID)</label><input class="input" asp-for="UpdatedById" /></div>
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save pricing</button>
+        </form>
+    </div>
+</div>

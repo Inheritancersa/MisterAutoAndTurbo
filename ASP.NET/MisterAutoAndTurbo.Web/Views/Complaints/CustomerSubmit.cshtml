@@ -1,0 +1,74 @@
+@model Complaint
+@{
+    Layout = null;
+    ViewData["Title"] = "Submit a complaint";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>Submit a complaint — Mister Auto &amp; Turbo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #0D1A2E; min-height: 100vh; }
+        .shell { max-width: 420px; margin: 0 auto; min-height: 100vh; background: #F3F5F9; }
+        .top { background: #0D1A2E; color: #fff; padding: 20px 20px 28px; }
+        .top h1 { margin: 0; font-size: 18px; font-weight: 700; }
+        .top p { margin: 6px 0 0; opacity: .75; font-size: 13px; }
+        .brand { font-size: 12px; opacity: .6; margin-bottom: 8px; }
+        .card { background: #fff; margin: -12px 16px 16px; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+        label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: #151B2E; }
+        .input, select, textarea {
+            width: 100%; padding: 12px; border: 1px solid #E3E7EF; border-radius: 8px;
+            font: inherit; margin-bottom: 14px; background: #fff;
+        }
+        .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 10px;
+            background: #2B6CB0; color: #fff; font-weight: 600; font-size: 15px; cursor: pointer; font-family: inherit; }
+        .msg { margin: 12px 16px; padding: 12px; border-radius: 8px; font-size: 13px; }
+        .msg.err { background: #fde8e8; color: #7f1d1d; }
+        .hint { font-size: 12px; color: #6B7387; margin: -8px 0 14px; }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <div class="top">
+        <div class="brand">Mister Auto &amp; Turbo</div>
+        <h1>Submit a complaint</h1>
+        <p>Tell us what went wrong — we’ll follow up</p>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="msg err">@TempData["Error"]</div>
+    }
+
+    <div class="card">
+        <form asp-action="CustomerSubmit" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" style="color:#7f1d1d;font-size:13px;margin-bottom:12px;"></div>
+
+            <label>Your account</label>
+            <select class="input" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
+                <option value="">— Select customer —</option>
+            </select>
+
+            <label>Related job (optional)</label>
+            <select class="input" asp-for="JobCardId" asp-items="ViewBag.JobCards">
+                <option value="">— None —</option>
+            </select>
+
+            <label>Subject</label>
+            <input class="input" asp-for="Subject" placeholder="Short summary" />
+
+            <label>What happened?</label>
+            <textarea class="input" asp-for="Description" rows="5" required placeholder="Describe the issue…"></textarea>
+            <p class="hint">This is sent to the workshop team as a notification.</p>
+
+            <button type="submit" class="btn">Send complaint</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

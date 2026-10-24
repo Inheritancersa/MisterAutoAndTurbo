@@ -1,0 +1,124 @@
+@model IEnumerable<VehicleCollection>
+@{
+    var q = ViewBag.Query as string;
+    ViewData["Title"] = "Collection";
+    var names = ViewBag.CustomerNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var vehicles = ViewBag.VehicleLabels as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var readyJobs = ViewBag.ReadyJobs as List<JobCard> ?? new List<JobCard>();
+    var readyLabels = ViewBag.ReadyJobLabels as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var statusFilter = ViewBag.StatusFilter as string;
+}
+<div class="page-header">
+    <div>
+        <h1>Vehicle collection</h1>
+        <p>Ready for collection and customer handover</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Schedule collection</a>
+</div>
+
+@if (readyJobs.Any())
+{
+    <div class="card" style="margin-bottom:16px;border-color:#b7e4c7;">
+        <div class="card-head">
+            <span>Ready for collection (from jobs)</span>
+            <span class="pill pill-green">@readyJobs.Count</span>
+        </div>
+        <div class="card-body" style="padding:12px 16px;">
+            <ul style="margin:0;padding-left:18px;">
+                @foreach (var j in readyJobs)
+                {
+                    var label = readyLabels.ContainsKey(j.Id) ? readyLabels[j.Id] : j.Id;
+                    <li style="margin-bottom:6px;">
+                        @label
+                        —
+                        <a asp-action="Create" asp-route-jobCardId="@j.Id">Schedule handover</a>
+                        ·
+                        <a asp-action="Manage" asp-route-jobCardId="@j.Id">Manage</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;">
+        <form method="get" asp-action="Index" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <div class="field" style="margin:0;min-width:160px;">
+                <label>Status</label>
+                <select class="input" name="status">
+                    <option value="">— All —</option>
+                    <option value="Pending" selected="@(statusFilter == "Pending")">Pending</option>
+                    <option value="Ready" selected="@(statusFilter == "Ready")">Ready</option>
+                    <option value="Collected" selected="@(statusFilter == "Collected")">Collected</option>
+                    <option value="Cancelled" selected="@(statusFilter == "Cancelled")">Cancelled</option>
+                </select>
+            </div>
+            <div class="field" style="margin:0;flex:1;min-width:200px;">
+                <label>Search</label>
+                <input class="input" type="search" name="q" value="@q" placeholder="Customer, vehicle, job, status…" />
+            </div>
+            <button type="submit" class="btn btn-ghost">Filter</button>
+            @if (!string.IsNullOrEmpty(statusFilter) || !string.IsNullOrEmpty(q))
+            {
+                <a class="btn btn-ghost" asp-action="Index">Clear</a>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Vehicle</th>
+                <th>Customer</th>
+                <th>Job</th>
+                <th>Status</th>
+                <th>Scheduled</th>
+                <th>Collected</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var c in Model)
+            {
+                var pill = c.CollectionStatus switch
+                {
+                    "Ready" => "pill pill-green",
+                    "Collected" => "pill pill-blue",
+                    "Cancelled" => "pill pill-red",
+                    _ => "pill pill-amber"
+                };
+                var veh = vehicles.ContainsKey(c.VehicleId) ? vehicles[c.VehicleId] : c.VehicleId;
+                var name = names.ContainsKey(c.CustomerId) ? names[c.CustomerId] : c.CustomerId;
+                <tr>
+                    <td><strong>@veh</strong></td>
+                    <td>@name</td>
+                    <td>@c.JobCardId</td>
+                    <td><span class="@pill">@c.CollectionStatus</span></td>
+                    <td>@c.ScheduledAt.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@(c.CollectedAt.HasValue ? c.CollectedAt.Value.ToString("dd MMM yyyy HH:mm") : "—")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@c.Id">View</a>
+                        &nbsp;|&nbsp;
+                        <a asp-action="Manage" asp-route-id="@c.Id">Manage</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" style="color:var(--muted);">
+                    No collection records yet.
+                    <a asp-action="Create">Schedule a collection</a>
+                    or mark a job as Ready for Collection.
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

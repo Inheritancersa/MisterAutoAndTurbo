@@ -1,0 +1,28 @@
+@model IEnumerable<Inspection>
+@{
+    ViewData["Title"] = "Inspections";
+}
+<div class="page-header">
+    <div>
+        <h1>Inspections for job</h1>
+        <p>@ViewData["JobCardId"]</p>
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead><tr><th>Findings</th><th>Recommended</th><th>Date</th></tr></thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var i in Model)
+            {
+                <tr><td>@i.Findings</td><td>@i.RecommendedAction</td><td>@i.InspectedAt.ToSa().ToString("g")</td></tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="3" style="color:var(--muted);">No inspections recorded.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

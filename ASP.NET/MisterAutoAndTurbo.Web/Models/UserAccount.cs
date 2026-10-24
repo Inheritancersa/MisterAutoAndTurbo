@@ -1,8 +1,11 @@
 ﻿namespace MisterAutoAndTurbo.Web.Models
 {
     public class UserAccount
+    /// <summary>
+    /// A login account for staff or customers: username, e-mail, phone, hashed password and role.
+    /// </summary>
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }

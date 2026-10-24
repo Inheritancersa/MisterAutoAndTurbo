@@ -1,0 +1,15 @@
+{
+  "Email": {
+    "SmtpHost": "smtp.gmail.com",
+    "SmtpPort": "587",
+    "SmtpUser": "YOUR_EMAIL@gmail.com",
+    "SmtpPass": "YOUR_APP_PASSWORD",
+    "FromEmail": "YOUR_EMAIL@gmail.com",
+    "FromName": "Mister Auto And Turbo",
+    "ServiceRoleKey": "YOUR_SUPABASE_SERVICE_ROLE_KEY",
+    "RecoveryCodeSecret": "YOUR_RECOVERY_CODE_SECRET"
+  },
+  "Supabase": {
+    "ServiceRoleKey": "YOUR_SUPABASE_SERVICE_ROLE_KEY"
+  }
+}

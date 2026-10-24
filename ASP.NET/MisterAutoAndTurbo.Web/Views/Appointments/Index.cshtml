@@ -1,0 +1,94 @@
+@model IEnumerable<Appointment>
+@{
+    var q = ViewBag.Query as string;
+    ViewData["Title"] = "Appointments";
+    var names = ViewBag.CustomerNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var vehicles = ViewBag.VehicleLabels as Dictionary<string, string> ?? new Dictionary<string, string>();
+}
+<div class="page-header">
+    <div>
+        <h1>Appointments</h1>
+        <p>Scheduled workshop visits</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Book appointment</a>
+</div>
+
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;">
+        <form method="get" asp-action="Index" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <div class="field" style="margin:0;flex:1;min-width:200px;">
+                <label>Search</label>
+                <input class="input" type="search" name="q" value="@q" placeholder="Customer, vehicle, service, status…" />
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            @if (!string.IsNullOrEmpty(q))
+            {
+                <a class="btn btn-ghost" asp-action="Index">Clear</a>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Vehicle</th>
+                <th>Service</th>
+                <th>Description</th>
+                <th>Job ID</th>
+                <th>Scheduled</th>
+                <th>Status</th>
+                <th>Sent</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var a in Model)
+            {
+                var pillClass = a.Status switch
+                {
+                    "Arrived" => "pill pill-blue",
+                    "Completed" => "pill pill-green",
+                    "Cancelled" => "pill pill-red",
+                    _ => "pill pill-blue"
+                };
+                var custName = names.ContainsKey(a.CustomerId) ? names[a.CustomerId] : a.CustomerId;
+                var vehLabel = vehicles.ContainsKey(a.VehicleId) ? vehicles[a.VehicleId] : a.VehicleId;
+                <tr>
+                    <td>@a.Id</td>
+                    <td>@custName</td>
+                    <td>@vehLabel</td>
+                    <td>@(string.IsNullOrWhiteSpace(a.ServiceType) ? "—" : a.ServiceType)</td>
+                    <td style="max-width:220px;white-space:normal;">
+                        @(string.IsNullOrWhiteSpace(a.Description) ? "—" : a.Description)
+                    </td>
+                    <td>@(string.IsNullOrEmpty(a.JobCardId) ? "—" : a.JobCardId)</td>
+                    <td>@a.ScheduledAt.ToString("ddd, dd MMM yyyy HH:mm")</td>
+                    <td><span class="@pillClass">@a.Status</span></td>
+                    <td>@(a.SentAt != null ? "Yes" : "—")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@a.Id">View</a>
+                        &nbsp;|&nbsp;
+                        <a asp-action="Edit" asp-route-id="@a.Id">Edit</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="10" style="color:var(--muted);">
+                    No appointments yet.
+                    <a asp-action="Create">Book the first appointment</a>.
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

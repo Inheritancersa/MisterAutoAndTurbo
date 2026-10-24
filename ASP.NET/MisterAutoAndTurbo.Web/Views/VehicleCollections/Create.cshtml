@@ -1,0 +1,55 @@
+@model VehicleCollection
+@{
+    ViewData["Title"] = "Schedule collection";
+}
+<div class="page-header">
+    <div>
+        <h1>Schedule collection</h1>
+        <p>Prepare handover when the vehicle is ready</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Index">Back to collection</a>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+            <div class="field">
+                <label asp-for="JobCardId">Job card</label>
+                <select class="input" asp-for="JobCardId" asp-items="ViewBag.Jobs" required>
+                    <option value="">— Select job —</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label asp-for="ScheduledAt">Scheduled pickup</label>
+                <input class="input" asp-for="ScheduledAt" type="datetime-local"
+                       value="@(Model.ScheduledAt == default ? "" : Model.ScheduledAt.ToString("yyyy-MM-ddTHH:mm"))" />
+            </div>
+
+            <div class="field">
+                <label asp-for="CollectionStatus">Status</label>
+                <select class="input" asp-for="CollectionStatus">
+                    <option value="Pending">Pending</option>
+                    <option value="Ready">Ready</option>
+                    <option value="Collected">Collected</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label asp-for="ManagedById">Managed by (staff ID)</label>
+                <input class="input" asp-for="ManagedById" placeholder="Your staff id" />
+            </div>
+
+            <div class="field">
+                <label asp-for="Notes">Notes</label>
+                <textarea class="input" asp-for="Notes" rows="2" placeholder="e.g. Customer will collect after 15:00"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save &amp; notify customer</button>
+        </form>
+    </div>
+</div>

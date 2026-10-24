@@ -1,0 +1,33 @@
+@model Inspection
+@{
+    ViewData["Title"] = "Record inspection";
+}
+<div class="page-header">
+    <div>
+        <h1>Record inspection</h1>
+        <p>Job card: @Model.JobCardId</p>
+    </div>
+    <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Details" asp-route-id="@Model.JobCardId">Back to job</a>
+</div>
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="JobCardId" />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="field">
+                <label asp-for="MechanicId">Mechanic ID</label>
+                <input class="input" asp-for="MechanicId" />
+            </div>
+            <div class="field">
+                <label asp-for="Findings">Findings</label>
+                <textarea class="input" asp-for="Findings" rows="4" required></textarea>
+            </div>
+            <div class="field">
+                <label asp-for="RecommendedAction">Recommended action</label>
+                <textarea class="input" asp-for="RecommendedAction" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save inspection</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,66 @@
+﻿@model Vehicle
+@{
+    ViewData["Title"] = "Vehicle details";
+    var customer = ViewBag.Customer as Customer;
+}
+<div class="page-header">
+    <div>
+        <h1>@Model.RegistrationNumber</h1>
+        <p>@Model.Make @Model.Model (@Model.Year)</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Index">All vehicles</a>
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-primary" asp-controller="Appointments" asp-action="Create"
+           asp-route-vehicleId="@Model.Id" asp-route-customerId="@Model.CustomerId">Book appointment</a>
+        <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Create"
+           asp-route-vehicleId="@Model.Id" asp-route-customerId="@Model.CustomerId">+ Create job card</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline;"
+              onsubmit="return confirm('Delete this vehicle? All linked job cards, quotations, payments, appointments and complaints will also be permanently deleted. This cannot be undone.');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-ghost" style="color:#D64545;border-color:#f5c2c2;">Delete</button>
+        </form>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+        <div class="card-head">Vehicle</div>
+        <div class="card-body" style="padding:16px;">
+            <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin:0;">
+                <dt style="color:var(--muted);">ID</dt><dd>@Model.Id</dd>
+                <dt style="color:var(--muted);">Registration</dt><dd>@Model.RegistrationNumber</dd>
+                <dt style="color:var(--muted);">Make / Model</dt><dd>@Model.Make @Model.Model</dd>
+                <dt style="color:var(--muted);">Year</dt><dd>@Model.Year</dd>
+                <dt style="color:var(--muted);">Mileage</dt><dd>@Model.Mileage.ToString("N0")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">Customer</div>
+        <div class="card-body" style="padding:16px;">
+            @if (customer == null)
+            {
+                <p style="color:var(--muted);margin:0;">No customer found for this vehicle (@Model.CustomerId).</p>
+            }
+            else
+            {
+                <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin:0;">
+                    <dt style="color:var(--muted);">Name</dt><dd>@customer.Name @customer.Surname</dd>
+                    <dt style="color:var(--muted);">Phone</dt><dd>@customer.Phone</dd>
+                    <dt style="color:var(--muted);">Email</dt><dd>@customer.Email</dd>
+                    <dt style="color:var(--muted);">Address</dt><dd>@customer.Address</dd>
+                    @if (!string.IsNullOrWhiteSpace(customer.WorkPhone))
+                    {
+                        <dt style="color:var(--muted);">Work phone</dt><dd>@customer.WorkPhone</dd>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(customer.WorkAddress))
+                    {
+                        <dt style="color:var(--muted);">Work address</dt><dd>@customer.WorkAddress</dd>
+                    }
+                </dl>
+            }
+        </div>
+    </div>
+</div>

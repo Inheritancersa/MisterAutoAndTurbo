@@ -1,0 +1,96 @@
+@model Quotation
+@{
+    ViewData["Title"] = "Edit quotation";
+}
+<div class="page-header">
+    <div>
+        <h1>Edit quotation</h1>
+        <p>@Model.Id · change amounts or description, then save</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Details" asp-route-id="@Model.Id">Cancel</a>
+</div>
+
+@if (Model.Status == "Sent" || Model.SentAt != null)
+{
+    <div style="margin-bottom:16px;padding:12px 16px;background:#fff8e6;border:1px solid #f0d78c;border-radius:8px;color:#594a18;">
+        This quote was already sent. After you save, status goes back to <strong>Pending</strong> — use <strong>Send to customer</strong> again so they get the updated total.
+    </div>
+}
+
+<div class="card" style="max-width:640px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Edit" method="post" id="quoteEditForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+            <div class="field">
+                <label asp-for="CustomerId">Customer</label>
+                <select class="js-filter-customer input" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
+                    <option value="">— Select customer —</option>
+                </select>
+                <small style="color:var(--muted);">Only shows vehicles registered to the selected customer.</small>
+            </div>
+
+            <div class="field">
+                <label asp-for="JobCardId">Job card (optional)</label>
+                <select class="js-filter-jobs input" asp-for="JobCardId" asp-items="ViewBag.JobCards">
+                    <option value="">— No job card —</option>
+                </select>
+                <small style="color:var(--muted);">Only shows job cards for the selected customer.</small>
+            </div>
+
+            <div class="field">
+                <label asp-for="VehicleId">Vehicle (optional)</label>
+                <select class="js-filter-vehicle input" asp-for="VehicleId" asp-items="ViewBag.Vehicles">
+                    <option value="">— Select vehicle —</option>
+                </select>
+                <small style="color:var(--muted);">Only shows vehicles registered to the selected customer.</small>
+            </div>
+
+            <div class="field">
+                <label asp-for="Description">Work / quote description</label>
+                <textarea class="input" asp-for="Description" rows="3"></textarea>
+            </div>
+
+            <div class="field">
+                <label asp-for="LabourCost">Labour cost (R)</label>
+                <input class="input" asp-for="LabourCost" type="number" step="0.01" min="0" id="labourCost" />
+            </div>
+            <div class="field">
+                <label asp-for="PartsCost">Parts cost (R)</label>
+                <input class="input" asp-for="PartsCost" type="number" step="0.01" min="0" id="partsCost" />
+            </div>
+            <div class="field">
+                <label asp-for="CustomerSuppliedDifference">Customer-supplied part difference (R)</label>
+                <input class="input" asp-for="CustomerSuppliedDifference" type="number" step="0.01" min="0" id="custDiff" />
+            </div>
+            <div class="field">
+                <label>Total (R)</label>
+                <input class="input" id="totalCost" readonly value="0.00" style="font-weight:700;" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save changes</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    function recalc() {
+        var l = parseFloat(document.getElementById('labourCost').value) || 0;
+        var p = parseFloat(document.getElementById('partsCost').value) || 0;
+        var d = parseFloat(document.getElementById('custDiff').value) || 0;
+        var t = l + p - d;
+        if (t < 0) t = 0;
+        document.getElementById('totalCost').value = t.toFixed(2);
+    }
+    ['labourCost','partsCost','custDiff'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', recalc);
+    });
+    recalc();
+})();
+</script>
+}

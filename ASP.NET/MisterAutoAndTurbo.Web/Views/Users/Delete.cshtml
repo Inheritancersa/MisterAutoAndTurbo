@@ -1,0 +1,21 @@
+@model MisterAutoAndTurbo.Web.Models.UserAccount
+@{
+    ViewData["Title"] = "Delete user";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Delete user</h1>
+        <p>This can't be undone.</p>
+    </div>
+</div>
+
+<div class="card" style="max-width:600px;">
+    <div class="card-body" style="padding:24px;">
+        <p>Are you sure you want to delete <strong>@Model.Username</strong> (@Model.Role, @Model.Email)? They will no longer be able to sign in.</p>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:flex;gap:10px;margin-top:18px;">
+            <a class="btn btn-ghost" asp-action="Index">Cancel</a>
+            <button type="submit" class="btn" style="background:var(--danger,#D64545);color:#fff;">Yes, delete</button>
+        </form>
+    </div>
+</div>

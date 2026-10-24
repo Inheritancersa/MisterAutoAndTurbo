@@ -1,0 +1,73 @@
+﻿@model Payment
+@{
+    ViewData["Title"] = "Record payment";
+}
+<div class="page-header">
+    <div>
+        <h1>Record payment</h1>
+        <p>Link a payment to a quotation</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Index">Back to payments</a>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+            <div class="field">
+                <label asp-for="QuotationId">Quotation</label>
+                <select class="input" asp-for="QuotationId" asp-items="ViewBag.Quotations" required>
+                    <option value="">— Select quotation —</option>
+                </select>
+                <small style="color:var(--muted);">Shows customer, quote total and remaining balance</small>
+            </div>
+
+            <div class="field">
+                <label asp-for="Amount">Amount (R)</label>
+                <input class="input" asp-for="Amount" type="number" step="0.01" min="0.01" required />
+            </div>
+
+            <div class="field">
+                <label asp-for="Method">Payment method</label>
+                <select class="input" asp-for="Method">
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                    <option value="EFT">EFT</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label asp-for="PaidAt">Paid at</label>
+                <input class="input" asp-for="PaidAt" type="datetime-local"
+                       value="@(Model.PaidAt == default ? SaTime.Now.ToString("yyyy-MM-ddTHH:mm") : Model.PaidAt.ToString("yyyy-MM-ddTHH:mm"))" />
+            </div>
+
+            <div class="field">
+                <label asp-for="Status">Status</label>
+                <select class="input" asp-for="Status">
+                    <option value="Recorded">Recorded</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Refunded">Refunded</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="proofFile">Proof of payment</label>
+                <input class="input" type="file" id="proofFile" name="proofFile"
+                       accept=".pdf,.jpg,.jpeg,.png,.webp,image/*,application/pdf" />
+                <small style="color:var(--muted);">Upload a photo or PDF from your device (max 5 MB).</small>
+                <input class="input" asp-for="ProofOfPaymentUrl" placeholder="Or type a reference number (optional)" style="margin-top:8px;" />
+            </div>
+
+            <div class="field">
+                <label asp-for="RecordedById">Recorded by (staff ID)</label>
+                <input class="input" asp-for="RecordedById" placeholder="Your staff id" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save payment</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,68 @@
+@model Appointment
+@{
+    ViewData["Title"] = "Edit appointment";
+}
+<div class="page-header">
+    <div>
+        <h1>Edit appointment</h1>
+        <p>@Model.Id</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Details" asp-route-id="@Model.Id">Cancel</a>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+            <div class="field">
+                <label asp-for="CustomerId">Customer</label>
+                <select class="js-filter-customer input" id="CustomerId" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
+                    <option value="">— Select customer —</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label asp-for="VehicleId">Vehicle</label>
+                <select class="js-filter-vehicle input" id="VehicleId" asp-for="VehicleId" asp-items="ViewBag.Vehicles">
+                    <option value="">— Select vehicle —</option>
+                </select>
+                <small style="color:var(--muted);">Only shows vehicles registered to the selected customer.</small>
+            </div>
+
+            <div class="field">
+                <label asp-for="JobCardId">Job ID (optional)</label>
+                <input class="input" asp-for="JobCardId" placeholder="e.g. job-001" />
+            </div>
+
+            <div class="field">
+                <label asp-for="CreatedById">Created by</label>
+                <input class="input" asp-for="CreatedById" />
+            </div>
+
+            <div class="field">
+                <label asp-for="ScheduledAt">Scheduled date &amp; time</label>
+                <input class="input" name="ScheduledAt" type="datetime-local"
+                       value="@Model.ScheduledAt.ToString("yyyy-MM-ddTHH:mm")" />
+            </div>
+
+            <div class="field">
+                <label asp-for="Status">Status</label>
+                <select class="input" asp-for="Status">
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Arrived">Arrived</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save changes</button>
+        </form>
+    </div>
+</div>
+
+)();
+</script>
+}

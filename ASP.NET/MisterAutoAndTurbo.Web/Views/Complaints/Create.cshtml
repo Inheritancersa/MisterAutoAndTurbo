@@ -1,0 +1,50 @@
+@model Complaint
+@{
+    ViewData["Title"] = "Record complaint";
+}
+<div class="page-header">
+    <div>
+        <h1>Record complaint</h1>
+        <p>Staff entry (phone / walk-in)</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Index">Back to complaints</a>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+            <div class="field">
+                <label asp-for="CustomerId">Customer</label>
+                <select class="js-filter-customer input" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
+                    <option value="">— Select customer —</option>
+                </select>
+            </div>
+            <div class="field">
+                <label asp-for="JobCardId">Related job (optional)</label>
+                <select class="js-filter-jobs input" asp-for="JobCardId" asp-items="ViewBag.JobCards">
+                    <option value="">— None —</option>
+                </select>
+            </div>
+            <div class="field">
+                <label asp-for="VehicleId">Vehicle (optional)</label>
+                <select class="js-filter-vehicle input" asp-for="VehicleId" asp-items="ViewBag.Vehicles">
+                    <option value="">— None —</option>
+                </select>
+            </div>
+            <div class="field">
+                <label asp-for="Subject">Subject</label>
+                <input class="input" asp-for="Subject" placeholder="Short summary" />
+            </div>
+            <div class="field">
+                <label asp-for="Description">Description</label>
+                <textarea class="input" asp-for="Description" rows="4" required></textarea>
+            </div>
+            <input type="hidden" asp-for="Source" value="Staff" />
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save complaint</button>
+        </form>
+    </div>
+</div>

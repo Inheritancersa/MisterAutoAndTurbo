@@ -136,6 +136,7 @@ class WorkshopViewModel extends ChangeNotifier {
     _jobs.clear();
     _history.clear();
     _notifications.clear();
+    _seenNotifications.clear();
     _bookings.clear();
     _quotation = null;
     _localNotifications.clear();
@@ -148,6 +149,21 @@ class WorkshopViewModel extends ChangeNotifier {
   List<RepairHistory> get history => UnmodifiableListView(_history);
   List<NotificationItem> get notifications =>
       UnmodifiableListView(_notifications);
+
+  // Notifications the customer has already opened (kept for this session).
+  final Set<String> _seenNotifications = {};
+  String _nKey(NotificationItem n) => '${n.title}|${n.body}';
+
+  /// How many notifications arrived since the list was last opened.
+  int get unreadNotificationCount =>
+      _notifications.where((n) => !_seenNotifications.contains(_nKey(n))).length;
+
+  /// Called when the Notifications screen is open: clears the bell.
+  void markNotificationsRead() {
+    if (unreadNotificationCount == 0) return;
+    _seenNotifications.addAll(_notifications.map(_nKey));
+    notifyListeners();
+  }
   List<Booking> get bookings => UnmodifiableListView(_bookings);
   Quotation? get quotation => _quotation;
 
@@ -333,7 +349,7 @@ class WorkshopViewModel extends ChangeNotifier {
         NotificationItem('Quotation Approved', 'You Approved ${q.id}'),
       if (q != null && q.status == QuotationStatus.rejected)
         NotificationItem('Quotation Rejected', 'You Rejected ${q.id}'),
-      if (q != null && _proofUploaded)
+      if (q != null && _proofUploaded && q.status != QuotationStatus.rejected)
         NotificationItem('Proof Of Payment', 'Your proof of payment was uploaded.'),
     ];
     final seen = <String>{};

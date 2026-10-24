@@ -1,5 +1,8 @@
 import '../utils/helpers.dart';
-
+/// Single notification entry shown on the Notifications screen.
+///
+/// Notifications are typically generated from workshop events
+/// (quotation sent, job stage changed, etc.) and displayed in a list.
 class NotificationItem {
   final String title;
   final String body;

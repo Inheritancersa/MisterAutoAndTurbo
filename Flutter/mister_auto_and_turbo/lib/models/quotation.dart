@@ -1,3 +1,4 @@
+/// Lifecycle status of a quotation from the customer's point of view.
 enum QuotationStatus { pending, accepted, rejected }
 
 class QuotationLine {
@@ -14,6 +15,12 @@ class Quotation {
   final double customerSuppliedSaving;
   final QuotationStatus status;
 
+/// Maps to QUOTATION. Supports the customer-supplied part saving (FR-10).
+///
+/// A quotation is created by staff after inspection. The customer can
+/// accept or reject it. If they supply certain parts themselves they
+/// receive a customerSuppliedSaving discount.
+/// 
   const Quotation({
     required this.id,
     required this.jobId,
@@ -33,6 +40,6 @@ class Quotation {
         status: status ?? this.status,
       );
 }
-
+/// Formats a Rand amount for display, e.g. R1500.
 String rand(double v) => 'R${v.toStringAsFixed(0)}.';
 

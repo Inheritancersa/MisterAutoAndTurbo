@@ -10,12 +10,41 @@ import '../viewmodels/auth_viewmodel.dart';
 // ============================================================
 
 /// Blue brand block that sits at the bottom of every inner screen.
-class BrandFooter extends StatelessWidget {
+class BrandFooter extends StatefulWidget {
   const BrandFooter({super.key});
   @override
+  State<BrandFooter> createState() => _BrandFooterState();
+}
+
+/// Hides itself while the on-screen keyboard is open. Scaffold removes the
+/// keyboard inset from its body's MediaQuery, so the real inset is read from
+/// the view and tracked through metrics changes.
+class _BrandFooterState extends State<BrandFooter> with WidgetsBindingObserver {
+  bool _keyboardOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (!mounted) return;
+    final open = View.of(context).viewInsets.bottom > 0;
+    setState(() => _keyboardOpen = open);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Hide the footer while the on-screen keyboard is open.
-    if (MediaQuery.of(context).viewInsets.bottom > 0) {
+    // Read the real inset on every build as well as on metrics changes.
+    if (_keyboardOpen || View.of(context).viewInsets.bottom > 0) {
       return const SizedBox.shrink();
     }
     return Container(

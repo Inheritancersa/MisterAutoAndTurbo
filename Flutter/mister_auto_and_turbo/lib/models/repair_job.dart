@@ -11,7 +11,7 @@ enum JobStage {
   readyForCollection,
   collected,
 }
-
+/// Human-readable labels for each JobStage.
 extension JobStageLabel on JobStage {
   String get label => switch (this) {
         JobStage.inspection => 'Inspection',
@@ -24,6 +24,9 @@ extension JobStageLabel on JobStage {
 }
 
 /// Maps to JOB_CARD (same Supabase table the ASP.NET staff app writes to).
+/// Represents one active or completed repair job for a customer's vehicle.
+/// Staff members update stage, diagnosis and repairNotes from the
+/// web application; this Flutter app only reads them.
 class RepairJob {
   final String id;
   final Vehicle vehicle;
@@ -44,7 +47,8 @@ class RepairJob {
     this.diagnosis = '',
     this.repairNotes = '',
   });
-
+ /// True when the job is finished from the customer's perspective
+  /// (either marked collected or has reached the final stages).
   bool get isComplete =>
       collected || stage == JobStage.collected || stage == JobStage.readyForCollection;
 
@@ -58,6 +62,7 @@ class RepairJob {
   }
 
   /// A stage is done when the job has reached or passed that stage.
+   /// Used to draw the progress checklist on the Vehicle Status screen.
   bool stageDone(JobStage s) {
     if (collected || stage == JobStage.collected) return true;
     return s.index <= stage.index;

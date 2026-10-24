@@ -13,7 +13,16 @@ class NotificationsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<WorkshopViewModel>(
-      builder: (context, workshop, _) => AppScreen(
+      builder: (context, workshop, _) {
+        // Anything shown here counts as read (also when new ones arrive live).
+        if (workshop.unreadNotificationCount > 0) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              context.read<WorkshopViewModel>().markNotificationsRead();
+            }
+          });
+        }
+        return AppScreen(
       onRefresh: () => context.read<WorkshopViewModel>().refresh(),
         title: 'Notifications.',
         children: [
@@ -22,7 +31,8 @@ class NotificationsView extends StatelessWidget {
             const SizedBox(height: 26),
           ],
         ],
-      ),
+      );
+      },
     );
   }
 }

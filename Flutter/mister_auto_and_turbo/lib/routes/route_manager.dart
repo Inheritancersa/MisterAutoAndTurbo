@@ -1,3 +1,9 @@
+/// Central navigation / routing configuration for the entire app.
+///
+/// Every named route is declared here as a constant string.
+/// generateRoute is passed to MaterialApp.onGenerateRoute and is the
+/// single place that maps a route name (+ optional arguments) to the
+/// corresponding screen widget, wrapping it with any required Providers.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/repair_job.dart';
@@ -41,11 +47,11 @@ class VehicleStatusArguments {
 ///
 /// * Static routes need no data.
 /// * Dynamic routes receive data through `arguments`:
-///   [login] takes an optional `String` email, [vehicleStatus] takes a
-///   [VehicleStatusArguments].
+///   login takes an optional `String` email, vehicleStatus takes a
+///   VehicleStatusArguments.
 ///
 /// Screens that have their own ViewModel get it here, wrapped around the view
-/// with a [ChangeNotifierProvider]. The ViewModel is created when the route is
+/// with a ChangeNotifierProvider. The ViewModel is created when the route is
 /// pushed and disposed when the route is removed.
 class RouteManager {
   RouteManager._();

@@ -34,42 +34,7 @@ class DashboardView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Expanded(child: GreetingText()),
-                      // Left column: Refresh / Log Out
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const _RefreshButton(),
-                          const SizedBox(height: 8),
-                          _SmallButton(
-                            label: 'Log Out',
-                            onTap: () {
-                              context.read<AuthViewModel>().logout(); // fire-and-forget sign-out
-                              // Clear the whole stack so Back cannot return here.
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                RouteManager.login,
-                                (route) => false,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 8),
-                      // Right column: Contact Us / Edit Profile
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _SmallButton(
-                            label: 'Contact Us',
-                            onTap: () => Navigator.pushNamed(context, RouteManager.contact),
-                          ),
-                          const SizedBox(height: 8),
-                          _SmallButton(
-                            label: 'Edit Profile',
-                            onTap: () => Navigator.pushNamed(context, RouteManager.editProfile),
-                          ),
-                        ],
-                      ),
+                      const _MenuButton(),
                     ],
                   ),
 
@@ -106,7 +71,8 @@ class DashboardView extends StatelessWidget {
                       _QuickAction('Book A Service', RouteManager.bookService),
                       _QuickAction('Quotations', RouteManager.quotation),
                       _QuickAction('Repair\nHistory', RouteManager.history),
-                      _QuickAction('Notifications', RouteManager.notifications),
+                      _QuickAction('Notifications', RouteManager.notifications,
+                          showBell: true),
                       _QuickAction('Complaints', RouteManager.complaints),
                       _QuickAction('Upload Proof\nPayment.', RouteManager.proofOfPayment),
                     ],
@@ -206,43 +172,70 @@ class _VehicleCard extends StatelessWidget {
   }
 }
 
-/// Small bordered button used for Contact Us / Log Out.
-class _SmallButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-  const _SmallButton({required this.label, required this.onTap});
+/// Dropdown holding Refresh / Contact Us / Edit Profile / Log Out.
+class _MenuButton extends StatelessWidget {
+  const _MenuButton();
 
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        width: 96,
-        child: InputBox(
-          height: 30,
-          padding: EdgeInsets.zero,
-          onTap: onTap,
-          child: Center(child: Text(label, style: AppText.plex(13))),
-        ),
-      );
-}
+  Future<void> _refresh(BuildContext context) async {
+    final workshop = context.read<WorkshopViewModel>();
+    if (workshop.isLoading) return;
+    final messenger = ScaffoldMessenger.of(context);
+    await workshop.refresh();
+    messenger.showSnackBar(SnackBar(
+      content: Text(workshop.error ?? 'Up to date'),
+      duration: const Duration(seconds: 2),
+    ));
+  }
 
-/// Reloads everything from the server without logging out.
-class _RefreshButton extends StatelessWidget {
-  const _RefreshButton();
+  void _logout(BuildContext context) {
+    context.read<AuthViewModel>().logout(); // fire-and-forget sign-out
+    // Clear the whole stack so Back cannot return here.
+    Navigator.pushNamedAndRemoveUntil(context, RouteManager.login, (route) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
     final loading = context.select<WorkshopViewModel, bool>((w) => w.isLoading);
-    return _SmallButton(
-      label: loading ? 'Refreshing...' : 'Refresh',
-      onTap: () async {
-        if (loading) return;
-        final workshop = context.read<WorkshopViewModel>();
-        final messenger = ScaffoldMessenger.of(context);
-        await workshop.refresh();
-        messenger.showSnackBar(SnackBar(
-          content: Text(workshop.error ?? 'Up to date'),
-          duration: const Duration(seconds: 2),
-        ));
+    return PopupMenuButton<String>(
+      tooltip: 'Menu',
+      offset: const Offset(0, 44),
+      onSelected: (value) {
+        switch (value) {
+          case 'refresh':
+            _refresh(context);
+          case 'contact':
+            Navigator.pushNamed(context, RouteManager.contact);
+          case 'profile':
+            Navigator.pushNamed(context, RouteManager.editProfile);
+          case 'logout':
+            _logout(context);
+        }
       },
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: 'refresh',
+          enabled: !loading,
+          child: Text(loading ? 'Refreshing...' : 'Refresh'),
+        ),
+        const PopupMenuItem(value: 'contact', child: Text('Contact Us')),
+        const PopupMenuItem(value: 'profile', child: Text('Edit Profile')),
+        const PopupMenuItem(value: 'logout', child: Text('Log Out')),
+      ],
+      child: SizedBox(
+        width: 110,
+        child: InputBox(
+          height: 36,
+          padding: EdgeInsets.zero,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Menu', style: AppText.plex(14)),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_drop_down, size: 22),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -251,14 +244,53 @@ class _RefreshButton extends StatelessWidget {
 class _QuickAction extends StatelessWidget {
   final String label;
   final String route;
-  const _QuickAction(this.label, this.route);
+  final bool showBell;
+  const _QuickAction(this.label, this.route, {this.showBell = false});
 
   @override
-  Widget build(BuildContext context) => InputBox(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        onTap: () => Navigator.pushNamed(context, route),
-        child: Center(
-          child: Text(label, textAlign: TextAlign.center, style: AppText.plex(16)),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final unread = showBell
+        ? context.select<WorkshopViewModel, int>((w) => w.unreadNotificationCount)
+        : 0;
+    return InputBox(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      onTap: () => Navigator.pushNamed(context, route),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Center(
+            child: Text(label, textAlign: TextAlign.center, style: AppText.plex(16)),
+          ),
+          if (unread > 0)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.notifications_active,
+                      size: 26, color: Color(0xFFE53935)),
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                          color: Color(0xFFE53935), shape: BoxShape.circle),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Text(unread > 9 ? '9+' : '$unread',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

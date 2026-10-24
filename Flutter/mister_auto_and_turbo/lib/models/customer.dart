@@ -1,3 +1,8 @@
+/// Customer profile model.
+///
+/// Maps to the CUSTOMER / profiles table in Supabase.
+/// Used throughout the app for display name, contact details, and ownership
+/// of vehicles, bookings, and repair jobs.
 class Customer {
   final String id;
   final String fullName;
@@ -14,7 +19,8 @@ class Customer {
   });
 
   String get firstName => fullName.trim().split(' ').first;
-
+   /// Returns a copy of this customer with selected fields replaced.
+  /// Useful for optimistic UI updates after profile edits.
   Customer copyWith({
     String? fullName,
     String? email,
@@ -36,7 +42,7 @@ class Customer {
         phone: m['phone'] as String,
         address: (m['address'] as String?) ?? '',
       );
-
+    // Serialises to a map suitable for Supabase insert/update.
   Map<String, dynamic> toMap() => {
         'id': id,
         'full_name': fullName,

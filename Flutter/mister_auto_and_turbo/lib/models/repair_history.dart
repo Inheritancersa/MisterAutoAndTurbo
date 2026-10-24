@@ -1,4 +1,7 @@
 /// Maps to a completed/ongoing REPAIR entry per vehicle (SN-05).
+/// 
+/// Lightweight summary used on the History screen to show past work
+/// performed on the customer's vehicles.
 class RepairHistory {
   final String title;
   final String vehicleName;
@@ -17,7 +20,7 @@ class RepairHistory {
     this.diagnosis = '',
     this.repairNotes = '',
   });
-
+  /// Combined subtitle shown under the title in list tiles.
   String get subtitle => '$vehicleName · $status';
 
   bool get hasDiagnosis => diagnosis.trim().isNotEmpty;

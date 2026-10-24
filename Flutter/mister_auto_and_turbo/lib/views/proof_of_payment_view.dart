@@ -20,13 +20,48 @@ class ProofOfPaymentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Only the "done" flag decides which screen is drawn.
+    // A rejected quotation replaces the whole screen: no details, no upload.
+    final rejected = context.select<WorkshopViewModel, bool>(
+        (w) => w.quotation?.status == QuotationStatus.rejected);
+    if (rejected) return const _RejectedScreen();
+
+    // Otherwise the "done" flag decides which screen is drawn.
     return Selector<ProofOfPaymentViewModel, bool>(
       selector: (_, vm) => vm.done,
       builder: (context, done, _) =>
           done ? const _UploadedScreen() : const _UploadScreen(),
     );
   }
+}
+
+/// Shown instead of the payment details when the customer rejected the quotation.
+class _RejectedScreen extends StatelessWidget {
+  const _RejectedScreen();
+
+  @override
+  Widget build(BuildContext context) => AppScreen(
+        greeting: 'Proof Of Pay',
+        children: [
+          InfoCard(
+            color: const Color(0xFFFDECEA),
+            borderColor: Colors.red,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                const Icon(Icons.cancel, size: 48, color: Colors.red),
+                const SizedBox(height: 8),
+                Text('Quotation Rejected', style: AppText.inter(20)),
+                const SizedBox(height: 6),
+                Text(
+                  'You rejected this quotation, so no proof of payment is required.',
+                  textAlign: TextAlign.center,
+                  style: AppText.plex(15, w: FontWeight.w500, c: AppColors.label),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
 }
 
 /// Proof Of Pay Accepted.

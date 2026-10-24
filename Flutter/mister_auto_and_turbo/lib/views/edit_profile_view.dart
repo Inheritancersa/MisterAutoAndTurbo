@@ -109,7 +109,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 validator: requiredField,
               ),
               LabeledField(
-                label: 'New Password (leave blank to keep)',
+                label: 'New Password',
                 labelStyle: label,
                 controller: _password,
                 icon: Icons.lock,

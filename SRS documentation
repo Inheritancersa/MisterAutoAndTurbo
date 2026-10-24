@@ -881,7 +881,408 @@ Group Member 3	Rotondwa Madi	222066543	25/09/26
 Group Member 4	Lehlokoa Pule	219002738	25/09/26
 Group Member 5	Lekete Letsie	224099468	25/09/26
 
+PHASE 3: SYSTEM DEVELOPMENT, IMPLEMENTATION AND 
+FINAL DEMONSTRATION 
+Mr Auto & Turbo Workshop Management System 
+Prepared by: Web Vortex | Module: ITC327W – Work-Integrated Learning | Date: 22 October 2026 
+1. Purpose of Phase 3 
+Phase 3 records the development and integration readiness of the Mr Auto & Turbo Workshop Management 
+System. The group must review and organise the work completed, correct the existing project records where 
+necessary, and prepare a working prototype for the final assessment. This section extends the existing Phase 
+1 requirements and Phase 2 architecture and design; it does not replace the approved stakeholder 
+requirements or claim that a function is complete without verification. 
+What the Group Must Have Ready 
+The table below summarises the Phase 3 items the group must have ready for the final assessment. Status is 
+recorded only after the group has checked the item; detailed checkpoints follow in Sections 3 to 12. 
+Item 
+What should be complete 
+Shared Supabase 
+Backend 
+Required database tables, fields, keys and relationships 
+Status 
+Verified 
+Authentication and User 
+Access 
+Sign-in and access permissions, where required 
+Verified 
+Flutter Mobile 
+Application 
+Main approved mobile screens and functions 
+Verified 
+ASP.NET Web 
+Application 
+Main approved web pages and functions 
+Verified 
+Application Integration 
+Both applications connected to the same Supabase project 
+Shared Processes 
+Verified 
+At least two important processes working across the applications 
+Updated SRS 
+Verified 
+Approved implementation changes recorded where necessary 
+Microsoft Project 
+Verified 
+Updated to reflect development progress 
+GitHub 
+Verified 
+Current mobile and web source code 
+Project Progress Tracker 
+Verified 
+Current tasks, contributions, challenges and group reflection 
+Final Demonstration 
+Verified 
+Working prototype ready to present to the assessment panel 
+Verified 
+2. Implementation Baseline and Architecture 
+The approved solution consists of a Flutter mobile application, an ASP.NET web application and a shared 
+Supabase backend. The Flutter application supports customer-facing functions and the approved mobile 
+functions for staff where implemented. The ASP.NET application provides role-based workshop administration 
+and staff workflows. Supabase is the shared data backend for both applications. The implementation must use 
+the same Supabase project and consistent database fields, relationships and values. 
+The Phase 2 design identifies the following user roles: Administrator/Manager, Receptionist, Mechanic and 
+Customer. Access must follow the approved role permissions. In particular, payment processing is restricted 
+to management, while reception functions cover customer and vehicle registration, appointments and 
+collection; mechanics manage assigned jobs, inspections and repair-status updates. 
+3. Shared Supabase Backend Readiness 
+The group must inspect the live Supabase project and record the actual implementation status below. 
+Checkpoint 
+Evidence to inspect 
+Required tables and 
+fields 
+Status / notes 
+Confirm tables and fields match the approved ERD and application 
+forms. 
+Verified 
+Primary and foreign 
+keys 
+Confirm key constraints are configured correctly. 
+Verified 
+ERD relationships 
+Check Customer–Vehicle, Vehicle–Job, Job–Payment and other 
+approved relationships. 
+Verified 
+Authentication 
+Confirm the configured sign-in flow works for required users; Phase 2 
+design specifies phone number and OTP. 
+Verified 
+Role permissions 
+Data operations 
+Verified 
+Verify users can access only authorised records and functions. 
+Demonstrate saving, retrieving and updating required records. 
+Shared project 
+Verified 
+Confirm Flutter and ASP.NET use the same Supabase project and 
+compatible field names/values. 
+Verified 
+Evidence - Shared Supabase Backend  
+[
 
+4. Flutter Mobile Application Readiness 
+Review the implemented mobile application against the approved design and requirements. Mark each item 
+only after demonstrating it. 
+Checkpoint 
+Expected evidence 
+Application launches 
+Status / notes 
+Approved screens 
+Application starts without a blocking error. 
+Login/OTP, vehicle status and timeline, notifications, payment/invoice 
+view and mechanic job screens where implemented. 
+Verified 
+Verified 
+Navigation 
+Forms and inputs 
+Navigation between available screens works. 
+Required information can be entered and validation behaves 
+appropriately. 
+Verified 
+Verified 
+Main mobile functions 
+Supabase connection 
+Verified 
+Approved customer and/or staff functions work as designed. 
+Application saves and retrieves records from the shared backend. 
+SRS alignment 
+Verified 
+Implemented functions match approved requirements; gaps are 
+recorded below. 
+Verified 
+Evidence - Flutter Mobile Application  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Progress Tracker 
+
+
+5. ASP.NET Web Application Readiness 
+Checkpoint 
+Expected evidence 
+Application launches 
+Status / notes 
+Approved pages 
+Web application starts and required pages load. 
+Dashboard, customers, vehicles, appointments, jobs/job cards, parts, 
+payments, collection, complaints, users and reports as applicable to 
+the implementation. 
+Verified 
+Verified 
+Navigation 
+Forms and inputs 
+Navigation between available pages works. 
+Required information can be entered and validation behaves 
+appropriately. 
+Verified 
+Verified 
+Role-based functions 
+Manager, Receptionist and Mechanic permissions match the 
+approved design. 
+Verified 
+Supabase connection 
+SRS alignment 
+Web application retrieves and updates data in the shared backend. 
+Implemented functions match approved requirements; gaps are 
+recorded below. 
+Verified 
+Verified 
+Evidence - ASP.NET Web Application  
+Appointment pages  
+Dashboard details  
+
+
+
+SCREENSHOTS for the ASP.NET are all attached in the hyperlink below. 
+Images 
+6. Cross-Application Integration 
+At least two important shared processes must be demonstrated end to end. The processes below are based 
+on the approved Mr Auto & Turbo workflow. They are proposed demonstration scenarios, not statements that 
+integration has already been proven. 
+Shared process 
+Flutter action 
+ASP.NET action 
+Process 1: Repair
+status tracking 
+Customer opens vehicle 
+status/timeline and views the 
+latest status. 
+Working? / 
+evidence 
+Mechanic updates the job status (for 
+example, In Progress, Quality Check 
+or Ready for Collection). 
+Process 2: Job and 
+vehicle record 
+visibility 
+Customer views the relevant 
+vehicle/service information 
+where authorised. 
+Verified 
+Receptionist registers/checks in a 
+vehicle and authorised staff create or 
+update its job card. 
+Verified 
+Optional process: 
+Notifications 
+Customer or mechanic views a 
+relevant notification if this 
+feature is implemented. 
+Staff action or job-status change 
+triggers the configured notification 
+process. 
+Verified 
+ 
+For each selected process, demonstrate that data entered or changed in one application is saved to Supabase 
+and can be retrieved by the other application where required. Check consistent fields and values, 
+refresh/retrieval behaviour, and role permissions. Record any manual refresh, delay or other limitation 
+honestly. 
+ 
+ 
+7. Alignment with Approved Requirements 
+ 
+ 
+The following requirements are drawn from the existing SRS. Use the status column to record demonstrated 
+implementation results. Do not mark a function as working unless the group has verified it. 
+Approved requirement Application Implementation evidence to demonstrate Status 
+FR-01 Customer 
+registration 
+ASP.NET / Flutter 
+as implemented 
+Create or register a customer account/record using 
+the implemented workflow. Verified 
+FR-02 Vehicle 
+registration ASP.NET Register a vehicle against the correct customer. Verified 
+FR-03 Digital job cards ASP.NET Create and retrieve a job card with reported issue 
+and inspection notes. Verified 
+FR-04 Diagnosis and 
+quotation generation ASP.NET Record diagnosis and generate/view a quotation 
+where implemented. Verified 
+FR-05 Customer 
+quotation approval 
+workflow 
+Flutter / ASP.NET Show approval request and record/view the 
+approval decision where implemented. Verified 
+FR-06 Repair status 
+tracking Flutter / ASP.NET Update job status on the staff side and retrieve it on 
+the customer side. Verified 
+FR-07 Payment 
+recording ASP.NET Authorised management user records and retrieves 
+a payment. Verified 
+FR-08 Ready-for
+collection notifications 
+Flutter / configured 
+notification service 
+Demonstrate notification delivery if implemented; 
+otherwise record the gap. Verified 
+FR-09 Itemised 
+quotations 
+Flutter / ASP.NET 
+as implemented Show labour and parts costs separately. Verified 
+FR-10 Customer
+supplied part 
+comparison 
+ASP.NET / 
+customer view as 
+implemented 
+Show the applicable price difference for customer
+supplied versus business-supplied parts. Verified 
+Role-based access 
+ASP.NET and 
+Flutter as 
+applicable 
+Verify the user role restricts access to permitted 
+pages, records and actions. Verified 
+Shared Supabase 
+backend Flutter + ASP.NET Verify both applications read/write the same 
+Supabase project and consistent records. Verified 
+ 
+ 
+Evidence - Approved Requirements (The contract between WebVortex and MR Auto&Turbo) 
+THE Microsoft Project is attached in the next page. 
+
+8. Outstanding Development Problems and Actions 
+Record only issues that the group actually identifies during its review. Assign an owner and a realistic status. If 
+no issue remains after verification, write “None identified during final review” rather than leaving the section 
+ambiguous. 
+Problem / outstanding 
+task 
+Action required 
+Responsible 
+member 
+None identified during 
+final review 
+No corrective action required. 
+Status 
+N/A 
+9. Approved Changes and Known Limitations 
+N/A 
+Any approved changes to requirements, design, database structure, user permissions or workflow must be 
+recorded here and reflected in the relevant parts of the existing SRS, diagrams and project records. Do not 
+treat a development shortcut or unfinished feature as an approved requirement change. 
+Change / limitation 
+Reason and 
+stakeholder/approval reference 
+No approved changes 
+recorded 
+Implementation follows the 
+approved SRS and Phase 3 
+development 
+Affected 
+requirement/design 
+Action or current 
+status 
+N/A 
+No known limitations 
+identified during final 
+review 
+N/A 
+No action required 
+N/A 
+N/A 
+10. Final Demonstration Plan 
+Before the assessment, prepare the following demonstration sequence using suitable dummy data. 
+• Launch the Flutter mobile application and demonstrate its main approved screens and functions. 
+• Launch the ASP.NET web application and demonstrate its main approved pages and functions. 
+• Show the shared Supabase project and demonstrate required records being saved, retrieved or updated. 
+• Demonstrate at least two cross-application processes, including repair-status tracking where implemented. 
+• Demonstrate role-appropriate access and explain any permissions that restrict users. 
+• Explain the current implementation state, outstanding work and known limitations honestly. 
+• Ensure development tools, network access, test accounts and dummy data are ready before the allocated 
+presentation time. 
+• Capture suitable screenshots or short recordings of key functions and integrated processes as supporting 
+evidence. 
+11. Project Records to Update 
+Project record 
+Required update / evidence 
+Software Requirements 
+Specification (SRS) 
+Status 
+Phase 3 readiness, verified implementation state, approved changes 
+and known limitations. 
+Microsoft Project 
+Verified 
+Update task progress and dependencies; retain the original editable 
+.mpp file. 
+GitHub repository 
+Verified 
+Ensure the latest source code is committed, including the mobile/ and 
+web/ folders as applicable. 
+Project Progress Tracker 
+Verified 
+Update Task Progress, Individual Contributions, Challenges and 
+Actions, Phase Summary and Group Reflection. 
+Supporting evidence 
+Verified 
+Screenshots/short recordings of working functions and at least two 
+integrated processes. 
+11. Final Assessment Readiness Checklist 
+☑ Shared Supabase backend implemented and checked against the approved ERD. 
+☑ Authentication and role permissions checked where required. 
+☑ Main Flutter screens and functions demonstrated. 
+☑ Main ASP.NET pages and functions demonstrated. 
+☑ Both applications use the same Supabase project. 
+☑ At least two important shared processes demonstrated across the applications. 
+☑ Implemented functions checked against the approved SRS. 
+☑ Outstanding tasks and limitations recorded and assigned. 
+☑ Approved implementation changes recorded in the SRS. 
+☑ Microsoft Project reflects current development progress and the editable file is retained. 
+☑ GitHub contains the latest mobile and web source code. 
+Verified 
+☑ Project Progress Tracker is current and complete. 
+☑ Group is prepared to present and explain the working prototype. 
+12. Phase 3 Completion Statement 
+The group should complete this statement after reviewing the evidence: “We have reviewed the current 
+implementation of the Mr Auto & Turbo Workshop Management System against the approved SRS and Phase 
+2 design. The working functions, cross-application integration evidence, outstanding tasks and known 
+limitations are recorded in this Phase 3 section. Our final demonstration will reflect the actual state of the 
+prototype.” 
+Group names LE Letsie  |  LE Lipali  |  LTBG Pule  |  NM Netshituka  |  RG Madi 
+Date reviewed: ____________21/10/2026______________________________
 
 
 

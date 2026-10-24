@@ -11,10 +11,12 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// Customer (mobile): submit complaint → staff notification.
     /// Receptionist: record complaint. Manager: view and resolve.
     /// </summary>
+    // Complaint handling for Manager and Receptionist. The CustomerSubmit pages mimic the mobile form that customers use.
     [Authorize(Roles = "Manager,Receptionist")]
     
     public class ComplaintsController : Controller
     {
+        // GET /Complaints: lists complaints newest first. Filters: status, customer and free text (id, subject, description, status, source, job, vehicle or customer name). Passes the open count and lookup data to the view.
         [HttpGet]
         public IActionResult Index(string? status = null, string? customerId = null, string? q = null)
         {
@@ -54,6 +56,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(list.OrderByDescending(c => c.CreatedAt).ToList());
         }
 
+        // GET: shows one complaint with the customer name and vehicle label (404 if not found).
         [HttpGet]
         public IActionResult Details(string id)
         {
@@ -70,6 +73,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
 
         /// <summary>Staff records a complaint (phone / walk-in).</summary>
+        // GET: shows the staff complaint form. When opened from a job card, the job, customer and vehicle are prefilled.
         [HttpGet]
         public IActionResult Create(string? customerId = null, string? jobCardId = null)
         {
@@ -97,6 +101,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // POST: requires a customer and description, then saves the complaint through SaveComplaint (which also notifies staff).
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Complaint model)
@@ -119,6 +124,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         /// Mobile-style form for the customer to submit a complaint.
         /// GET /Complaints/CustomerSubmit?customerId=cust-001
         /// </summary>
+        // GET: shows the customer-facing complaint form with source set to Mobile.
         [HttpGet]
         public IActionResult CustomerSubmit(string? customerId = null)
         {
@@ -134,6 +140,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
 
         /// <summary>Customer posts complaint from mobile → saved + notification to staff.</summary>
+        // POST: requires a customer and description, saves the complaint as a Mobile complaint, notifies staff and redirects to the thank-you page.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CustomerSubmit(Complaint model)
@@ -158,6 +165,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(CustomerSubmitDone), new { id = model.Id });
         }
 
+        // GET: confirmation page after a customer submitted a complaint.
         [HttpGet]
         public IActionResult CustomerSubmitDone(string id)
         {
@@ -168,6 +176,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // POST: changes the status (Open, In Progress, Resolved or Closed) and optional staff notes. Resolved or Closed sets ResolvedAt and sends the customer a notification.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateStatus(string id, string status, string? staffNotes = null)
@@ -209,6 +218,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: deletes a complaint together with the notifications that point to it.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(string id)
@@ -227,6 +237,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
 
         // --- helpers ---
 
+        // Saves a new complaint: creates its id (cmp-xxxx), sets time, source and status Open, trims text, fills the vehicle and customer from the job card when missing, and (optionally) adds a staff notification with a short preview of the description.
         private void SaveComplaint(Complaint model, string source, bool notifyStaff)
         {
             model.Id = AppDataStore.NewId("cmp");
@@ -272,6 +283,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             }
         }
 
+        // Fills the dropdown lists: all customers, plus only the vehicles and job cards of the selected customer.
         private void PopulateLookups(Complaint model)
         {
             ViewBag.Customers = BuildCustomerSelect(model.CustomerId);
@@ -308,6 +320,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                     .ToList();
         }
 
+        // Builds the customer dropdown items (name, surname and phone), marking the selected one.
         private static List<SelectListItem> BuildCustomerSelect(string? selectedId) =>
             AppDataStore.Customers
                 .OrderBy(c => c.Name)
@@ -319,12 +332,14 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 })
                 .ToList();
 
+        // Returns the customer's full name, or the id when the customer is not found.
         private static string CustomerName(string customerId)
         {
             var c = AppDataStore.Customers.FirstOrDefault(x => x.Id == customerId);
             return c != null ? $"{c.Name} {c.Surname}".Trim() : customerId;
         }
 
+        // Returns 'registration - make model' for a vehicle, or the id when it is not found.
         private static string VehicleLabel(string vehicleId)
         {
             var v = AppDataStore.Vehicles.FirstOrDefault(x => x.Id == vehicleId);

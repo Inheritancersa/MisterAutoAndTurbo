@@ -15,6 +15,7 @@ namespace MisterAutoAndTurbo.Web.Models
         public decimal VatRate { get; set; } = 15m;
 
         /// <summary>Currencies offered on the Settings page (code, display name).</summary>
+        // Currencies available on the Settings page: code mapped to display name.
         public static readonly Dictionary<string, string> Currencies = new()
         {
             ["ZAR"] = "South African Rand (R)"

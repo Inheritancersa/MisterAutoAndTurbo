@@ -11,10 +11,12 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// Staff: create quotations, send to customer (notification).
     /// Customer (mobile): view quote, Approve or Reject.
     /// </summary>
+    // Quotations for Manager and Receptionist. Flow: Pending, then Sent to the customer (notification), then Approved or Rejected.
     [Authorize(Roles = "Manager,Receptionist")]
     
     public class QuotationsController : Controller
     {
+        // GET /Quotations: lists quotations newest first, optionally filtered by customer and search text (id, status, description, job, customer, vehicle, total or names). The result is grouped per customer and sorted by customer name.
         [HttpGet]
         public IActionResult Index(string? customerId = null, string? q = null)
         {
@@ -69,6 +71,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(groups);
         }
 
+        // GET: shows a quotation with the customer, vehicle and every payment and proof of payment linked to it.
         [HttpGet]
         public IActionResult Details(string id)
         {
@@ -96,6 +99,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(quote);
         }
 
+        // GET: shows the create form with status Pending. When opened from a job card, the customer, vehicle and diagnosis text are prefilled.
         [HttpGet]
         public IActionResult Create(string? customerId = null, string? jobCardId = null, string? vehicleId = null)
         {
@@ -125,6 +129,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // POST: validates the customer and job card, picks a vehicle when missing, calculates TotalCost = labour + parts - customer-supplied difference (never below 0), then saves with a new id (quot-xxxx), status Pending and the current time.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Quotation model)
@@ -175,6 +180,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         /// Staff: send quotation to the customer → creates a mobile notification
         /// and sets status to Sent.
         /// </summary>
+        // How it works: refuses if the customer already responded; otherwise adds a Quotation notification for the customer (the mobile app shows Approve/Reject), sets the status to Sent and records SentAt.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult SendToCustomer(string id)
@@ -215,6 +221,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: customer approves the quotation (calls Respond).
         /// <summary>Customer approves the quotation (mobile or demo page).</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -223,6 +230,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return Respond(id, QuotationStatus.Approved);
         }
 
+        // POST: customer rejects the quotation (calls Respond).
         /// <summary>Customer rejects the quotation.</summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -231,6 +239,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return Respond(id, QuotationStatus.Rejected);
         }
 
+        // Shared approve/reject logic: only a Pending or Sent quotation can be answered once. It stores the new status and time, marks the customer's notifications read, notifies staff, and when approved moves the linked job from Quotation/Inspection to In Progress.
         private IActionResult Respond(string id, string newStatus)
         {
             var quote = AppDataStore.Quotations.FirstOrDefault(q => q.Id == id);
@@ -283,6 +292,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: returns the calculated total as JSON (labour + parts - customer-supplied difference, minimum 0) so the form can update live.
         [HttpPost]
         public IActionResult Calculate(decimal labourCost, decimal partsCost, decimal customerSuppliedDifference)
         {
@@ -292,6 +302,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
 
 
+        // GET: shows the edit form. Quotations that were approved or rejected cannot be edited.
         // GET: /Quotations/Edit/{id}
         [HttpGet]
         public IActionResult Edit(string id)
@@ -313,6 +324,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(quote);
         }
 
+        // POST: validates like Create and updates the quotation and its total. After editing, the status returns to Pending (and the sent/responded times are cleared if it was already sent), so the customer must be sent the new totals.
         // POST: /Quotations/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -388,6 +400,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: deletes a quotation and its related notifications.
         // POST: /Quotations/Delete/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -411,6 +424,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index), new { customerId = quote.CustomerId });
         }
 
+        // POST: sets the status to any valid quotation status; approved or rejected also records the response time.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateStatus(string id, string status)
@@ -433,12 +447,14 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // GET: redirects to the list filtered by customer.
         [HttpGet]
         public IActionResult ByCustomer(string customerId) =>
             RedirectToAction(nameof(Index), new { customerId });
 
         // --- helpers ---
 
+        // Fills the customer dropdown, plus the vehicles and job cards of the selected customer.
         private void PopulateCreateLookups(Quotation model)
         {
             ViewBag.Customers = BuildCustomerSelect(model.CustomerId);
@@ -471,6 +487,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                     .ToList();
         }
 
+        // Builds the customer dropdown items.
         private static List<SelectListItem> BuildCustomerSelect(string? selectedId) =>
             AppDataStore.Customers
                 .OrderBy(c => c.Name)
@@ -482,12 +499,14 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 })
                 .ToList();
 
+        // Returns the customer's full name, or the id when not found.
         private static string CustomerName(string customerId)
         {
             var c = AppDataStore.Customers.FirstOrDefault(x => x.Id == customerId);
             return c != null ? $"{c.Name} {c.Surname}".Trim() : customerId;
         }
 
+        // Returns 'registration - make model' for a vehicle, or the id when not found.
         private static string VehicleLabel(string vehicleId)
         {
             var v = AppDataStore.Vehicles.FirstOrDefault(x => x.Id == vehicleId);
@@ -495,6 +514,9 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
     }
 
+    /// <summary>
+    /// Quotations of one customer, used for the grouped list on the Index page.
+    /// </summary>
     public class QuotationCustomerGroup
     {
         public string CustomerId { get; set; } = string.Empty;

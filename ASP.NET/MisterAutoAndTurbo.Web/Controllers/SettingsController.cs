@@ -13,6 +13,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
     [Authorize(Roles = "Manager")]
     public class SettingsController : Controller
     {
+        // GET: shows the current business settings in the form.
         // GET: /Settings
         [HttpGet]
         public IActionResult Index()
@@ -28,6 +29,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             });
         }
 
+        // POST: validates the form and the chosen currency, then copies the values to the in-memory settings. The filter saves them to the database after the action.
         // POST: /Settings
         [HttpPost]
         [ValidateAntiForgeryToken]

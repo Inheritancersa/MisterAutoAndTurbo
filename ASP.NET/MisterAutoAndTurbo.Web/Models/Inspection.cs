@@ -1,6 +1,9 @@
 ﻿namespace MisterAutoAndTurbo.Web.Models
 {
     public class Inspection
+    /// <summary>
+    /// Inspection result recorded by a mechanic for a job card: findings and the recommended action.
+    /// </summary>
     {
         public string Id { get; set; }
         public string JobCardId { get; set; }

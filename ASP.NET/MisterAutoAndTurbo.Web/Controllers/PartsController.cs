@@ -12,6 +12,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
     
     public class PartsController : Controller
     {
+        // GET /Parts: parts list. Optional filters: category, search text (name or category) and low-stock only (quantity at or below the reorder level). Also passes the category list and low-stock count to the view.
         [HttpGet]
         public IActionResult Index(string? category = null, string? q = null, bool lowStockOnly = false)
         {
@@ -45,6 +46,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(parts.OrderBy(p => p.Name).ToList());
         }
 
+        // GET: shows one part (404 if not found).
         [HttpGet]
         public IActionResult Details(string id)
         {
@@ -58,12 +60,14 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(part);
         }
 
+        // GET: shows the add-part form with a default reorder level of 5.
         [HttpGet]
         public IActionResult Create()
         {
             return View(new Part { ReorderLevel = 5 });
         }
 
+        // POST: validates the name, price and stock (no negatives), gives the part a new id (part-xxxx), trims text and adds it to the inventory.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Part model)
@@ -95,6 +99,7 @@ model.Id = AppDataStore.NewId("part");
             return RedirectToAction(nameof(Details), new { id = model.Id });
         }
 
+        // GET: shows the edit form for a part.
         [HttpGet]
         public IActionResult Edit(string id)
         {
@@ -108,6 +113,7 @@ model.Id = AppDataStore.NewId("part");
             return View(part);
         }
 
+        // POST: validates and copies name, category, stock, price and reorder level onto the existing part.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(string id, Part model)
@@ -163,6 +169,7 @@ model.Id = AppDataStore.NewId("part");
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: removes a part from the inventory.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(string id)
@@ -176,6 +183,7 @@ model.Id = AppDataStore.NewId("part");
             return RedirectToAction(nameof(Index));
         }
 
+        // POST: uses a part on a job card. Needs a job, part and quantity above zero. When the part is not customer-supplied the quantity is deducted from stock (refused if there is not enough). The use is not stored as a JobPart record yet, so only a message is shown.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AddToJob(string jobCardId, string partId, int quantity, decimal unitPrice, bool customerSupplied)

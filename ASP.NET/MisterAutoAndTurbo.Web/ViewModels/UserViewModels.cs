@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MisterAutoAndTurbo.Web.ViewModels
 {
+    /// <summary>
+    /// One row in the users list.
+    /// </summary>
     public class UserListItemViewModel
     {
         public string Id { get; set; } = string.Empty;
@@ -13,6 +16,9 @@ namespace MisterAutoAndTurbo.Web.ViewModels
         public bool IsCurrentUser { get; set; }
     }
 
+    /// <summary>
+    /// Data for the users list page: search text, role filter, total count and the rows.
+    /// </summary>
     public class UsersIndexViewModel
     {
         public string? Search { get; set; }
@@ -21,6 +27,9 @@ namespace MisterAutoAndTurbo.Web.ViewModels
         public List<UserListItemViewModel> Users { get; set; } = new();
     }
 
+    /// <summary>
+    /// Form model for adding or editing a user. Password fields are only used when adding.
+    /// </summary>
     public class UserFormViewModel
     {
         public string? Id { get; set; }
@@ -45,6 +54,9 @@ namespace MisterAutoAndTurbo.Web.ViewModels
         public string? ConfirmPassword { get; set; }
     }
 
+    /// <summary>
+    /// Form model for a manager resetting another user's password.
+    /// </summary>
     public class ResetPasswordViewModel
     {
         public string Id { get; set; } = string.Empty;

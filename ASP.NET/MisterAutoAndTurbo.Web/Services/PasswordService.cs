@@ -10,14 +10,21 @@ namespace MisterAutoAndTurbo.Web.Services
     /// </summary>
     public static class PasswordService
     {
+        // ASP.NET Identity hasher (PBKDF2 with a random salt).
         private static readonly PasswordHasher<UserAccount> Hasher = new();
 
         // ASP.NET Identity v3 hashes are base64 text that always begins with "AQAAAA".
         private static bool LooksHashed(string? value) =>
             !string.IsNullOrEmpty(value) && value.StartsWith("AQAAAA", StringComparison.Ordinal);
 
+        /// <summary>
+        /// Hashes a plain password for storing in UserAccount.PasswordHash.
+        /// </summary>
         public static string Hash(string password) => Hasher.HashPassword(new UserAccount(), password);
 
+        /// <summary>
+        /// Checks a supplied password against the stored value. Old demo accounts with plain-text passwords are compared directly; hashed values are verified with the hasher.
+        /// </summary>
         public static bool Verify(string? stored, string supplied)
         {
             if (string.IsNullOrEmpty(stored)) return false;
@@ -27,6 +34,7 @@ namespace MisterAutoAndTurbo.Web.Services
         }
 
         /// <summary>Returns an error message if the password is too weak, otherwise null.</summary>
+        // Password rules: at least 8 characters with at least one letter and one digit.
         public static string? Validate(string? password)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 8)

@@ -1,5 +1,8 @@
 namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// A customer's vehicle: registration, make, model, year and mileage.
+    /// </summary>
     public class Vehicle
     {
         public string Id { get; set; } = string.Empty;

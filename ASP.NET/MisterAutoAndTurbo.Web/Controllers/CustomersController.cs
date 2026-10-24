@@ -5,10 +5,12 @@ using MisterAutoAndTurbo.Web.Models;
 
 namespace MisterAutoAndTurbo.Web.Controllers
 {
+    // Customer management (list, details, register, edit, delete, search). Only Manager and Receptionist can use it.
     [Authorize(Roles = "Manager,Receptionist")]
     
     public class CustomersController : Controller
     {
+        // Database context, used to reload customers that the Flutter app saved in Supabase.
         private readonly ApplicationDbContext _db;
 
         public CustomersController(ApplicationDbContext db)
@@ -16,6 +18,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             _db = db;
         }
 
+        // GET /Customers: reloads data from the database (so app registrations show up) and lists customers sorted by name and surname.
         [HttpGet]
         public IActionResult Index()
         {
@@ -29,6 +32,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(customers);
         }
 
+        // GET /Customers/Details/{id}: shows one customer and their vehicles. Returns 404 if the id is missing or unknown.
         [HttpGet]
         public IActionResult Details(string id)
         {
@@ -48,12 +52,14 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(customer);
         }
 
+        // GET: shows an empty customer registration form.
         [HttpGet]
         public IActionResult Create()
         {
             return View(new Customer());
         }
 
+        // POST: validates name and phone, trims the text, gives the customer a new id (cust-xxxx), adds it to the store and opens the details page.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Customer model)
@@ -82,6 +88,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id = model.Id });
         }
 
+        // GET: shows the edit form for an existing customer (404 if not found).
         [HttpGet]
         public IActionResult Edit(string id)
         {
@@ -95,6 +102,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(customer);
         }
 
+        // POST: checks that the route id matches the form, validates name and phone, then copies the trimmed values onto the existing customer.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(string id, Customer model)
@@ -128,6 +136,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // How it works: collects all vehicles, jobs, quotations, payments, appointments, complaints, collections and service requests that belong to the customer, removes the related notifications and uploaded proof files, then removes all those records and finally the customer (a cascade delete done manually).
         // POST: /Customers/Delete/{id}
         // Removes the customer and everything linked to them (vehicles, jobs, quotations, etc.).
         [HttpPost]
@@ -143,11 +152,13 @@ namespace MisterAutoAndTurbo.Web.Controllers
 
             var name = $"{customer.Name} {customer.Surname}".Trim();
 
+            // Ids of the customer's vehicles and of every job card for the customer or those vehicles.
             var vehicleIds = AppDataStore.Vehicles.Where(v => v.CustomerId == id).Select(v => v.Id).ToHashSet();
             var jobIds = AppDataStore.JobCards
                 .Where(j => j.CustomerId == id || vehicleIds.Contains(j.VehichleId))
                 .Select(j => j.Id).ToHashSet();
 
+            // Records linked to the customer through the customer id, their vehicles or their jobs.
             var quotes = AppDataStore.Quotations
                 .Where(q => q.CustomerId == id || vehicleIds.Contains(q.VehicleId) || jobIds.Contains(q.JobCardId))
                 .ToList();
@@ -191,6 +202,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET /Customers/Search?q=: reloads data and filters by name, surname, phone or e-mail (case-insensitive). An empty search shows all customers. Reuses the Index view.
         [HttpGet]
         public IActionResult Search(string q)
         {

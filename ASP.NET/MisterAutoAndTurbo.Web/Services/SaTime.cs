@@ -8,8 +8,12 @@ namespace MisterAutoAndTurbo.Web.Services
     /// </summary>
     public static class SaTime
     {
+        // Resolved once: the South African time zone object.
         private static readonly TimeZoneInfo Zone = Find();
 
+        /// <summary>
+        /// Finds the South African time zone on Linux or Windows; falls back to a fixed UTC+2 zone if neither name exists.
+        /// </summary>
         private static TimeZoneInfo Find()
         {
             foreach (var id in new[] { "Africa/Johannesburg", "South Africa Standard Time" })

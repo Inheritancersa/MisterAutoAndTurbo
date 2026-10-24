@@ -1,5 +1,8 @@
 namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// A stock item in the parts inventory. Stock at or below ReorderLevel means the part should be re-ordered.
+    /// </summary>
     public class Part
     {
         public string Id { get; set; } = string.Empty;

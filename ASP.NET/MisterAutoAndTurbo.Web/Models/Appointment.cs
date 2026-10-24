@@ -1,5 +1,8 @@
 namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// An appointment booked for a customer's vehicle: when it is scheduled, its status, the requested service type and notes, and an optional link to a job card.
+    /// </summary>
     public class Appointment
     {
         public string Id { get; set; } = string.Empty;

@@ -12,6 +12,7 @@ namespace MisterAutoAndTurbo.Web.Models
         public const string ReadyForCollection = "Ready for Collection";
         public const string Collected = "Collected";
 
+        // All statuses in workflow order.
         public static readonly string[] All =
         {
             Inspection,

@@ -13,12 +13,18 @@ import '../viewmodels/auth_viewmodel.dart';
 class BrandFooter extends StatelessWidget {
   const BrandFooter({super.key});
   @override
-  Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        color: AppColors.brand,
-        padding: const EdgeInsets.fromLTRB(16, 32, 16, 24),
-        child: const _BrandBlock(),
-      );
+  Widget build(BuildContext context) {
+    // Hide the footer while the on-screen keyboard is open.
+    if (MediaQuery.of(context).viewInsets.bottom > 0) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      width: double.infinity,
+      color: AppColors.brand,
+      padding: const EdgeInsets.fromLTRB(16, 32, 16, 24),
+      child: const _BrandBlock(),
+    );
+  }
 }
 
 /// Splash header used on Login / Register / Forgot password.

@@ -32,6 +32,10 @@ class WorkshopViewModel extends ChangeNotifier {
   final List<NotificationItem> _notifications = [];
   final List<Booking> _bookings = [];
   Quotation? _quotation;
+  bool _proofUploaded = false;
+  /// Notifications created on this phone (accepted / rejected / paid ...).
+  /// Kept separately so a refresh from the server does not wipe them.
+  final List<NotificationItem> _localNotifications = [];
 
   bool _loading = false;
   String? _error;
@@ -134,6 +138,8 @@ class WorkshopViewModel extends ChangeNotifier {
     _notifications.clear();
     _bookings.clear();
     _quotation = null;
+    _localNotifications.clear();
+    _proofUploaded = false;
     _error = null;
   }
 
@@ -144,6 +150,10 @@ class WorkshopViewModel extends ChangeNotifier {
       UnmodifiableListView(_notifications);
   List<Booking> get bookings => UnmodifiableListView(_bookings);
   Quotation? get quotation => _quotation;
+
+  /// True once proof of payment was uploaded for the current quotation.
+  /// Resets automatically when reception issues a new quotation.
+  bool get proofUploaded => _proofUploaded;
 
   List<Vehicle> get vehiclesWithoutJob => [
         for (final v in _vehicles)
@@ -224,15 +234,7 @@ class WorkshopViewModel extends ChangeNotifier {
       _notifications
         ..clear()
         ..addAll(notifs)
-        ..addAll(complaintNotifs)
-        // Newest first (undated items last).
-        ..sort((a, b) {
-          final x = a.at, y = b.at;
-          if (x == null && y == null) return 0;
-          if (x == null) return 1;
-          if (y == null) return -1;
-          return y.compareTo(x);
-        });
+        ..addAll(complaintNotifs);
     } catch (e) {
       debugPrint('Error fetching notifications: $e');
     }
@@ -251,10 +253,14 @@ class WorkshopViewModel extends ChangeNotifier {
     try {
       final quote = await _repo.fetchLatestQuotation(cid);
       _quotation = quote;
+      _proofUploaded = quote != null &&
+          quote.status == QuotationStatus.accepted &&
+          await _repo.hasPaymentFor(quote.id);
     } catch (e) {
       debugPrint('Error fetching quotations: $e');
     }
 
+    _mergeNotifications();
     _loading = false;
     notifyListeners();
 
@@ -313,8 +319,43 @@ class WorkshopViewModel extends ChangeNotifier {
     }
   }
 
+  void _addLocal(NotificationItem n) {
+    _localNotifications.insert(0, n);
+    _mergeNotifications();
+  }
+
+  /// Server notifications + local ones + ones derived from the current
+  /// quotation state (so they still show after the app restarts).
+  void _mergeNotifications() {
+    final q = _quotation;
+    final derived = <NotificationItem>[
+      if (q != null && q.status == QuotationStatus.accepted)
+        NotificationItem('Quotation Approved', 'You Approved ${q.id}'),
+      if (q != null && q.status == QuotationStatus.rejected)
+        NotificationItem('Quotation Rejected', 'You Rejected ${q.id}'),
+      if (q != null && _proofUploaded)
+        NotificationItem('Proof Of Payment', 'Your proof of payment was uploaded.'),
+    ];
+    final seen = <String>{};
+    final all = <NotificationItem>[];
+    // Local first so they keep their real timestamp when deduplicating.
+    for (final n in [..._localNotifications, ..._notifications, ...derived]) {
+      if (seen.add('${n.title}|${n.body}')) all.add(n);
+    }
+    all.sort((a, b) {
+      final x = a.at, y = b.at;
+      if (x == null && y == null) return 0;
+      if (x == null) return 1;
+      if (y == null) return -1;
+      return y.compareTo(x);
+    });
+    _notifications
+      ..clear()
+      ..addAll(all);
+  }
+
   void addNotification(NotificationItem n) {
-    _notifications.insert(0, n);
+    _addLocal(n);
     notifyListeners();
   }
 
@@ -326,11 +367,9 @@ class WorkshopViewModel extends ChangeNotifier {
       await _repo.respondToQuotation(quotationId: q.id, accept: accept);
       _quotation = q.copyWith(
           status: accept ? QuotationStatus.accepted : QuotationStatus.rejected);
-      _notifications.insert(
-          0,
-          accept
-              ? NotificationItem('Quotation Approved', 'You Approved ${q.id}', at: DateTime.now())
-              : NotificationItem('Quotation Rejected', 'You Rejected ${q.id}', at: DateTime.now()));
+      _addLocal(accept
+          ? NotificationItem('Quotation Approved', 'You Approved ${q.id}', at: DateTime.now())
+          : NotificationItem('Quotation Rejected', 'You Rejected ${q.id}', at: DateTime.now()));
       notifyListeners();
       return null;
     } catch (e) {
@@ -355,8 +394,7 @@ class WorkshopViewModel extends ChangeNotifier {
         jobCardId: jobCardId,
         vehicleId: vehicleId,
       );
-      _notifications.insert(
-        0,
+      _addLocal(
         NotificationItem(
           'Complaint Submitted',
           'Your complaint was sent to the workshop.',
@@ -391,8 +429,8 @@ class WorkshopViewModel extends ChangeNotifier {
         amount: amount > 0 ? amount : (_quotation?.total ?? 0),
         storagePath: url,
       );
-      _notifications.insert(
-        0,
+      _proofUploaded = true;
+      _addLocal(
         NotificationItem(
           'Proof Of Payment',
           'Your proof of payment was uploaded.',

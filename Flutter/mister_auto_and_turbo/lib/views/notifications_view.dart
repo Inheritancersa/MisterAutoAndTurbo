@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/notification_item.dart';
+import '../routes/route_manager.dart';
 import '../theme.dart';
 import '../viewmodels/workshop_viewmodel.dart';
 import '../widgets/common.dart';
@@ -33,7 +34,7 @@ class _NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = item.highlighted ? const Color(0xFFFFFAFA) : Colors.black;
-    return InfoCard(
+    final card = InfoCard(
       color: item.highlighted ? AppColors.brand : AppColors.surface,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(item.title, style: AppText.inter(26, c: textColor)),
@@ -47,7 +48,21 @@ class _NotificationCard extends StatelessWidget {
             Text(item.when!, style: AppText.inter(15, w: FontWeight.w500, c: textColor)),
           ]),
         ],
+        if (item.isQuotation) ...[
+          const SizedBox(height: 8),
+          Text('Tap to view quotation',
+              style: AppText.inter(14, w: FontWeight.w600, c: textColor)),
+        ],
       ]),
+    );
+    if (!item.isQuotation) return card;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        context.read<WorkshopViewModel>().refresh();
+        Navigator.of(context).pushNamed(RouteManager.quotation);
+      },
+      child: card,
     );
   }
 }

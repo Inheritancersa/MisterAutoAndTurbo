@@ -1,0 +1,15 @@
+namespace MisterAutoAndTurbo.Web.Models
+{
+    /// <summary>
+    /// Allowed quotation status values as constants, with All listing them.
+    /// </summary>
+    public static class QuotationStatus
+    {
+        public const string Pending = "Pending";
+        public const string Sent = "Sent";
+        public const string Approved = "Approved";
+        public const string Rejected = "Rejected";
+
+        public static readonly string[] All = { Pending, Sent, Approved, Rejected };
+    }
+}

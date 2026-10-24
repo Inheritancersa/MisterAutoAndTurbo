@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Sign in";
+    Layout = "_AuthLayout";
+}
+
+<h1 style="font-size:22px;margin-bottom:4px;">Welcome back</h1>
+<p style="color:var(--muted);margin-bottom:24px;">Sign in to Mister Auto &amp; Turbo staff portal</p>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" style="margin-bottom:16px;padding:10px 12px;border-radius:8px;background:#ecfdf5;color:#065f46;font-size:13px;">
+        @TempData["Success"]
+    </div>
+}
+
+<form asp-action="Login" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+    <div class="field">
+        <label>Email or username</label>
+        <input class="input" type="text" name="email" placeholder="manager@misterauto.co.za or manager" required autofocus />
+    </div>
+    <div class="field">
+        <label>Password</label>
+        <div class="password-wrap">
+            <input class="input" type="password" name="password" id="loginPassword" placeholder="••••••••" required />
+            <button type="button" class="password-toggle" data-target="loginPassword" aria-label="Show password" title="Show password">
+                <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-closed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div style="text-align:right;font-size:13px;"><a asp-action="ForgotPassword">Forgot password?</a></div>
+
+    <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+    <button type="submit" class="btn btn-primary btn-block" style="width:100%;margin-top:8px;">Sign in</button>
+</form>
+
+<div style="margin-top:20px;padding:12px;background:#f8fafc;border-radius:8px;font-size:12px;color:var(--muted);">
+    <strong style="color:#334155;">Demo accounts</strong>
+    <ul style="margin:8px 0 0 16px;padding:0;">
+        <li><strong>Manager</strong> (full access): manager@misterauto.co.za / Manager@123</li>
+        <li><strong>Receptionist</strong>: reception@misterauto.co.za / Reception@123</li>
+        <li><strong>Mechanic</strong>: mechanic@misterauto.co.za / Mechanic@123</li>
+    </ul>
+</div>
+

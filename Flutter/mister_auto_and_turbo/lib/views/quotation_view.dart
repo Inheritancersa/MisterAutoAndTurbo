@@ -74,7 +74,7 @@ class QuotationView extends StatelessWidget {
               _DecisionResult(accepted: q.status == QuotationStatus.accepted),
             if (q.status == QuotationStatus.accepted) ...[
               const SizedBox(height: 24),
-              WideButton('Proof Of Payment',
+              WideButton(workshop.proofUploaded ? 'Proof Of Payment (Paid)' : 'Proof Of Payment',
                   onPressed: () =>
                       Navigator.pushNamed(context, RouteManager.proofOfPayment)),
             ],

@@ -1,0 +1,83 @@
+@model IEnumerable<Vehicle>
+@{
+    ViewData["Title"] = "Vehicles";
+    var q = ViewBag.Query as string;
+    var names = ViewBag.CustomerNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+}
+<div class="page-header">
+    <div>
+        <h1>Vehicles</h1>
+        <p>Registered vehicles linked to customers</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" asp-action="Lookup">Lookup</a>
+        <a class="btn btn-primary" asp-action="Create">+ Register vehicle</a>
+    </div>
+</div>
+
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;">
+        <form method="get" asp-action="Index" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <div class="field" style="margin:0;flex:1;min-width:220px;">
+                <label>Search</label>
+                <input class="input" type="search" name="q" value="@q" placeholder="Registration, make, model, customer…" />
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            @if (!string.IsNullOrEmpty(q))
+            {
+                <a class="btn btn-ghost" asp-action="Index">Clear</a>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Registration</th>
+                <th>Make / Model</th>
+                <th>Year</th>
+                <th>Mileage</th>
+                <th>Customer</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var v in Model)
+            {
+                <tr>
+                    <td><strong>@v.RegistrationNumber</strong></td>
+                    <td>@v.Make @v.Model</td>
+                    <td>@v.Year</td>
+                    <td>@v.Mileage.ToString("N0")</td>
+                    <td>@(names.ContainsKey(v.CustomerId) ? names[v.CustomerId] : v.CustomerId)</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@v.Id">View</a>
+                        &nbsp;|&nbsp;
+                        <a asp-action="Edit" asp-route-id="@v.Id">Edit</a>
+                        &nbsp;|&nbsp;
+                        <form asp-action="Delete" asp-route-id="@v.Id" method="post" style="display:inline;"
+                              onsubmit="return confirm('Delete vehicle @v.RegistrationNumber? All linked job cards, quotations, payments, appointments and complaints will also be permanently deleted. This cannot be undone.');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-link" style="background:none;border:none;color:#D64545;cursor:pointer;padding:0;font:inherit;">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" style="color:var(--muted);">
+                    No vehicles registered yet.
+                    <a asp-action="Create">Register the first vehicle</a>.
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,127 @@
+@model IEnumerable<Notification>
+@{
+    ViewData["Title"] = "Notifications";
+    var filter = ViewBag.Filter as string;
+    var unreadStaff = (int)(ViewBag.UnreadStaffCount ?? 0);
+}
+<div class="page-header">
+    <div>
+        <h1>Notifications</h1>
+        <p>Customer app alerts (bookings, complaints, payments, quotation responses) and workshop messages</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        @if (unreadStaff > 0)
+        {
+            <span class="pill pill-blue">@unreadStaff unread staff alert(s)</span>
+            <form asp-action="MarkAllStaffRead" method="post" style="display:inline;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-ghost">Mark all staff read</button>
+            </form>
+        }
+        <form asp-action="DeleteAllRead" method="post" style="display:inline;" onsubmit="return confirm('Delete all read notifications?');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="filter" value="@filter" />
+            <button type="submit" class="btn btn-ghost">Delete all read</button>
+        </form>
+    </div>
+</div>
+
+<div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+    <a class="btn @(string.IsNullOrEmpty(filter) ? "btn-primary" : "btn-ghost")" asp-action="Index">All</a>
+    <a class="btn @(filter == "staff" ? "btn-primary" : "btn-ghost")" asp-action="Index" asp-route-filter="staff">Customer app alerts</a>
+    <a class="btn @(filter == "unread" ? "btn-primary" : "btn-ghost")" asp-action="Index" asp-route-filter="unread">Unread</a>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>When</th>
+                <th>To</th>
+                <th>Type</th>
+                <th>Message</th>
+                <th>Read</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var n in Model)
+            {
+                <tr style="@(n.IsRead ? "" : "background:rgba(59,130,246,0.06);")">
+                    <td>@n.CreatedAt.ToSa().ToString("g")</td>
+                    <td>@n.UserAccountId</td>
+                    <td>
+                        @switch (n.Type)
+                        {
+                            case "ServiceRequest":
+                            case "AppointmentBooking":
+                                <span class="pill pill-blue">Booking</span>
+                                break;
+                            case "Complaint":
+                                <span class="pill pill-amber">Complaint</span>
+                                break;
+                            case "PaymentProof":
+                                <span class="pill pill-green">Payment proof</span>
+                                break;
+                            case "QuotationResponse":
+                                <span class="pill pill-amber">Quote response</span>
+                                break;
+                            default:
+                                @n.Type
+                                break;
+                        }
+                    </td>
+                    <td>@n.Message</td>
+                    <td>@(n.IsRead ? "Yes" : "No")</td>
+                    <td style="white-space:nowrap;">
+                        @if (!string.IsNullOrEmpty(n.RelatedId))
+                        {
+                            @if (n.Type is "Quotation" or "QuotationResponse")
+                            {
+                                <a asp-controller="Quotations" asp-action="Details" asp-route-id="@n.RelatedId">Quote</a>
+                            }
+                            else if (n.Type == "Complaint")
+                            {
+                                <a asp-controller="Complaints" asp-action="Details" asp-route-id="@n.RelatedId">Complaint</a>
+                            }
+                            else if (n.Type == "PaymentProof")
+                            {
+                                <a asp-controller="Payments" asp-action="Details" asp-route-id="@n.RelatedId">Payment</a>
+                            }
+                            else if (n.Type is "ServiceRequest" or "AppointmentBooking")
+                            {
+                                <a asp-controller="Appointments" asp-action="Index">Appointments</a>
+                            }
+                        }
+                        @if (!n.IsRead)
+                        {
+                            <form asp-action="MarkRead" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@n.Id" />
+                                <input type="hidden" name="filter" value="@filter" />
+                                <button type="submit" class="btn btn-ghost" style="padding:4px 8px;font-size:12px;">Mark read</button>
+                            </form>
+                        }
+                        <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Delete this notification?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@n.Id" />
+                            <input type="hidden" name="filter" value="@filter" />
+                            <button type="submit" class="btn btn-ghost" style="padding:4px 8px;font-size:12px;color:#b91c1c;" title="Delete">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="6" style="color:var(--muted);">
+                No notifications yet. When a customer books a service, submits a complaint, uploads proof of payment, or approves/rejects a quotation in the app, an alert appears here (after any staff page is opened — data refreshes from Supabase automatically).
+            </td></tr>
+        }
+        </tbody>
+    </table>
+</div>

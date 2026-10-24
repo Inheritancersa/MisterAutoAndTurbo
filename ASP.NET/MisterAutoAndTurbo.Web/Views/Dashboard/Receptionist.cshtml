@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Reception dashboard";
+}
+<div class="page-header">
+    <div>
+        <h1>Reception / Admin</h1>
+        <p>Intake, job cards, quotations and collection</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="JobCards" asp-action="Create">+ Create job card</a>
+</div>
+<div class="grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+    <a class="card" asp-controller="Customers" asp-action="Create" style="padding:20px;"><h3>Register customer</h3></a>
+    <a class="card" asp-controller="Vehicles" asp-action="Create" style="padding:20px;"><h3>Register vehicle</h3></a>
+    <a class="card" asp-controller="Appointments" asp-action="Create" style="padding:20px;"><h3>Book appointment</h3></a>
+    <a class="card" asp-controller="Quotations" asp-action="Index" style="padding:20px;"><h3>Quotations</h3></a>
+    <a class="card" asp-controller="Payments" asp-action="Create" style="padding:20px;"><h3>Record payment</h3></a>
+    <a class="card" asp-controller="VehicleCollections" asp-action="Index" style="padding:20px;"><h3>Vehicle collection</h3></a>
+</div>

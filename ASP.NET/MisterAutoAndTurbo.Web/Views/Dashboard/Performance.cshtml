@@ -1,0 +1,189 @@
+@model MisterAutoAndTurbo.Web.Controllers.WorkshopPerformanceVm
+@{
+    ViewData["Title"] = "Performance";
+    var maxDay = Model.JobsThisWeekByDay.DefaultIfEmpty().Max(d => d?.Count ?? 0);
+    if (maxDay < 1) maxDay = 1;
+    var maxPipe = Model.Pipeline.Where(p => p.Status != "Collected").DefaultIfEmpty().Max(p => p?.Count ?? 0);
+    if (maxPipe < 1) maxPipe = 1;
+}
+<div class="page-header">
+    <div>
+        <h1>Workshop performance</h1>
+        <p>Throughput, completion and workload · @Model.GeneratedAt.ToSa().ToString("g")</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Reports">Full reports</a>
+        <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Progress">Job board</a>
+        <a class="btn btn-ghost" href="javascript:window.print()">Print</a>
+    </div>
+</div>
+
+@* KPI strip *@
+<div class="grid grid-5" style="margin-bottom:16px">
+    <div class="card stat">
+        <div class="value">@Model.CompletionRatePercent%</div>
+        <div class="label">Completion rate</div>
+    </div>
+    <div class="card stat">
+        <div class="value">@Model.ActiveJobs</div>
+        <div class="label">Active jobs</div>
+    </div>
+    <div class="card stat">
+        <div class="value">@Model.InProgress</div>
+        <div class="label">In progress</div>
+    </div>
+    <div class="card stat">
+        <div class="value">@Model.AverageTurnaroundDays</div>
+        <div class="label">Avg days to collect</div>
+    </div>
+    <div class="card stat">
+        <div class="value">R @Model.RevenueThisWeek.ToString("N0")</div>
+        <div class="label">Revenue this week</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    @* Pipeline *@
+    <div class="card">
+        <div class="card-head">
+            Job pipeline
+            <span style="color:var(--muted);font-weight:normal;font-size:13px;">
+                Bottleneck: <strong>@Model.BottleneckStatus</strong>
+            </span>
+        </div>
+        <div class="card-body" style="padding:16px;">
+            @foreach (var p in Model.Pipeline)
+            {
+                var pct = (int)(100.0 * p.Count / maxPipe);
+                if (p.Status == "Collected") pct = p.Count == 0 ? 0 : Math.Min(100, pct);
+                var color = p.Status switch
+                {
+                    "Inspection" => "#3B82F6",
+                    "Quotation" => "#F59E0B",
+                    "In Progress" => "#2563EB",
+                    "Quality Check" => "#D97706",
+                    "Ready for Collection" => "#10B981",
+                    "Collected" => "#059669",
+                    _ => "#6B7387"
+                };
+                <div style="margin-bottom:12px;">
+                    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                        <span>@p.Status</span>
+                        <strong>@p.Count</strong>
+                    </div>
+                    <div style="height:8px;background:#E3E7EF;border-radius:4px;overflow:hidden;">
+                        <div style="height:100%;width:@(pct)%;background:@color;border-radius:4px;"></div>
+                    </div>
+                </div>
+            }
+            <p style="color:var(--muted);font-size:13px;margin:8px 0 0;">
+                Total @Model.TotalJobs · Completed @Model.CompletedJobs · Ready @Model.ReadyForCollection
+            </p>
+        </div>
+    </div>
+
+    @* Jobs this week *@
+    <div class="card">
+        <div class="card-head">Jobs opened this week</div>
+        <div class="card-body" style="padding:16px;">
+            <div style="display:flex;align-items:flex-end;gap:8px;height:140px;">
+                @foreach (var d in Model.JobsThisWeekByDay)
+                {
+                    var h = (int)(100.0 * d.Count / maxDay);
+                    if (h < 4 && d.Count > 0) h = 8;
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
+                        <span style="font-size:12px;font-weight:600;margin-bottom:4px;">@d.Count</span>
+                        <div style="width:100%;height:@(h)%;min-height:@(d.Count > 0 ? "8px" : "2px");background:#3B82F6;border-radius:4px 4px 0 0;"></div>
+                        <span style="font-size:11px;color:var(--muted);margin-top:6px;">@d.Label</span>
+                    </div>
+                }
+            </div>
+            <p style="color:var(--muted);font-size:13px;margin:16px 0 0;">
+                This week: <strong>@Model.JobsCreatedThisWeek</strong> · Today: <strong>@Model.JobsCreatedToday</strong>
+            </p>
+        </div>
+    </div>
+
+    @* Mechanic workload *@
+    <div class="card">
+        <div class="card-head">Mechanic workload</div>
+        <div class="card-body" style="padding:16px;">
+            @if (Model.MechanicWorkloads.Any())
+            {
+                <table class="table" style="margin:0;">
+                    <thead>
+                        <tr>
+                            <th>Mechanic</th>
+                            <th>Active</th>
+                            <th>In progress</th>
+                            <th>Done</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var m in Model.MechanicWorkloads)
+                    {
+                        <tr>
+                            <td><strong>@m.MechanicId</strong></td>
+                            <td>@m.ActiveJobs</td>
+                            <td>@m.InProgress</td>
+                            <td>@m.CompletedJobs</td>
+                            <td>@m.TotalJobs</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p style="color:var(--muted);margin:0;">No mechanics assigned on job cards yet.</p>
+            }
+            @if (Model.UnassignedActiveJobs > 0)
+            {
+                <p style="margin:12px 0 0;">
+                    <span class="pill pill-amber">@Model.UnassignedActiveJobs unassigned active job(s)</span>
+                    <a asp-controller="JobCards" asp-action="Active" style="margin-left:8px;">View active</a>
+                </p>
+            }
+        </div>
+    </div>
+
+    @* Quotes + money + alerts *@
+    <div class="card">
+        <div class="card-head">Quotes, revenue &amp; alerts</div>
+        <div class="card-body" style="padding:16px;">
+            <dl style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;margin:0;">
+                <dt style="color:var(--muted);">Quote approval rate</dt>
+                <dd style="text-align:right;"><strong>@Model.QuoteApprovalRatePercent%</strong></dd>
+                <dt style="color:var(--muted);">Approved / Rejected</dt>
+                <dd style="text-align:right;">@Model.QuotesApproved / @Model.QuotesRejected</dd>
+                <dt style="color:var(--muted);">Pending or sent</dt>
+                <dd style="text-align:right;">@Model.QuotesPendingOrSent</dd>
+                <dt style="color:var(--muted);">Revenue today</dt>
+                <dd style="text-align:right;">R @Model.RevenueToday.ToString("N2")</dd>
+                <dt style="color:var(--muted);">Revenue this week</dt>
+                <dd style="text-align:right;"><strong>R @Model.RevenueThisWeek.ToString("N2")</strong></dd>
+                <dt style="color:var(--muted);">All-time payments</dt>
+                <dd style="text-align:right;">R @Model.PaymentsTotal.ToString("N2")</dd>
+            </dl>
+            <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;">
+                @if (Model.OpenComplaints > 0)
+                {
+                    <a class="pill pill-amber" asp-controller="Complaints" asp-action="Index">@Model.OpenComplaints open complaint(s)</a>
+                }
+                @if (Model.LowStockParts > 0)
+                {
+                    <a class="pill pill-amber" asp-controller="Parts" asp-action="Index" asp-route-lowStockOnly="true">@Model.LowStockParts low stock part(s)</a>
+                }
+                @if (Model.ReadyForCollection > 0)
+                {
+                    <a class="pill pill-green" asp-controller="VehicleCollections" asp-action="Index">@Model.ReadyForCollection ready for collection</a>
+                }
+                @if (Model.OpenComplaints == 0 && Model.LowStockParts == 0)
+                {
+                    <span style="color:var(--muted);font-size:13px;">No open alerts</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>

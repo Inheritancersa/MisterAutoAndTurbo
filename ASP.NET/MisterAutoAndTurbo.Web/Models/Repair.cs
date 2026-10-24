@@ -1,6 +1,9 @@
 ﻿namespace MisterAutoAndTurbo.Web.Models
 {
     public class Repair
+    /// <summary>
+    /// A repair carried out by a mechanic on a job card, with start and completion times.
+    /// </summary>
     {
         public string Id { get; set; }
         public string JobCardId { get; set; }

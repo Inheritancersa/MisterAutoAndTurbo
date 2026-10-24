@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Manager dashboard";
+}
+<div class="page-header">
+    <div>
+        <h1>Manager / Owner</h1>
+        <p>Active jobs, performance and payments</p>
+    </div>
+</div>
+<div class="grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+    <a class="card" asp-controller="JobCards" asp-action="Active" style="padding:20px;"><h3>Active jobs</h3><p style="color:var(--muted);">View work in progress</p></a>
+    <a class="card" asp-controller="JobCards" asp-action="Completed" style="padding:20px;"><h3>Completed jobs</h3><p style="color:var(--muted);">Collected vehicles</p></a>
+    <a class="card" asp-action="Performance" style="padding:20px;"><h3>Workshop performance</h3><p style="color:var(--muted);">KPIs and throughput</p></a>
+    <a class="card" asp-controller="Payments" asp-action="Index" style="padding:20px;"><h3>Payments</h3><p style="color:var(--muted);">Payment records</p></a>
+    <a class="card" asp-action="Reports" style="padding:20px;"><h3>Reports</h3><p style="color:var(--muted);">Jobs and revenue</p></a>
+</div>

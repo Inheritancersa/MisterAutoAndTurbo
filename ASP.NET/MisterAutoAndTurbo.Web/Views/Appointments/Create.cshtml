@@ -1,0 +1,89 @@
+@model Appointment
+@{
+    ViewData["Title"] = "Book appointment";
+}
+<div class="page-header">
+    <div>
+        <h1>Book appointment</h1>
+        <p>Schedule a customer visit for service or repair</p>
+    </div>
+    <a class="btn btn-ghost" asp-action="Index">Back to list</a>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body" style="padding:24px;">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger" style="margin-bottom:12px;"></div>
+
+            <div class="field">
+                <label asp-for="CustomerId">Customer</label>
+                <select class="js-filter-customer input" id="CustomerId" asp-for="CustomerId" asp-items="ViewBag.Customers" required>
+                    <option value="">— Select customer —</option>
+                </select>
+                <small style="color:var(--muted);">
+                    Shows registered customers by name.
+                    <a asp-controller="Customers" asp-action="Create">Register customer first</a> if missing.
+                </small>
+            </div>
+
+            <div class="field">
+                <label asp-for="VehicleId">Vehicle</label>
+                <select class="js-filter-vehicle input" id="VehicleId" asp-for="VehicleId" asp-items="ViewBag.Vehicles">
+                    <option value="">— Select vehicle (optional) —</option>
+                </select>
+                <small style="color:var(--muted);">Only shows vehicles registered to the selected customer.</small>
+            </div>
+
+            <div class="field">
+                <label asp-for="JobCardId">Job ID (optional)</label>
+                @if (ViewBag.JobCards != null)
+                {
+                    <select class="js-filter-jobs input" asp-for="JobCardId" asp-items="ViewBag.JobCards">
+                        <option value="">— No job / select or type below —</option>
+                    </select>
+                    <small style="color:var(--muted);">Only shows job cards for the selected customer.</small>
+                }
+                <input class="input" asp-for="JobCardId" placeholder="Or type Job ID e.g. job-001" style="margin-top:8px;" />
+                <small style="color:var(--muted);">Link this visit to an existing job card</small>
+            </div>
+
+            <div class="field">
+                <label asp-for="CreatedById">Created by (staff ID)</label>
+                <input class="input" asp-for="CreatedById" placeholder="Your staff id" />
+            </div>
+
+            <div class="field">
+                <label asp-for="ScheduledAt">Scheduled date &amp; time</label>
+                <input class="input" asp-for="ScheduledAt" type="datetime-local"
+                       value="@(Model.ScheduledAt == default ? "" : Model.ScheduledAt.ToString("yyyy-MM-ddTHH:mm"))" />
+            </div>
+
+                        <div class="field">
+                <label asp-for="ServiceType">Service type</label>
+                <input class="input" asp-for="ServiceType" placeholder="e.g. Diagnostic, Oil & Filter, Repair" />
+            </div>
+
+            <div class="field">
+                <label asp-for="Description">Description / notes</label>
+                <textarea class="input" asp-for="Description" rows="3" placeholder="Customer description of the problem or work needed"></textarea>
+            </div>
+
+<div class="field">
+                <label asp-for="Status">Status</label>
+                <select class="input" asp-for="Status">
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Arrived">Arrived</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Book appointment</button>
+        </form>
+    </div>
+</div>
+
+)();
+</script>
+}

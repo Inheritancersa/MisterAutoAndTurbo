@@ -1,0 +1,97 @@
+@model Appointment
+@{
+    ViewData["Title"] = "Appointment";
+    var customerName = ViewBag.CustomerName as string ?? Model.CustomerId;
+    var vehicleLabel = ViewBag.VehicleLabel as string ?? Model.VehicleId;
+    var phone = ViewBag.CustomerPhone as string ?? "";
+    var statusPill = Model.Status switch
+    {
+        "Arrived" => "pill pill-blue",
+        "Completed" => "pill pill-green",
+        "Cancelled" => "pill pill-red",
+        _ => "pill pill-blue"
+    };
+}
+<div class="page-header">
+    <div>
+        <h1>Appointment @Model.Id</h1>
+        <p>
+            <span class="@statusPill">@Model.Status</span>
+            &nbsp;@Model.ScheduledAt.ToString("dddd, dd MMMM yyyy · HH:mm")
+        </p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-ghost" asp-action="Index">All appointments</a>
+        <form asp-action="SendToCustomer" method="post" style="display:inline;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-primary">
+                @(Model.SentAt != null ? "Resend date to customer" : "Send date to customer")
+            </button>
+        </form>
+        <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Create"
+           asp-route-customerId="@Model.CustomerId"
+           asp-route-vehicleId="@Model.VehicleId"
+           asp-route-appointmentId="@Model.Id">+ Create job card</a>
+    </div>
+</div>
+
+@if (Model.SentAt != null)
+{
+    <div style="margin-bottom:16px;padding:12px 16px;background:#e8f0fe;border:1px solid #b3d0ff;border-radius:8px;color:#1a365d;">
+        Appointment date was sent to the customer on <strong>@Model.SentAt.Value.ToSa().ToString("g")</strong>.
+        Check <a asp-controller="Notifications" asp-action="Index">Notifications</a>.
+    </div>
+}
+
+<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+        <div class="card-head">Details</div>
+        <div class="card-body" style="padding:20px;">
+            <dl style="display:grid;grid-template-columns:130px 1fr;gap:10px 16px;margin:0;">
+                <dt style="color:var(--muted);">Customer</dt>
+                <dd>@customerName @if (!string.IsNullOrEmpty(phone)) { <span style="color:var(--muted);">· @phone</span> }</dd>
+                <dt style="color:var(--muted);">Vehicle</dt>
+                <dd>@vehicleLabel</dd>
+                <dt style="color:var(--muted);">Job ID</dt>
+                <dd>@(string.IsNullOrEmpty(Model.JobCardId) ? "—" : Model.JobCardId)</dd>
+                <dt style="color:var(--muted);">Created by</dt>
+                <dd>@Model.CreatedById</dd>
+                <dt style="color:var(--muted);">Scheduled</dt>
+                <dd>@Model.ScheduledAt.ToString("g")</dd>
+                <dt style="color:var(--muted);">Service</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.ServiceType) ? "—" : Model.ServiceType)</dd>
+                <dt style="color:var(--muted);">Description</dt>
+                <dd style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.Description) ? "—" : Model.Description)</dd>
+                <dt style="color:var(--muted);">Status</dt>
+                <dd><span class="@statusPill">@Model.Status</span></dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">Update status</div>
+        <div class="card-body" style="padding:20px;">
+            <form asp-action="UpdateStatus" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="field">
+                    <label>New status</label>
+                    <select class="input" name="status">
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Arrived">Arrived</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:8px;">Update status</button>
+            </form>
+            <form asp-action="Delete" method="post" style="margin-top:16px;" onsubmit="return confirm('Delete this appointment?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-ghost" style="color:#D64545;">Delete appointment</button>
+            </form>
+        </div>
+    </div>
+</div>

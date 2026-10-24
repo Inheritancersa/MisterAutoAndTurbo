@@ -1,0 +1,141 @@
+@model JobCard
+@{
+    ViewData["Title"] = "Job card";
+    var vehicle = ViewBag.Vehicle as Vehicle;
+    var customer = ViewBag.Customer as Customer;
+    var serviceRequest = ViewBag.ServiceRequest as string;
+    var serviceType = ViewBag.ServiceType as string ?? "";
+    var serviceDescription = ViewBag.ServiceDescription as string ?? serviceRequest ?? "";
+    var statusPill = Model.Status switch
+    {
+        "Inspection" => "pill pill-blue",
+        "Quotation" => "pill pill-amber",
+        "In Progress" => "pill pill-blue",
+        "Quality Check" => "pill pill-amber",
+        "Ready for Collection" => "pill pill-green",
+        "Collected" => "pill pill-green",
+        _ => "pill"
+    };
+    var vehicleLabel = vehicle != null
+        ? $"{vehicle.RegistrationNumber} — {vehicle.Make} {vehicle.Model}"
+        : Model.VehichleId;
+    var customerName = customer != null ? $"{customer.Name} {customer.Surname}".Trim() : Model.CustomerId;
+    var isMechanic = User.IsInRole("Mechanic");
+}
+<div class="page-header">
+    <div>
+        <h1>Job @Model.Id</h1>
+        <p>
+            <span class="@statusPill">@Model.Status</span>
+            · @vehicleLabel
+            · @customerName
+        </p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Index">All jobs</a>
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-primary" asp-controller="Inspections" asp-action="Create" asp-route-jobCardId="@Model.Id">Record inspection</a>
+        <a class="btn btn-ghost" asp-controller="Inspections" asp-action="ByJobCard" asp-route-jobCardId="@Model.Id">View inspections</a>
+        @if (!isMechanic)
+        {
+            <a class="btn btn-ghost" asp-controller="Quotations" asp-action="Create"
+           asp-route-jobCardId="@Model.Id" asp-route-customerId="@Model.CustomerId" asp-route-vehicleId="@Model.VehichleId">Generate quotation</a>
+        <a class="btn btn-ghost" asp-controller="Payments" asp-action="Create">Record payment</a>
+
+            <a class="btn btn-ghost" asp-controller="VehicleCollections" asp-action="Index">Collection</a>
+
+            <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Delete this job card?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-ghost" style="color:#D64545;">Delete</button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+        <div class="card-head">Job details</div>
+        <div class="card-body" style="padding:20px;">
+            <dl style="display:grid;grid-template-columns:140px 1fr;gap:10px 16px;margin:0;">
+                <dt style="color:var(--muted);">Customer</dt>
+                <dd>@customerName @if (customer != null) { <span style="color:var(--muted);">· @customer.Phone</span> }</dd>
+                <dt style="color:var(--muted);">Vehicle</dt>
+                <dd>@vehicleLabel</dd>
+                <dt style="color:var(--muted);">Mechanic</dt>
+                <dd>@(string.IsNullOrEmpty(Model.MechanicId) ? "—" : Model.MechanicId)</dd>
+                <dt style="color:var(--muted);">Created by</dt>
+                <dd>@Model.CreatedById</dd>
+                <dt style="color:var(--muted);">Created</dt>
+                <dd>@Model.CreatedAt.ToSa().ToString("g")</dd>
+                <dt style="color:var(--muted);">Status</dt>
+                <dd><span class="@statusPill">@Model.Status</span></dd>
+            </dl>
+            @if (!string.IsNullOrWhiteSpace(serviceType) || !string.IsNullOrWhiteSpace(serviceDescription))
+            {
+                <div style="margin:16px 0 0;">
+                    @if (!string.IsNullOrWhiteSpace(serviceType))
+                    {
+                        <p style="margin:0 0 8px;"><strong>Service</strong><br />@serviceType</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(serviceDescription))
+                    {
+                        <p style="margin:0;white-space:pre-wrap;"><strong>Description</strong><br />@serviceDescription</p>
+                    }
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.Diagnosis))
+            {
+                <p style="margin:16px 0 0;"><strong>Diagnosis</strong><br />@Model.Diagnosis</p>
+            }
+            @if (!string.IsNullOrEmpty(Model.RepairNotes))
+            {
+                <p style="margin:16px 0 0;white-space:pre-wrap;"><strong>Repair notes</strong><br />@Model.RepairNotes</p>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">Update status</div>
+        <div class="card-body" style="padding:20px;">
+            <form asp-action="UpdateStatus" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="field">
+                    <label>New status</label>
+                    <select class="input" name="status">
+                        <option value="Inspection">Inspection</option>
+                        <option value="Quotation">Quotation</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Quality Check">Quality Check</option>
+                        <option value="Ready for Collection">Ready for Collection</option>
+                        <option value="Collected">Collected</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:8px;">Update status</button>
+            </form>
+
+            <hr style="margin:20px 0;border:none;border-top:1px solid #E3E7EF;" />
+
+            <form asp-action="RecordDiagnosis" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="field">
+                    <label>Diagnosis</label>
+                    <textarea class="input" name="diagnosis" rows="2" placeholder="Record or update diagnosis">@Model.Diagnosis</textarea>
+                </div>
+                <button type="submit" class="btn btn-ghost" style="margin-top:8px;">Save diagnosis</button>
+            </form>
+
+            <form asp-action="AddRepairNotes" method="post" style="margin-top:16px;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="field">
+                    <label>Add repair note</label>
+                    <textarea class="input" name="repairNotes" rows="2" placeholder="Progress note for this job"></textarea>
+                </div>
+                <button type="submit" class="btn btn-ghost" style="margin-top:8px;">Add note</button>
+            </form>
+        </div>
+    </div>
+</div>

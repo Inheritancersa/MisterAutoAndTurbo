@@ -1,0 +1,220 @@
+@model MisterAutoAndTurbo.Web.Controllers.WorkshopReportVm
+@{
+    ViewData["Title"] = "Reports";
+    var names = ViewBag.CustomerNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var vehicles = ViewBag.VehicleLabels as Dictionary<string, string> ?? new Dictionary<string, string>();
+}
+<div class="page-header">
+    <div>
+        <h1>Workshop reports</h1>
+        <p>Live summary · generated @Model.GeneratedAt.ToSa().ToString("g")</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-controller="JobCards" asp-action="Progress">Job board</a>
+        <a class="btn btn-ghost" asp-controller="Payments" asp-action="Outstanding">Outstanding</a>
+        <a class="btn btn-ghost" href="javascript:window.print()">Print</a>
+    </div>
+</div>
+
+@* KPI row *@
+<div class="grid grid-5" style="margin-bottom:16px">
+    <div class="card stat">
+        <div class="value">@Model.ActiveJobs</div>
+        <div class="label">Active jobs</div>
+    </div>
+    <div class="card stat">
+        <div class="value">@Model.JobsReadyForCollection</div>
+        <div class="label">Ready for collection</div>
+    </div>
+    <div class="card stat">
+        <div class="value">R @Model.PaymentsTotal.ToString("N0")</div>
+        <div class="label">Payments received</div>
+    </div>
+    <div class="card stat">
+        <div class="value">R @Model.OutstandingBalance.ToString("N0")</div>
+        <div class="label">Outstanding</div>
+    </div>
+    <div class="card stat">
+        <div class="value">@Model.ComplaintsOpen</div>
+        <div class="label">Open complaints</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    @* Jobs by status *@
+    <div class="card">
+        <div class="card-head">Jobs by status</div>
+        <div class="card-body" style="padding:16px;">
+            <table class="table" style="margin:0;">
+                <tbody>
+                @foreach (var kv in Model.JobsByStatus)
+                {
+                    var pill = kv.Key switch
+                    {
+                        "Inspection" => "pill pill-blue",
+                        "Quotation" => "pill pill-amber",
+                        "In Progress" => "pill pill-blue",
+                        "Quality Check" => "pill pill-amber",
+                        "Ready for Collection" => "pill pill-green",
+                        "Collected" => "pill pill-green",
+                        _ => "pill"
+                    };
+                    <tr>
+                        <td><span class="@pill">@kv.Key</span></td>
+                        <td style="text-align:right;"><strong>@kv.Value</strong></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            <p style="color:var(--muted);font-size:13px;margin:12px 0 0;">
+                Total jobs: @Model.TotalJobs · Created today: @Model.JobsCreatedToday · Collected: @Model.JobsCollected
+            </p>
+        </div>
+    </div>
+
+    @* Quotations *@
+    <div class="card">
+        <div class="card-head">Quotations</div>
+        <div class="card-body" style="padding:16px;">
+            <table class="table" style="margin:0;">
+                <tbody>
+                @foreach (var kv in Model.QuotesByStatus)
+                {
+                    var pill = kv.Key switch
+                    {
+                        "Approved" => "pill pill-green",
+                        "Rejected" => "pill pill-red",
+                        "Sent" => "pill pill-blue",
+                        _ => "pill pill-amber"
+                    };
+                    <tr>
+                        <td><span class="@pill">@kv.Key</span></td>
+                        <td style="text-align:right;"><strong>@kv.Value</strong></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            <p style="color:var(--muted);font-size:13px;margin:12px 0 0;">
+                Approved value: <strong>R @Model.QuotesApprovedValue.ToString("N2")</strong>
+                · Pending/Sent value: R @Model.QuotesPendingValue.ToString("N2")
+            </p>
+        </div>
+    </div>
+
+    @* Payments *@
+    <div class="card">
+        <div class="card-head">Payments</div>
+        <div class="card-body" style="padding:16px;">
+            <dl style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;margin:0;">
+                <dt style="color:var(--muted);">Total received</dt>
+                <dd style="text-align:right;"><strong>R @Model.PaymentsTotal.ToString("N2")</strong></dd>
+                <dt style="color:var(--muted);">Today</dt>
+                <dd style="text-align:right;">R @Model.PaymentsToday.ToString("N2")</dd>
+                <dt style="color:var(--muted);">Transactions</dt>
+                <dd style="text-align:right;">@Model.PaymentsCount</dd>
+                <dt style="color:var(--muted);">Outstanding</dt>
+                <dd style="text-align:right;color:#B07D00;"><strong>R @Model.OutstandingBalance.ToString("N2")</strong></dd>
+            </dl>
+            @if (Model.PaymentsByMethod.Any())
+            {
+                <p style="margin:16px 0 8px;font-weight:600;font-size:13px;">By method</p>
+                <table class="table" style="margin:0;">
+                    <tbody>
+                    @foreach (var kv in Model.PaymentsByMethod.OrderByDescending(x => x.Value))
+                    {
+                        <tr>
+                            <td>@kv.Key</td>
+                            <td style="text-align:right;">R @kv.Value.ToString("N2")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    @* Other ops *@
+    <div class="card">
+        <div class="card-head">Operations snapshot</div>
+        <div class="card-body" style="padding:16px;">
+            <dl style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;margin:0;">
+                <dt style="color:var(--muted);">Customers</dt><dd style="text-align:right;">@Model.TotalCustomers</dd>
+                <dt style="color:var(--muted);">Vehicles</dt><dd style="text-align:right;">@Model.TotalVehicles</dd>
+                <dt style="color:var(--muted);">Appointments today</dt><dd style="text-align:right;">@Model.AppointmentsToday</dd>
+                <dt style="color:var(--muted);">Upcoming appointments</dt><dd style="text-align:right;">@Model.AppointmentsUpcoming</dd>
+                <dt style="color:var(--muted);">Collections ready</dt><dd style="text-align:right;">@Model.CollectionsReady</dd>
+                <dt style="color:var(--muted);">Collections done</dt><dd style="text-align:right;">@Model.CollectionsCompleted</dd>
+                <dt style="color:var(--muted);">Complaints open</dt><dd style="text-align:right;">@Model.ComplaintsOpen</dd>
+                <dt style="color:var(--muted);">Complaints (mobile)</dt><dd style="text-align:right;">@Model.ComplaintsFromMobile</dd>
+                <dt style="color:var(--muted);">Parts low stock</dt>
+                <dd style="text-align:right;">
+                    @if (Model.PartsLowStock > 0)
+                    {
+                        <span class="pill pill-amber">@Model.PartsLowStock</span>
+                    }
+                    else { <span>0</span> }
+                </dd>
+                <dt style="color:var(--muted);">Inventory value</dt>
+                <dd style="text-align:right;">R @Model.PartsInventoryValue.ToString("N2")</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+        <div class="card-head">
+            Recent jobs
+            <a asp-controller="JobCards" asp-action="Index">View all</a>
+        </div>
+        <table class="table">
+            <thead>
+                <tr><th>Job</th><th>Vehicle</th><th>Status</th><th>Created</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var j in Model.RecentJobs)
+            {
+                var veh = vehicles.ContainsKey(j.VehichleId) ? vehicles[j.VehichleId] : j.VehichleId;
+                <tr>
+                    <td><a asp-controller="JobCards" asp-action="Details" asp-route-id="@j.Id">@j.Id</a></td>
+                    <td>@veh</td>
+                    <td>@j.Status</td>
+                    <td>@j.CreatedAt.ToSa().ToString("dd MMM")</td>
+                </tr>
+            }
+            @if (!Model.RecentJobs.Any())
+            {
+                <tr><td colspan="4" style="color:var(--muted);">No jobs yet.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            Recent payments
+            <a asp-controller="Payments" asp-action="Index">View all</a>
+        </div>
+        <table class="table">
+            <thead>
+                <tr><th>Customer</th><th>Amount</th><th>Method</th><th>When</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var p in Model.RecentPayments)
+            {
+                var name = names.ContainsKey(p.CustomerId) ? names[p.CustomerId] : p.CustomerId;
+                <tr>
+                    <td>@name</td>
+                    <td>R @p.Amount.ToString("N2")</td>
+                    <td>@p.Method</td>
+                    <td>@p.PaidAt.ToSa().ToString("dd MMM HH:mm")</td>
+                </tr>
+            }
+            @if (!Model.RecentPayments.Any())
+            {
+                <tr><td colspan="4" style="color:var(--muted);">No payments yet.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

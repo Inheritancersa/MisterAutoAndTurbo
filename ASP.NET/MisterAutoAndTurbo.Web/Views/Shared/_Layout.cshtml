@@ -1,48 +1,158 @@
-﻿<!DOCTYPE html>
+@using System.Security.Claims
+@using MisterAutoAndTurbo.Web.Data
+@using MisterAutoAndTurbo.Web.Controllers
+@{
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var displayName = User.Identity?.IsAuthenticated == true ? User.Identity!.Name! : "Motlokoa Tsotesi";
+    var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = string.Concat(parts.Take(2).Select(p => char.ToUpper(p[0])));
+    var current = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    // Role-based menu, built from the VSMS use-case and sequence diagrams.
+    // Manager/Owner : dashboard, jobs, customers, vehicles, quotations, payments,
+    //                 collection, complaints, reports + administration.
+    // Receptionist  : customers, vehicles, job cards, quotations, payments, collection, complaints.
+    // Mechanic      : own dashboard, assigned jobs (diagnosis, notes, progress), parts.
+    var M = UserRoles.Manager; var R = UserRoles.Receptionist; var Me = UserRoles.Mechanic;
+    var main = new List<(string Label, string Controller, string Action, string Icon, string[] Roles)>
+    {
+        ("Dashboard",         "Home",                "Index",       "bi-grid",           new[] { M, R }),
+        ("Dashboard",         "Dashboard",           "Mechanic",    "bi-grid",           new[] { Me }),
+        ("My Assigned Jobs",  "JobCards",            "Assigned",    "bi-wrench",         new[] { Me }),
+        ("Vehicles",          "Vehicles",            "Index",       "bi-car-front",      new[] { M, R }),
+        ("Customers",         "Customers",           "Index",       "bi-person",         new[] { M, R }),
+        ("Repairs / Jobs",    "JobCards",            "Index",       "bi-wrench",         new[] { M, R }),
+        ("Appointments",      "Appointments",        "Index",       "bi-calendar3",      new[] { M, R }),
+        ("Quotations",        "Quotations",          "Index",       "bi-file-earmark-text", new[] { M, R }),
+        ("Parts / Inventory", "Parts",               "Index",       "bi-box-seam",       new[] { M, Me }),
+        ("Payments",          "Payments",            "Index",       "bi-credit-card",    new[] { M, R }),
+        ("Collection",        "VehicleCollections",  "Index",       "bi-key",            new[] { M, R }),
+        ("Complaints",        "Complaints",          "Index",       "bi-chat-left-text", new[] { M, R }),
+        ("Reports",           "Dashboard",           "Reports",     "bi-bar-chart",      new[] { M }),
+    };
+    var admin = new List<(string Label, string Controller, string Action, string Icon, string[] Roles)>
+    {
+        ("Performance", "Dashboard", "Performance", "bi-speedometer2", new[] { M }),
+        ("Users",       "Users",     "Index",       "bi-shield-check", new[] { M }),
+        ("Settings",    "Settings",  "Index",       "bi-gear",         new[] { M }),
+    };
+    var visibleMain  = main.Where(i => i.Roles.Contains(role)).ToList();
+    var visibleAdmin = admin.Where(i => i.Roles.Contains(role)).ToList();
+
+    Func<string, string, bool> isActiveFor = (controller, action) =>
+    {
+        if (controller == "Home")
+            return string.Equals(current, "Home", StringComparison.OrdinalIgnoreCase)
+                || (string.Equals(current, "Dashboard", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase));
+        if (controller == "Dashboard")
+            return string.Equals(current, "Dashboard", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(current, controller, StringComparison.OrdinalIgnoreCase);
+    };
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MisterAutoAndTurbo.Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - Mister Auto &amp; Turbo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/MisterAutoAndTurbo.Web.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">MisterAutoAndTurbo.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <a asp-controller="Home" asp-action="Index" class="brand-link" title="Mister Auto &amp; Turbo">
+                    <img src="~/images/mister-auto-logo.png" alt="Mister Auto &amp; Turbo" class="brand-logo" />
+                </a>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - MisterAutoAndTurbo.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <nav>
+                @foreach (var item in visibleMain)
+                {
+                    var isActive = isActiveFor(item.Controller, item.Action);
+
+                    <a class="nav-item @(isActive ? "active" : "")"
+                       asp-controller="@item.Controller"
+                       asp-action="@item.Action">
+                        <i class="bi @item.Icon"></i>@item.Label
+                    </a>
+                }
+
+                @if (visibleAdmin.Any())
+                {
+                    <div class="nav-label">Administration</div>
+                }
+                @foreach (var item in visibleAdmin)
+                {
+                    var isActive = isActiveFor(item.Controller, item.Action);
+                    <a class="nav-item @(isActive ? "active" : "")"
+                       asp-controller="@item.Controller"
+                       asp-action="@item.Action">
+                        <i class="bi @item.Icon"></i>@item.Label
+                    </a>
+                }
+            </nav>
+
+            <div class="sidebar-footer">
+                <a class="nav-item" asp-controller="Account" asp-action="Logout">
+                    <i class="bi bi-box-arrow-left"></i>Logout
+                </a>
+            </div>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="topbar-title">@ViewData["Title"]</div>
+                <div class="topbar-right">
+@{
+                        var staffTypes = NotificationsController.CustomerAppTypes;
+                        var unreadStaff = AppDataStore.Notifications.Count(n =>
+                            n.UserAccountId != NotificationsController.DismissedUserId
+                            && !n.IsRead && (
+                                n.UserAccountId == "staff"
+                                || staffTypes.Contains(n.Type, StringComparer.OrdinalIgnoreCase)));
+                    }
+                    <a class="icon-btn" id="notif-bell" title="Notifications" asp-controller="Notifications" asp-action="Index" asp-route-filter="staff" style="position:relative;">
+                        <i class="bi bi-bell"></i>
+                        <span id="notif-badge" class="notif-badge @(unreadStaff > 0 ? "" : "is-hidden")"
+                              data-count="@unreadStaff">@(unreadStaff > 99 ? "99+" : unreadStaff.ToString())</span>
+                    </a>
+                    <span id="live-clock" class="live-clock" title="South Africa time">—</span>
+                    <div class="user-chip">
+                        <div class="avatar">@initials</div>
+                        <div>
+                            <div class="name">@displayName</div>
+                            <div class="role">@role</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="content page-enter">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="flash flash-success auto-dismiss">
+                        @TempData["Success"]
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="flash flash-error auto-dismiss">
+                        @TempData["Error"]
+                    </div>
+                }
+                @RenderBody()
+            </main>
+            <div id="live-toast-host" class="live-toast-host" aria-live="polite"></div>
         </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    </div>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

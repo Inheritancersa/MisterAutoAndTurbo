@@ -1,0 +1,194 @@
+@model Quotation
+@{
+    ViewData["Title"] = "Quotation";
+    var customerName = ViewBag.CustomerName as string ?? Model.CustomerId;
+    var vehicleLabel = ViewBag.VehicleLabel as string ?? Model.VehicleId;
+    var phone = ViewBag.CustomerPhone as string ?? "";
+    var canSend = Model.Status == "Pending" || Model.Status == "Sent";
+    var alreadySent = Model.SentAt != null;
+    var statusPill = Model.Status switch
+    {
+        "Approved" => "pill pill-green",
+        "Rejected" => "pill pill-red",
+        "Sent" => "pill pill-blue",
+        "Pending" => "pill pill-blue",
+        _ => "pill"
+    };
+}
+<div class="page-header">
+    <div>
+        <h1>Quotation @Model.Id</h1>
+        <p>
+            <strong>@customerName</strong>
+            @if (!string.IsNullOrEmpty(phone)) { <span>· @phone</span> }
+            · @vehicleLabel
+            · <span class="@statusPill">@Model.Status</span>
+        </p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn btn-ghost" asp-action="Index">All quotations</a>
+        @if (Model.Status != "Approved" && Model.Status != "Rejected")
+        {
+            <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit quotation</a>
+        }
+        <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Delete this quotation? This cannot be undone.');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-ghost" style="color:#D64545;border-color:#f5c2c2;">Delete</button>
+        </form>
+        <a class="btn btn-ghost" asp-action="Index" asp-route-customerId="@Model.CustomerId">This customer’s quotes</a>
+        @if (canSend)
+        {
+            <form asp-action="SendToCustomer" method="post" style="display:inline;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-primary">
+                    @(alreadySent ? "Resend to customer" : "Send to customer")
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+@if (Model.Status == "Sent")
+{
+    <div style="margin-bottom:16px;padding:12px 16px;background:#e8f0fe;border:1px solid #b3d0ff;border-radius:8px;color:#1a365d;">
+        Sent to customer @(Model.SentAt.ToSa()?.ToString("g")). Waiting for them to <strong>Approve</strong> or <strong>Reject</strong> on the mobile app.
+    </div>
+}
+@if (Model.Status == "Approved")
+{
+    <div style="margin-bottom:16px;padding:12px 16px;background:#e8f8ef;border:1px solid #b7e4c7;border-radius:8px;color:#1b4332;">
+        Customer <strong>approved</strong> on @(Model.RespondedAt.ToSa()?.ToString("g")). You can start the repair / record payment.
+    </div>
+}
+@if (Model.Status == "Rejected")
+{
+    <div style="margin-bottom:16px;padding:12px 16px;background:#fde8e8;border:1px solid #f5c2c2;border-radius:8px;color:#7f1d1d;">
+        Customer <strong>rejected</strong> on @(Model.RespondedAt.ToSa()?.ToString("g")). Contact them or send a revised quote.
+    </div>
+}
+
+<div class="card" style="max-width:520px;">
+    <div class="card-body" style="padding:24px;">
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p style="margin-top:0;">@Model.Description</p>
+        }
+        <dl style="display:grid;grid-template-columns:200px 1fr;gap:8px 16px;margin:0;">
+            <dt style="color:var(--muted);">Customer</dt><dd>@customerName</dd>
+            <dt style="color:var(--muted);">Vehicle</dt><dd>@vehicleLabel</dd>
+            <dt style="color:var(--muted);">Job card</dt><dd>@(string.IsNullOrEmpty(Model.JobCardId) ? "—" : Model.JobCardId)</dd>
+            <dt style="color:var(--muted);">Labour</dt><dd>R @Model.LabourCost.ToString("N2")</dd>
+            <dt style="color:var(--muted);">Parts</dt><dd>R @Model.PartsCost.ToString("N2")</dd>
+            <dt style="color:var(--muted);">Customer-supplied Δ</dt><dd>R @Model.CustomerSuppliedDifference.ToString("N2")</dd>
+            <dt style="color:var(--muted);"><strong>Total</strong></dt><dd><strong>R @Model.TotalCost.ToString("N2")</strong></dd>
+            <dt style="color:var(--muted);">Created</dt><dd>@Model.CreatedAt.ToSa().ToString("g")</dd>
+            <dt style="color:var(--muted);">Sent</dt><dd>@(Model.SentAt.ToSa()?.ToString("g") ?? "—")</dd>
+            <dt style="color:var(--muted);">Customer response</dt><dd>@(Model.RespondedAt.ToSa()?.ToString("g") ?? "—")</dd>
+        </dl>
+    </div>
+</div>
+
+
+@{
+    var proofPays = ViewBag.ProofPayments as IList<Payment> ?? new List<Payment>();
+    var allPays = ViewBag.Payments as IList<Payment> ?? new List<Payment>();
+    var proofItems = proofPays
+        .SelectMany(pay => pay.ProofUrls.Select(url => new { Payment = pay, Url = url }))
+        .ToList();
+}
+@if (allPays.Count > 0 || proofItems.Count > 0)
+{
+    <div class="card" style="margin-top:16px;">
+        <div class="card-head">
+            Payments &amp; proof of payment
+            @if (proofItems.Count > 0)
+            {
+                <span class="pill pill-blue" style="margin-left:8px;">@proofItems.Count proof file(s)</span>
+            }
+        </div>
+        <div class="card-body" style="padding:20px;">
+            @if (allPays.Count > 0)
+            {
+                <table class="table" style="margin-bottom:16px;">
+                    <thead>
+                        <tr>
+                            <th>Paid at</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Proof</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var pay in allPays)
+                    {
+                        var pill = pay.Status switch
+                        {
+                            "Confirmed" => "pill pill-green",
+                            "Refunded" => "pill pill-red",
+                            _ => "pill pill-blue"
+                        };
+                        <tr>
+                            <td>@pay.PaidAt.ToSa().ToString("dd MMM yyyy HH:mm")</td>
+                            <td><strong>R @pay.Amount.ToString("N2")</strong></td>
+                            <td>@pay.Method</td>
+                            <td><span class="@pill">@pay.Status</span></td>
+                            <td>
+                                @if (pay.HasProof)
+                                {
+                                    <span>@pay.ProofUrls.Count file(s)</span>
+                                }
+                                else { <text>—</text> }
+                            </td>
+                            <td><a asp-controller="Payments" asp-action="Details" asp-route-id="@pay.Id">View</a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            @if (proofItems.Count > 0)
+            {
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
+                    @foreach (var item in proofItems)
+                    {
+                        var url = item.Url;
+                        var isPdf = url.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+                        var isLink = url.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase)
+                                     || url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                                     || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+                        <div style="border:1px solid var(--border,#e3e7ef);border-radius:8px;padding:12px;background:#fbfcfe;">
+                            <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">
+                                @item.Payment.PaidAt.ToSa().ToString("dd MMM yyyy HH:mm")
+                                · R @item.Payment.Amount.ToString("N2")
+                            </div>
+                            @if (isLink)
+                            {
+                                <a href="@url" target="_blank" rel="noopener noreferrer" style="font-weight:600;">Open proof</a>
+                                if (!isPdf)
+                                {
+                                    <div style="margin-top:8px;">
+                                        <a href="@url" target="_blank" rel="noopener noreferrer">
+                                            <img src="@url" alt="Proof"
+                                                 style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid var(--border,#ddd);object-fit:contain;background:#fff;" />
+                                        </a>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <span style="word-break:break-all;">@url</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else if (allPays.Count == 0)
+            {
+                <p style="color:var(--muted);margin:0;">No payments or proofs for this quotation yet.</p>
+            }
+        </div>
+    </div>
+}

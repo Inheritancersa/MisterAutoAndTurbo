@@ -1,0 +1,68 @@
+﻿@model Customer
+@{
+    ViewData["Title"] = "Customer details";
+    var vehicles = ViewBag.Vehicles as List<Vehicle> ?? new List<Vehicle>();
+}
+<div class="page-header">
+    <div>
+        <h1>@Model.Name @Model.Surname</h1>
+        <p>Customer record</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline;" onsubmit="return confirm('Delete this customer? All their vehicles, job cards, quotations, payments, appointments and complaints will also be permanently deleted. This cannot be undone.');">
+            <button type="submit" class="btn btn-ghost" style="color:#D64545;border-color:#f5c2c2;">Delete</button>
+        </form>
+        <a class="btn btn-primary" asp-controller="Vehicles" asp-action="Create" asp-route-customerId="@Model.Id">+ Register vehicle</a>
+    </div>
+</div>
+
+<div class="card" style="max-width:560px;margin-bottom:16px;">
+    <div class="card-body" style="padding:24px;">
+        <dl style="display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin:0;">
+            <dt style="color:var(--muted);">Phone</dt><dd>@Model.Phone</dd>
+            <dt style="color:var(--muted);">Email</dt><dd>@Model.Email</dd>
+            <dt style="color:var(--muted);">Address</dt><dd>@Model.Address</dd>
+            <dt style="color:var(--muted);">Work phone</dt><dd>@Model.WorkPhone</dd>
+            <dt style="color:var(--muted);">Work address</dt><dd>@Model.WorkAddress</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">Vehicles (@vehicles.Count)</div>
+    <div class="card-body" style="padding:16px;">
+        @if (vehicles.Count == 0)
+        {
+            <p style="color:var(--muted);margin:0;">No vehicles registered for this customer.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Registration</th>
+                        <th>Make</th>
+                        <th>Model</th>
+                        <th>Year</th>
+                        <th>Mileage</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in vehicles)
+                    {
+                        <tr>
+                            <td>@v.RegistrationNumber</td>
+                            <td>@v.Make</td>
+                            <td>@v.Model</td>
+                            <td>@v.Year</td>
+                            <td>@v.Mileage.ToString("N0") km</td>
+                            <td><a asp-controller="Vehicles" asp-action="Details" asp-route-id="@v.Id">View</a> &middot; <a asp-controller="Appointments" asp-action="Create" asp-route-customerId="@Model.Id" asp-route-vehicleId="@v.Id">Book appointment</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

@@ -1,0 +1,38 @@
+@model IEnumerable<Pricing>
+@{
+    ViewData["Title"] = "Pricing";
+}
+<div class="page-header">
+    <div>
+        <h1>Manage pricing</h1>
+        <p>Effective part and service prices</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Add price</a>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr><th>Part ID</th><th>Price</th><th>From</th><th>To</th><th>Updated by</th><th></th></tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.PartId</td>
+                    <td>R @p.Price.ToString("N2")</td>
+                    <td>@p.EffectiveFrom.ToString("yyyy-MM-dd")</td>
+                    <td>@(p.EffectiveTo == default ? "—" : p.EffectiveTo.ToString("yyyy-MM-dd"))</td>
+                    <td>@p.UpdatedById</td>
+                    <td><a asp-action="Edit" asp-route-id="@p.Id">Edit</a></td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="6" style="color:var(--muted);">No pricing records yet.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

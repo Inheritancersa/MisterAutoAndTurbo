@@ -13,6 +13,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
     [Authorize]
     public class LiveController : Controller
     {
+        // GET /Live/Summary: returns JSON with live numbers (unread staff notifications, active jobs, ready for collection, today's appointments, vehicles, outstanding payments, open complaints, low stock parts and the 5 latest notifications). The browser polls it to update badges and dashboard figures without reloading the page.
         [HttpGet]
         public IActionResult Summary()
         {
@@ -28,6 +29,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             var jobs = AppDataStore.JobCards;
             var payments = AppDataStore.Payments.Where(p => p.Status != "Refunded").ToList();
 
+            // Outstanding balance across open quotations (quotation total minus payments, positive balances only).
             decimal outstanding = 0;
             foreach (var q in AppDataStore.Quotations.Where(q =>
                          q.Status == "Approved" || q.Status == "Sent" || q.Status == "Pending"))
@@ -37,6 +39,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 if (bal > 0) outstanding += bal;
             }
 
+            // Five newest notifications meant for staff (dismissed ones are excluded); times are converted to South African time.
             var latest = AppDataStore.Notifications
                 .Where(n =>
                     n.UserAccountId != NotificationsController.DismissedUserId

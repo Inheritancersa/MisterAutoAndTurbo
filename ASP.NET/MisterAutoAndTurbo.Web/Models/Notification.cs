@@ -1,5 +1,8 @@
 namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// A message shown to a customer or staff user, with a type, read flag and an optional related record id (e.g. a quotation).
+    /// </summary>
     public class Notification
     {
         public string Id { get; set; } = string.Empty;

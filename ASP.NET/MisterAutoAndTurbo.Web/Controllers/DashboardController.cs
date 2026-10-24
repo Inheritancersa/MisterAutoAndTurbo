@@ -9,8 +9,10 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// <summary>
     /// Manager reports and performance snapshots from in-memory workshop data.
     /// </summary>
+    // Dashboard pages per role plus the Manager reports and performance pages. Individual actions carry their own role rules.
     public class DashboardController : Controller
     {
+        // GET: main dashboard; mechanics are redirected to their own dashboard page.
         [HttpGet]
         public IActionResult Index()
         {
@@ -21,18 +23,22 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View();
         }
 
+        // GET: manager dashboard page.
         [HttpGet]
         [Authorize(Roles = "Manager")]
         public IActionResult Manager() => View();
 
+        // GET: receptionist dashboard page.
         [HttpGet]
         [Authorize(Roles = "Manager,Receptionist")]
         public IActionResult Receptionist() => View();
 
+        // GET: mechanic dashboard page.
         [HttpGet]
         [Authorize(Roles = "Manager,Mechanic")]
         public IActionResult Mechanic() => View();
 
+        // Builds the workshop report model: jobs by status, payments by method and total, quotes by status and value, outstanding balance, appointments, collections, complaints, parts stock and value, and the 8 most recent jobs and payments. Customer names and vehicle labels are passed in ViewBag for the view.
         /// <summary>Manager: Generate Reports — live summary from AppDataStore.</summary>
         [HttpGet]
         [Authorize(Roles = "Manager")]
@@ -57,6 +63,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             var quotesByStatus = new[] { "Pending", "Sent", "Approved", "Rejected" }
                 .ToDictionary(s => s, s => quotes.Count(q => q.Status == s));
 
+            // Outstanding: quote total - payments on that quote (positive balances only).
             // Outstanding: quote total - payments on that quote
             decimal outstanding = 0;
             foreach (var q in quotes.Where(q => q.Status == "Approved" || q.Status == "Sent" || q.Status == "Pending"))
@@ -119,6 +126,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(report);
         }
 
+        // Builds the performance model: completion rate, job pipeline per status, mechanic workload, unassigned active jobs, quote approval rate, average turnaround in days (collected jobs), revenue today and this week (week starts on Sunday), jobs created per weekday and the bottleneck status (active status with the most jobs).
         /// <summary>Manager: Monitor workshop performance — throughput, completion, workload.</summary>
         [HttpGet]
         [Authorize(Roles = "Manager")]
@@ -233,12 +241,18 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
     }
 
+    /// <summary>
+    /// Number of jobs in one status (pipeline).
+    /// </summary>
     public class StatusCount
     {
         public string Status { get; set; } = string.Empty;
         public int Count { get; set; }
     }
 
+    /// <summary>
+    /// Job counts for one mechanic: total, active, completed and in progress.
+    /// </summary>
     public class MechanicWorkload
     {
         public string MechanicId { get; set; } = string.Empty;
@@ -248,6 +262,9 @@ namespace MisterAutoAndTurbo.Web.Controllers
         public int InProgress { get; set; }
     }
 
+    /// <summary>
+    /// Number of jobs created on one day, used for the weekly chart.
+    /// </summary>
     public class DayCount
     {
         public string Label { get; set; } = string.Empty;
@@ -255,6 +272,9 @@ namespace MisterAutoAndTurbo.Web.Controllers
         public int Count { get; set; }
     }
 
+    /// <summary>
+    /// View model for the performance page.
+    /// </summary>
     public class WorkshopPerformanceVm
     {
         public DateTime GeneratedAt { get; set; }
@@ -283,6 +303,9 @@ namespace MisterAutoAndTurbo.Web.Controllers
         public string BottleneckStatus { get; set; } = string.Empty;
     }
 
+    /// <summary>
+    /// View model for the reports page.
+    /// </summary>
     public class WorkshopReportVm
     {
         public DateTime GeneratedAt { get; set; }

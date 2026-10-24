@@ -9,10 +9,12 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// Receptionist: Register / Update Vehicle. Manager: View Vehicle Records.
     /// In-memory store is refreshed from Supabase on list pages so Flutter-created rows appear.
     /// </summary>
+    // Vehicle registration and records. Manager, Receptionist and Mechanic can use it.
     [Authorize(Roles = "Manager,Receptionist,Mechanic")]
     
     public class VehiclesController : Controller
     {
+        // Database context used to reload vehicles that the Flutter app saved in Supabase.
         private readonly ApplicationDbContext _db;
 
         public VehiclesController(ApplicationDbContext db)
@@ -20,6 +22,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             _db = db;
         }
 
+        // GET /Vehicles: reloads data from the database, then optionally filters by search text (registration, make, model, customer id or name, year or mileage). Sorted by registration number.
         [HttpGet]
         public IActionResult Index(string? q = null)
         {
@@ -50,6 +53,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(vehicles.OrderBy(v => v.RegistrationNumber).ToList());
         }
 
+        // GET: shows one vehicle with its owner (404 if not found).
         [HttpGet]
         public IActionResult Details(string id)
         {
@@ -64,6 +68,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(vehicle);
         }
 
+        // GET: shows the register-vehicle form with the customer and make dropdowns. A customer can be preselected through customerId.
         [HttpGet]
         public IActionResult Create(string? customerId = null)
         {
@@ -84,6 +89,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(vehicle);
         }
 
+        // POST: reloads data (to see duplicates created elsewhere), validates customer, registration and make, normalises the registration, blocks a registration that already exists and identical details for the same customer, then saves with a new id (veh-xxxx).
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Vehicle vehicle)
@@ -152,6 +158,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id = vehicle.Id });
         }
 
+        // GET: shows the edit form with the customer dropdown and makes.
         [HttpGet]
         public IActionResult Edit(string id)
         {
@@ -177,6 +184,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(vehicle);
         }
 
+        // POST: same validation and duplicate checks as Create, but ignoring the vehicle being edited. Valid values are copied onto the existing vehicle.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(string id, Vehicle vehicle)
@@ -258,6 +266,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // GET: lists the vehicles of one customer by reusing the Index view.
         [HttpGet]
         public IActionResult ByCustomer(string customerId)
         {
@@ -269,6 +278,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View("Index", vehicles);
         }
 
+        // Returns the customer's vehicles as JSON (id and text) for dropdown filtering on other forms.
         /// <summary>JSON: vehicles belonging to one customer (used by forms that pair customer + vehicle).</summary>
         [HttpGet]
         public IActionResult JsonByCustomer(string customerId)
@@ -288,6 +298,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return Json(list);
         }
 
+        // GET: looks a vehicle up by registration number (case-insensitive). Shows the vehicle and its owner, or an error message when not found.
         [HttpGet]
         public IActionResult Lookup(string registration)
         {
@@ -309,6 +320,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View();
         }
 
+        // How it works: finds all job cards of the vehicle and the quotations, payments, appointments, complaints, collections and service requests linked to it, removes the related notifications and payment proof files, then removes all those records and the vehicle (cascade delete done manually).
         // POST: /Vehicles/Delete/{id}
         // Removes the vehicle and everything linked to it (job cards, quotations, payments, appointments, etc.).
         [HttpPost]
@@ -375,6 +387,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // Fills the make dropdown from CarMakes (keeps a legacy value selected).
         private void PopulateMakes(string? selected = null)
         {
             ViewBag.Makes = CarMakes.SelectList(selected);
@@ -383,6 +396,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         /// <summary>
         /// Uppercase registration and strip spaces/dashes so "ABC 123 FS" and "ABC123FS" match.
         /// </summary>
+        // Uppercases the registration and removes spaces, dashes and slashes so ABC 123 FS and ABC123FS compare as equal.
         private static string NormalizeRegistration(string? registration)
         {
             if (string.IsNullOrWhiteSpace(registration))

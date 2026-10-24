@@ -6,8 +6,12 @@ using MisterAutoAndTurbo.Web.Services;
 
 namespace MisterAutoAndTurbo.Web.Controllers
 {
+    /// <summary>
+    /// Landing controller. Shows the staff dashboard (Index), the privacy page and the shared error page.
+    /// </summary>
     public class HomeController : Controller
     {
+        // Logger injected by ASP.NET Core.
         private readonly ILogger<HomeController> _logger;
 
         public HomeController(ILogger<HomeController> logger)
@@ -16,6 +20,8 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
 
         /// <summary>Main dashboard — live counts from AppDataStore.</summary>
+        // Builds the dashboard model from the in-memory AppDataStore and shows it.
+        // Mechanics are redirected to their own dashboard. Otherwise it calculates: outstanding balance (approved/sent/pending quotes minus non-refunded payments), each vehicle's latest job status, the 6 newest vehicles and jobs, today's appointments, payments today, open complaints, low stock parts, unread staff notifications and job counts per status.
         public IActionResult Index()
         {
             // Mechanics have their own dashboard (assigned jobs, parts) - no payments/revenue.
@@ -27,6 +33,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             var payments = AppDataStore.Payments.Where(p => p.Status != "Refunded").ToList();
             var quotes = AppDataStore.Quotations;
 
+            // Outstanding balance = total of each open quotation minus the payments made against it (only positive balances count).
             // Outstanding balance across open quotes
             decimal outstanding = 0;
             foreach (var q in quotes.Where(q =>
@@ -37,6 +44,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 if (bal > 0) outstanding += bal;
             }
 
+            // Map each vehicle to the status of its most recent job card.
             var vehicleJobStatus = new Dictionary<string, string>();
             foreach (var j in jobs.OrderByDescending(x => x.CreatedAt))
             {
@@ -44,6 +52,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                     vehicleJobStatus[j.VehichleId] = j.Status;
             }
 
+            // Six newest vehicles with owner name and current job status for the dashboard table.
             var recentVehicles = AppDataStore.Vehicles
                 .OrderByDescending(v => v.Id)
                 .Take(6)
@@ -62,6 +71,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 })
                 .ToList();
 
+            // Six newest job cards with vehicle registration and customer name.
             var recentJobs = jobs
                 .OrderByDescending(j => j.CreatedAt)
                 .Take(6)
@@ -81,6 +91,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 })
                 .ToList();
 
+            // Up to 8 appointments scheduled for today in time order.
             var todayAppts = AppDataStore.Appointments
                 .Where(a => a.ScheduledAt.Date == today)
                 .OrderBy(a => a.ScheduledAt)
@@ -99,6 +110,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 })
                 .ToList();
 
+            // Assemble the dashboard model: totals and counts shown on the dashboard cards.
             var vm = new DashboardVm
             {
                 TotalVehicles = AppDataStore.Vehicles.Count,
@@ -124,8 +136,10 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(vm);
         }
 
+        // Shows the static privacy page.
         public IActionResult Privacy() => View();
 
+        // Shows the error page with the request id. Caching is disabled so the page is never stored.
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
@@ -133,6 +147,9 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
     }
 
+    /// <summary>
+    /// View model for the main dashboard: summary counts, money totals, jobs per status and the recent lists.
+    /// </summary>
     public class DashboardVm
     {
         public int TotalVehicles { get; set; }
@@ -151,6 +168,9 @@ namespace MisterAutoAndTurbo.Web.Controllers
         public List<DashboardApptRow> TodaysAppointmentList { get; set; } = new();
     }
 
+    /// <summary>
+    /// One row in the dashboard's recent vehicles list.
+    /// </summary>
     public class DashboardVehicleRow
     {
         public string Id { get; set; } = string.Empty;
@@ -160,6 +180,9 @@ namespace MisterAutoAndTurbo.Web.Controllers
         public string JobStatus { get; set; } = string.Empty;
     }
 
+    /// <summary>
+    /// One row in the dashboard's recent job cards list.
+    /// </summary>
     public class DashboardJobRow
     {
         public string Id { get; set; } = string.Empty;
@@ -170,6 +193,9 @@ namespace MisterAutoAndTurbo.Web.Controllers
         public DateTime CreatedAt { get; set; }
     }
 
+    /// <summary>
+    /// One row in the dashboard's today's appointments list.
+    /// </summary>
     public class DashboardApptRow
     {
         public string Id { get; set; } = string.Empty;

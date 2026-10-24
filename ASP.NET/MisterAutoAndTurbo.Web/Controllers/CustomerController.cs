@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MisterAutoAndTurbo.Web.Controllers
 {
+    /// <summary>
+    /// Default scaffolded MVC controller (template code). It has no logic: every action only returns a view or redirects. Customer management is done in CustomersController.
+    /// </summary>
     public class CustomerController : Controller
     {
         // GET: CustomerController

@@ -19,12 +19,15 @@ namespace MisterAutoAndTurbo.Web.Data
     /// </summary>
     public static class AppDataStore
     {
+        // Locks: _lock protects id generation; _dbLock makes database load/save/merge operations run one at a time (the lists below are shared by all requests).
         private static readonly object _lock = new();
         private static readonly object _dbLock = new();
+        // Last used job number, so NextJobCardId can continue the job-001, job-002... sequence.
         private static int _jobSeq = 3; // after sample job-001..003
 
         /// <summary>Min time between DB refreshes (avoids hitting Supabase on every click).</summary>
         private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(2.5);
+        // Timestamps of the last quick refresh and last full load from the database, used to throttle database reads.
         private static DateTime _lastRefreshUtc = DateTime.MinValue;
         private static DateTime _lastFullLoadUtc = DateTime.MinValue;
         private static readonly TimeSpan FullLoadInterval = TimeSpan.FromSeconds(30);
@@ -33,8 +36,15 @@ namespace MisterAutoAndTurbo.Web.Data
         // but no longer in memory was deleted locally, so it must NOT be merged back in from the DB.
         private static readonly Dictionary<Type, HashSet<string>> _known = new();
 
+        /// <summary>
+        /// Reads the Id property of any entity by reflection. Returns null when the type has no Id.
+        /// </summary>
         private static string? IdOf<T>(T e) => (string?)typeof(T).GetProperty("Id")?.GetValue(e);
 
+        /// <summary>
+        /// Records the ids of rows that exist in the database into the _known set for this entity type.
+        /// Later, MergeMissing uses this to tell apart a row that is new in the database (add it) from one that was deleted in this app (do not bring it back).
+        /// </summary>
         private static void RememberKnown<T>(IEnumerable<T> items) where T : class
         {
             if (!_known.TryGetValue(typeof(T), out var set))
@@ -46,6 +56,8 @@ namespace MisterAutoAndTurbo.Web.Data
             }
         }
 
+        // In-memory working lists, one per table. The first run seeds sample data; afterwards they are filled from the database and kept in sync by Save/Load methods below.
+        // Controllers read and change these lists directly, then PersistChangesFilter saves them.
         public static List<Vehicle> Vehicles { get; } = new()
         {
             new Vehicle
@@ -366,6 +378,7 @@ namespace MisterAutoAndTurbo.Web.Data
         // Database persistence
         // ------------------------------------------------------------------
 
+        // Loading, merging and saving the in-memory lists to and from the Supabase database follow below.
         /// <summary>Replace the in-memory lists with whatever is saved in the database.</summary>
         /// <summary>Called once at startup: create tables if needed, seed sample data on first run, otherwise load saved data.</summary>
         /// <summary>Called once at startup: create tables if needed, seed sample data on first run, otherwise load saved data.</summary>
@@ -418,6 +431,9 @@ namespace MisterAutoAndTurbo.Web.Data
             SaveToDatabase(db);
         }
 
+        /// <summary>
+        /// Replaces all in-memory lists with the data stored in the database. Thread-safe: takes the database lock and calls the unlocked version.
+        /// </summary>
         public static void LoadFromDatabase(ApplicationDbContext db)
         {
             lock (_dbLock)
@@ -426,6 +442,9 @@ namespace MisterAutoAndTurbo.Web.Data
             }
         }
 
+        /// <summary>
+        /// Does the actual load: each list is cleared and refilled from its table, the settings row is copied into Settings, and the job-number counter continues after the highest saved job-NNN id.
+        /// </summary>
         private static void LoadFromDatabaseUnlocked(ApplicationDbContext db)
         {
             Replace(Vehicles, db.Vehicles);
@@ -463,6 +482,7 @@ namespace MisterAutoAndTurbo.Web.Data
         /// Pull rows that exist in Supabase but not yet in memory (e.g. created by the Flutter app).
         /// Only adds missing IDs — does not overwrite in-memory edits. Call before Save or when refreshing UI.
         /// </summary>
+        // Adds rows that exist in the database but not in memory (for example new records from the Flutter app). Existing in-memory rows are never overwritten.
         public static void MergeExternalChanges(ApplicationDbContext db)
         {
             lock (_dbLock)
@@ -490,6 +510,7 @@ namespace MisterAutoAndTurbo.Web.Data
 
 
         /// <summary>Replace in-memory lists from the database (full refresh). Use on list pages so Flutter data appears.</summary>
+        // Forces a full reload from the database and resets the refresh timers.
         public static void ReloadFromDatabase(ApplicationDbContext db)
         {
             LoadFromDatabase(db);
@@ -502,6 +523,7 @@ namespace MisterAutoAndTurbo.Web.Data
         /// Full load at most every 30s; otherwise only re-read tables the Flutter app can change,
         /// and only if the last refresh was more than ~2.5s ago.
         /// </summary>
+        // Called before each action. Skips the work if the last refresh was less than 2.5 seconds ago. Every 30 seconds (or when force is true) it does a full load, otherwise it only refreshes the tables the customer app can change.
         public static void RefreshFromDatabase(ApplicationDbContext db, bool force = false)
         {
             var now = DateTime.UtcNow;
@@ -544,11 +566,13 @@ namespace MisterAutoAndTurbo.Web.Data
         /// (it never touches staff notifications or job cards), so the staff app does the rest here.
         /// Idempotent: each effect is created once (keyed on Type + RelatedId). Returns true if anything changed.
         /// </summary>
+        // Turns customer-app activity into staff notifications and job updates. Each effect is created only once (checked by notification type + related id), and the method returns true when something changed so the caller can save.
         public static bool ApplyCustomerAppUpdates()
         {
             var changed = false;
             lock (_dbLock)
             {
+                // Local helper: returns the customer's full name, or 'Customer' when not found.
                 string CustName(string id)
                 {
                     var c = Customers.FirstOrDefault(x => x.Id == id);
@@ -557,9 +581,11 @@ namespace MisterAutoAndTurbo.Web.Data
 
                 // Include dismissed stubs (UserAccountId == "__dismissed__") so deleting an alert
                 // does not cause ApplyCustomerAppUpdates to recreate it on the next page load.
+                // Local helper: true if a staff notification of this type already exists for the related record (including dismissed ones).
                 bool HasStaffNote(string type, string relatedId) =>
                     Notifications.Any(n => n.Type == type && n.RelatedId == relatedId);
 
+                // Local helper: adds an unread staff notification and marks that data changed.
                 void StaffNote(string type, string relatedId, string message)
                 {
                     Notifications.Add(new Notification
@@ -575,6 +601,7 @@ namespace MisterAutoAndTurbo.Web.Data
                     changed = true;
                 }
 
+                // Quotation approved or rejected in the app: set the response time, mark the customer's quotation notification as read, notify staff, and if approved move the job from Quotation/Inspection to In Progress.
                 // Quotation approved / rejected in the app
                 foreach (var q in Quotations.Where(q => q.Status == QuotationStatus.Approved || q.Status == QuotationStatus.Rejected).ToList())
                 {
@@ -595,17 +622,20 @@ namespace MisterAutoAndTurbo.Web.Data
                     }
                 }
 
+                // Customer uploaded proof of payment in the app (the customer recorded it themselves): notify staff once.
                 // Proof of payment uploaded in the app
                 foreach (var p in Payments.Where(p => !string.IsNullOrWhiteSpace(p.ProofOfPaymentUrl) && p.RecordedById == p.CustomerId).ToList())
                     if (!HasStaffNote("PaymentProof", p.Id))
                         StaffNote("PaymentProof", p.Id,
                             $"Customer {CustName(p.CustomerId)} uploaded proof of payment (R {p.Amount:N2}) for quotation {p.QuotationId}.");
 
+                // New complaints created in the mobile app: notify staff once.
                 // Complaints recorded in the app
                 foreach (var c in Complaints.Where(c => c.Source == "Mobile").ToList())
                     if (!HasStaffNote("Complaint", c.Id))
                         StaffNote("Complaint", c.Id, $"New complaint from {CustName(c.CustomerId)}: {c.Subject}");
 
+                // New open service requests created in the app: notify staff once, including the description when given.
                 // Service bookings made in the app (Flutter creates ServiceRequest + Appointment)
                 foreach (var r in ServiceRequests.Where(r => r.Status == "Open").ToList())
                     if (!HasStaffNote("ServiceRequest", r.Id))
@@ -613,6 +643,7 @@ namespace MisterAutoAndTurbo.Web.Data
                             $"New service booking from {CustName(r.CustomerId)}: {r.RequestedService}"
                             + (string.IsNullOrWhiteSpace(r.Description) ? "" : $" — {r.Description}"));
 
+                // Appointments the customer booked themselves (creator is the customer) and that are still scheduled or pending: notify staff once.
                 // Appointments booked by the customer (CreatedById == CustomerId) as a backup signal
                 foreach (var a in Appointments.Where(a =>
                     !string.IsNullOrWhiteSpace(a.CustomerId)
@@ -631,11 +662,14 @@ namespace MisterAutoAndTurbo.Web.Data
             return changed;
         }
 
+        // Writes the in-memory lists to the database: new rows are inserted, changed rows updated and rows removed from memory are deleted.
+        // First it merges in new customer-app rows so they are not deleted, then syncs every table and the settings row, and finally saves in one SaveChanges call.
         /// <summary>Write the in-memory lists to the database (insert new, update changed, delete removed).</summary>
         public static void SaveToDatabase(ApplicationDbContext db)
         {
             lock (_dbLock)
             {
+                // Pull in only new customer-app rows first, so the sync below does not delete them.
                 // Only pull in *new* Flutter rows so Sync does not delete them.
                 // (Cheaper than a full MergeExternal of every table.)
                 MergeMissing(ServiceRequests, db.ServiceRequests);
@@ -664,6 +698,7 @@ namespace MisterAutoAndTurbo.Web.Data
                 Sync(db, db.Inspections, Inspections);
                 Sync(db, db.UserAccounts, Users);
 
+                // Settings is a single row with Id 1: insert it the first time, otherwise copy the current values onto the saved row.
                 Settings.Id = 1;
                 var row = db.BusinessSettings.AsNoTracking().FirstOrDefault();
                 if (row == null)
@@ -687,6 +722,7 @@ namespace MisterAutoAndTurbo.Web.Data
                 if (db.ChangeTracker.HasChanges())
                     db.SaveChanges();
 
+                // Remember which ids are now saved, so locally deleted rows are not re-added by MergeMissing later.
                 RememberKnown(Vehicles); RememberKnown(Customers); RememberKnown(JobCards);
                 RememberKnown(ServiceRequests); RememberKnown(Quotations); RememberKnown(Appointments);
                 RememberKnown(Parts); RememberKnown(Payments); RememberKnown(VehicleCollections);
@@ -697,6 +733,7 @@ namespace MisterAutoAndTurbo.Web.Data
             }
         }
 
+        // Clears the list and refills it from the query, then resets the known-id set for that type.
         private static void Replace<T>(List<T> list, IQueryable<T> query) where T : class
         {
             var items = query.AsNoTracking().ToList();
@@ -730,6 +767,7 @@ namespace MisterAutoAndTurbo.Web.Data
             }
         }
 
+        // Makes one table match its in-memory list: ids not in the database are added, ids present are updated (only when something really changed), and ids in the database but missing from memory are deleted.
         private static void Sync<T>(ApplicationDbContext db, DbSet<T> set, List<T> items) where T : class
         {
             var key = db.Model.FindEntityType(typeof(T))!.FindPrimaryKey()!.Properties[0].PropertyInfo!;
@@ -768,6 +806,7 @@ namespace MisterAutoAndTurbo.Web.Data
             }
         }
 
+        // Creates a short unique id such as ntf-1a2b3c4d (prefix + first 8 characters of a GUID).
         public static string NewId(string prefix)
         {
             lock (_lock)
@@ -777,6 +816,7 @@ namespace MisterAutoAndTurbo.Web.Data
         }
 
         /// <summary>Sequential job id: job-004, job-005, ...</summary>
+        // Returns the next job number id (job-004, job-005, ...), increasing the counter safely.
         public static string NextJobCardId()
         {
             lock (_lock)

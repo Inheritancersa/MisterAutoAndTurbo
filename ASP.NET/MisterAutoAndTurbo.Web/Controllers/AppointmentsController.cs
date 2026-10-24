@@ -10,10 +10,12 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// <summary>
     /// Receptionist: Book / manage appointments, send date to customer (mobile notification).
     /// </summary>
+    // Appointment booking and management. Manager, Receptionist and Mechanic can use it.
     [Authorize(Roles = "Manager,Receptionist,Mechanic")]
     
     public class AppointmentsController : Controller
     {
+        // GET /Appointments: lists appointments by scheduled time. Older mobile bookings that miss a service type or description are filled in from the matching service request. Optional search q matches id, status, service, description, job, customer or vehicle.
         [HttpGet]
         public IActionResult Index(string? q = null)
         {
@@ -63,6 +65,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(list.OrderBy(a => a.ScheduledAt).ToList());
         }
 
+        // GET: shows the booking form with a default time of tomorrow at 09:00. When opened from a job card, job, customer and vehicle are prefilled.
         [HttpGet]
         public IActionResult Create(string? customerId = null, string? vehicleId = null, string? jobCardId = null)
         {
@@ -90,6 +93,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // POST: validates customer, time, that the vehicle belongs to the customer and that the job card exists. If no vehicle is chosen, the customer's first vehicle is used. Saves with a new id (apt-xxxx) and status Scheduled.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Appointment model)
@@ -163,6 +167,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id = model.Id });
         }
 
+        // GET: shows appointment details with the customer name, phone and vehicle. Missing service type or description is taken from the latest service request of that customer and vehicle.
         [HttpGet]
         public IActionResult Details(string id)
         {
@@ -197,6 +202,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // GET: shows the edit form (404 if not found).
         [HttpGet]
         public IActionResult Edit(string id)
         {
@@ -211,6 +217,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // POST: checks the id and customer, then copies the customer, vehicle, job, creator, time and status onto the existing appointment.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(string id, Appointment model)
@@ -241,6 +248,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: changes the status. Only Scheduled, Arrived, Cancelled or Completed are accepted.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateStatus(string id, string status)
@@ -261,6 +269,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // How it works: builds a message with the customer name, date and time, vehicle registration and job id, adds it as a notification for the customer (shown in the mobile app) and records the time it was sent.
         /// <summary>
         /// Send appointment date/time to the customer as a mobile notification.
         /// </summary>
@@ -299,6 +308,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: deletes an appointment and the notifications related to it.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(string id)
@@ -316,6 +326,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
 
 
+        // Returns the customer's vehicles as JSON (id and text). The booking page calls it to refill the vehicle dropdown when the customer changes.
         /// <summary>JSON: vehicles for one customer (used by Create/Edit dropdown filter).</summary>
         [HttpGet]
         public IActionResult VehiclesByCustomer(string customerId)
@@ -336,6 +347,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return Json(list);
         }
 
+        // Fills the customer dropdown, plus only the vehicles and job cards that belong to the selected customer.
         private void PopulateLookups(Appointment model)
         {
             ViewBag.Customers = AppDataStore.Customers

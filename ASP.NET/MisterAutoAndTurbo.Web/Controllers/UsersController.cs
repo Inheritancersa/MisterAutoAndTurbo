@@ -15,6 +15,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
     [Authorize(Roles = "Manager")]
     public class UsersController : Controller
     {
+        // Database context used to save staff accounts (PersistUsers) and to force a fresh reload on the list page.
         private readonly ApplicationDbContext _db;
 
         public UsersController(ApplicationDbContext db)
@@ -22,6 +23,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             _db = db;
         }
 
+        // Lists staff accounts. Forces a refresh from the database, then filters by search text (username, e-mail or phone) and role, sorts by username and marks the signed-in user's row.
         // GET: /Users?search=..&role=..
         [HttpGet]
         public IActionResult Index(string? search = null, string? role = null)
@@ -63,11 +65,13 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // GET: shows the add-user form with Receptionist as the default role.
         // GET: /Users/Create
         [HttpGet]
         public IActionResult Create() =>
             FormView(new UserFormViewModel { Role = UserRoles.Receptionist }, "Add user", "Create a staff account and choose what they can access.");
 
+        // POST: validates the form (role, unique e-mail and username, strong matching password), creates the account with a hashed password and saves it.
         // POST: /Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -94,6 +98,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: shows the edit form filled with the user's current details.
         // GET: /Users/Edit/{id}
         [HttpGet]
         public IActionResult Edit(string id)
@@ -111,6 +116,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             }, "Edit user", "Update this person's details or role.");
         }
 
+        // POST: validates the changes. A manager cannot change their own role, and the last Manager cannot be changed to another role. Valid changes are copied onto the account and saved.
         // POST: /Users/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -147,6 +153,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: shows the reset-password form for a user.
         // GET: /Users/ResetPassword/{id}
         [HttpGet]
         public IActionResult ResetPassword(string id)
@@ -157,6 +164,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(new ResetPasswordViewModel { Id = user.Id, Username = user.Username });
         }
 
+        // POST: validates the new password (strength and confirmation), hashes it, and saves it so the manager can hand it to the user.
         // POST: /Users/ResetPassword/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -189,6 +197,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: confirmation page before deleting an account.
         // GET: /Users/Delete/{id}  (confirmation page)
         [HttpGet]
         public IActionResult Delete(string id)
@@ -199,6 +208,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(user);
         }
 
+        // POST: deletes the account. Refused when it is your own account or the last Manager, so the workshop is never locked out.
         // POST: /Users/Delete/{id}
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -227,13 +237,17 @@ namespace MisterAutoAndTurbo.Web.Controllers
 
         // ---------- helpers ----------
 
+        // Finds a user by id (null when the id is empty or unknown).
         private static UserAccount? Find(string? id) =>
             string.IsNullOrWhiteSpace(id) ? null : AppDataStore.Users.FirstOrDefault(u => u.Id == id);
 
+        // Id of the signed-in user taken from the login cookie claims.
         private string? CurrentUserId() => User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+        // Counts accounts that have the Manager role.
         private static int ManagerCount() => AppDataStore.Users.Count(u => u.Role == UserRoles.Manager);
 
+        // Shows the shared user form view with a title and subtitle.
         private IActionResult FormView(UserFormViewModel form, string title, string subtitle)
         {
             ViewData["Title"] = title;
@@ -241,6 +255,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View("Form", form);
         }
 
+        // Shared validation for create and edit: role must be valid, e-mail and username must be unique (ignoring the account being edited), and when creating a user the password must be strong and match its confirmation.
         private void ValidateUser(UserFormViewModel form, bool isNew)
         {
             if (!string.IsNullOrWhiteSpace(form.Role) && !UserRoles.All.Contains(form.Role))

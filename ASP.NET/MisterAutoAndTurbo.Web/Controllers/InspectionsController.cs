@@ -14,6 +14,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
     [Authorize(Roles = "Manager,Mechanic")]
     public class InspectionsController : Controller
     {
+        // GET: shows the inspection form for a job card, prefilled with the current user as the mechanic and the current time.
         // GET: /Inspections/Create?jobCardId=
         [HttpGet]
         public IActionResult Create(string jobCardId)
@@ -43,6 +44,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // POST: validates, then saves the inspection with a new id, UTC time and trimmed text. If the job was still in the Inspection status it moves to Quotation. Redirects to the job card details.
         // POST: /Inspections/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -91,6 +93,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction("Details", "JobCards", new { id = model.JobCardId });
         }
 
+        // GET: lists all inspections for a job card, newest first.
         // GET: /Inspections/ByJobCard/{jobCardId}
         [HttpGet]
         public IActionResult ByJobCard(string jobCardId)

@@ -1,5 +1,8 @@
 namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// A payment recorded against a quotation, with the method, status and optional proof-of-payment file URLs.
+    /// </summary>
     public class Payment
     {
         public string Id { get; set; } = string.Empty;
@@ -21,6 +24,7 @@ namespace MisterAutoAndTurbo.Web.Models
         public DateTime PaidAt { get; set; }
 
         /// <summary>All proof URLs on this payment row (supports multi-URL storage).</summary>
+        // Splits ProofOfPaymentUrl on newline, pipe or semicolon, trims, removes duplicates and returns the list of proof URLs.
         public IReadOnlyList<string> ProofUrls
         {
             get
@@ -36,6 +40,7 @@ namespace MisterAutoAndTurbo.Web.Models
             }
         }
 
+        // True when at least one proof file is attached.
         public bool HasProof => ProofUrls.Count > 0;
     }
 }

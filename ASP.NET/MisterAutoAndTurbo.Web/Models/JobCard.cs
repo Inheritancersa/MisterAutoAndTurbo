@@ -1,5 +1,8 @@
 namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// The central work record for a vehicle in the workshop. Links the customer, vehicle, creator and mechanic, and holds the status, diagnosis and repair notes.
+    /// </summary>
     public class JobCard
     {
         public string Id { get; set; } = string.Empty;

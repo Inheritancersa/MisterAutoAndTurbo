@@ -1,5 +1,8 @@
 namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// Price quote for a job card: labour, parts, customer-supplied difference and total. Status moves Pending, Sent, then Approved or Rejected by the customer.
+    /// </summary>
     public class Quotation
     {
         public string Id { get; set; } = string.Empty;

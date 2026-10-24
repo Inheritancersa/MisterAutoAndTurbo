@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// A workshop customer with contact details. Phone numbers are validated with data annotations (digits, spaces and + - ( ) only).
+    /// </summary>
     public class Customer
     {
         public string Id { get; set; } = string.Empty;

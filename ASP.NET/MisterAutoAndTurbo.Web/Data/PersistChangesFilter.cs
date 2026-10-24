@@ -17,6 +17,9 @@ namespace MisterAutoAndTurbo.Web.Data
             _log = log;
         }
 
+        /// <summary>
+        /// Runs before each controller action. Refreshes the in-memory data from the database (so changes made by the Flutter customer app are visible) and applies customer-app updates, saving them if needed. Account pages are skipped. Failures are logged, not thrown.
+        /// </summary>
         public void OnActionExecuting(ActionExecutingContext context)
         {
             var controller = context.RouteData.Values["controller"]?.ToString() ?? "";
@@ -39,6 +42,9 @@ namespace MisterAutoAndTurbo.Web.Data
             }
         }
 
+        /// <summary>
+        /// Runs after each controller action. For successful non-GET/HEAD requests (create, edit, delete) the in-memory data is saved to the database. Account pages are skipped; save errors are logged and rethrown.
+        /// </summary>
         public void OnActionExecuted(ActionExecutedContext context)
         {
             if (context.Exception != null) return;

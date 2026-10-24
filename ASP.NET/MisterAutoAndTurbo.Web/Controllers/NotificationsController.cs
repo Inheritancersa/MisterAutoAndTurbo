@@ -6,6 +6,7 @@ using MisterAutoAndTurbo.Web.Models;
 
 namespace MisterAutoAndTurbo.Web.Controllers
 {
+    // In-app notifications for staff. Customer-app alerts are written by AppDataStore.ApplyCustomerAppUpdates.
     [Authorize(Roles = "Manager,Receptionist,Mechanic")]
     public class NotificationsController : Controller
     {
@@ -22,6 +23,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         /// <summary>Hidden rows left after delete so customer-app alerts are not recreated.</summary>
         public const string DismissedUserId = "__dismissed__";
 
+        // GET /Notifications: lists notifications newest first. Filters: a specific customer, 'staff' (staff alerts and customer-app alerts) or 'unread'. Dismissal stubs are hidden. Also passes the unread staff count to the view.
         [HttpGet]
         public IActionResult Index(string? customerId = null, string? filter = null)
         {
@@ -52,6 +54,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(list.OrderByDescending(n => n.CreatedAt).ToList());
         }
 
+        // POST: creates a notification with a message and type. It is sent to the staff group unless a target user account id is given.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(string message, string type, string? targetUserAccountId = null)
@@ -76,6 +79,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // POST: marks one notification as read and returns to the list with the same filter.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult MarkRead(string id)
@@ -85,6 +89,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index), new { filter = Request.Form["filter"].ToString() });
         }
 
+        // POST: marks all unread staff and customer-app alerts as read.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult MarkAllStaffRead()
@@ -106,6 +111,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         /// Removes a notification from the list. For customer-app alerts (booking, complaint, etc.)
         /// a hidden dismissal stub is kept so ApplyCustomerAppUpdates does not recreate it.
         /// </summary>
+        // POST: deletes one notification. For staff/customer-app alerts a hidden 'dismissed' stub with the same type and related id is added so the alert is not created again at the next refresh.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(string id, string? filter = null)
@@ -147,6 +153,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index), new { filter });
         }
 
+        // POST: deletes all read notifications (limited to staff alerts when the staff filter is on). Each deleted alert leaves a dismissal stub in the same way as Delete.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteAllRead(string? filter = null)

@@ -11,10 +11,12 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// Receptionist / Manager: Record payment against a quotation.
     /// Manager: View payment records, outstanding balances.
     /// </summary>
+    // Payments for Manager and Receptionist: record payments against a quotation, upload proof of payment, and view outstanding balances.
     [Authorize(Roles = "Manager,Receptionist")]
     
     public class PaymentsController : Controller
     {
+        // GET /Payments: lists payments newest first, optionally filtered by customer, status and search text (id, quotation, method, status, customer, recorder, amount or customer name). Also passes the total outstanding balance and the number of unpaid quotations.
         [HttpGet]
         public IActionResult Index(string? customerId = null, string? status = null, string? q = null)
         {
@@ -57,6 +59,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(list.OrderByDescending(p => p.PaidAt).ToList());
         }
 
+        // GET: shows quotations that still have a balance due, largest balance first.
         [HttpGet]
         public IActionResult Outstanding()
         {
@@ -64,6 +67,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(rows);
         }
 
+        // GET: shows a payment with its quotation total/status and every payment that has proof for the same quotation (or the same customer when there is no quotation).
         [HttpGet]
         public IActionResult Details(string id)
         {
@@ -95,6 +99,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(payment);
         }
 
+        // GET: shows the record-payment form (default method EFT, time now). When a quotation is given, the customer and the remaining balance are prefilled.
         [HttpGet]
         public IActionResult Create(string? quotationId = null, string? customerId = null)
         {
@@ -128,6 +133,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // POST: requires an existing quotation and an amount above zero, takes the customer from the quotation, creates the id (pay-xxxx), converts the entered South African time to UTC, fills defaults, and saves an uploaded proof file when provided.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Payment model, IFormFile? proofFile)
@@ -181,6 +187,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id = model.Id });
         }
 
+        // GET: shows the edit form for a payment.
         [HttpGet]
         public IActionResult Edit(string id)
         {
@@ -195,6 +202,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(payment);
         }
 
+        // POST: validates the amount and updates quotation, amount, method, status, time and recorder. A new proof file replaces the old one (the old file is deleted); a typed reference is kept or replaced only when deliberately changed.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, Payment model, IFormFile? proofFile)
@@ -253,6 +261,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: sets the status to Recorded, Confirmed or Refunded (refunded payments are ignored in balance calculations).
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateStatus(string id, string status)
@@ -273,6 +282,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: deletes a payment and its uploaded proof file.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(string id)
@@ -287,6 +297,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: shortcut that opens the record-payment form for a quotation.
         [HttpGet]
         public IActionResult ByQuotation(string quotationId)
         {
@@ -294,14 +305,18 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
 
         // --- proof of payment uploads ---
+        // Files are saved under wwwroot/uploads/proofs, limited to 5 MB and the types PDF, JPG, JPEG, PNG and WEBP.
+        // --- proof of payment uploads ---
 
         private const string ProofFolder = "uploads/proofs";
         private const long MaxProofBytes = 5 * 1024 * 1024; // 5 MB
         private static readonly string[] AllowedProofExtensions = { ".pdf", ".jpg", ".jpeg", ".png", ".webp" };
 
+        // True when the url points to a file this app uploaded (as opposed to a typed reference).
         private static bool IsUploadedProof(string? url) =>
             !string.IsNullOrEmpty(url) && url.StartsWith("/" + ProofFolder + "/", StringComparison.OrdinalIgnoreCase);
 
+        // Validates size and extension, then saves the file under a random GUID name (so files cannot overwrite each other) and returns its url, or an error message.
         private async Task<(string? Url, string? Error)> SaveProofAsync(IFormFile file)
         {
             if (file.Length > MaxProofBytes)
@@ -325,6 +340,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
 
         /// <summary>Deletes an uploaded proof file from disk (ignores plain-text references).</summary>
+        // Deletes an uploaded proof file from disk. Typed references are ignored and failures are swallowed (best effort).
         public static void DeleteProofFile(string? url)
         {
             if (!IsUploadedProof(url)) return;
@@ -339,6 +355,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
 
         // --- helpers ---
 
+        // Builds one row per open quotation (Pending, Sent or Approved): total, amount paid (refunded payments excluded) and the remaining balance.
         private static List<OutstandingRow> ComputeOutstanding()
         {
             // Quotes that are Approved or Sent can have balance due
@@ -367,6 +384,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return rows;
         }
 
+        // Fills the quotation dropdown (with total and balance) and the customer dropdown.
         private void PopulateLookups(Payment model)
         {
             ViewBag.Quotations = AppDataStore.Quotations
@@ -391,6 +409,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             ViewBag.Customers = BuildCustomerSelect(model.CustomerId);
         }
 
+        // Builds the customer dropdown items.
         private static List<SelectListItem> BuildCustomerSelect(string? selectedId) =>
             AppDataStore.Customers
                 .OrderBy(c => c.Name)
@@ -402,6 +421,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 })
                 .ToList();
 
+        // Returns the customer's full name, or the id when not found.
         private static string CustomerName(string customerId)
         {
             var c = AppDataStore.Customers.FirstOrDefault(x => x.Id == customerId);
@@ -409,6 +429,9 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
     }
 
+    /// <summary>
+    /// One row on the outstanding balances page: quotation total, paid amount and balance.
+    /// </summary>
     public class OutstandingRow
     {
         public string QuotationId { get; set; } = string.Empty;

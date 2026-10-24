@@ -1,5 +1,8 @@
 namespace MisterAutoAndTurbo.Web.Models
 {
+    /// <summary>
+    /// A service request made by a customer for one of their vehicles.
+    /// </summary>
     public class ServiceRequest
     {
         public string Id { get; set; } = string.Empty;

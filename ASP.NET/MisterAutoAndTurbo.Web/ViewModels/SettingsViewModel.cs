@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MisterAutoAndTurbo.Web.ViewModels
 {
+    /// <summary>
+    /// Form model for the Settings page with validation rules (business name, 10-digit VAT number, address, currency, VAT rate 0 to 100).
+    /// </summary>
     public class SettingsViewModel
     {
         [Required(ErrorMessage = "Enter the business name.")]

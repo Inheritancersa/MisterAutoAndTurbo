@@ -17,8 +17,10 @@ namespace MisterAutoAndTurbo.Web.Controllers
     [AllowAnonymous]
     public class AccountController : Controller
     {
+        // Roles that can be chosen when registering an account.
         private static readonly string[] AllowedRoles = { "Manager", "Receptionist", "Mechanic" };
 
+        // Injected services: e-mail sender, reset-code store, logger and database context.
         private readonly IEmailService _email;
         private readonly PasswordResetService _resets;
         private readonly ILogger<AccountController> _log;
@@ -38,9 +40,11 @@ namespace MisterAutoAndTurbo.Web.Controllers
 
         // ---------- Forgot password: email a verification code immediately ----------
 
+        // GET: shows the forgot-password form.
         [HttpGet]
         public IActionResult ForgotPassword() => View();
 
+        // POST: finds the user by e-mail or username, creates a 6-digit code and e-mails it. The same message is shown whether or not the account exists, so nobody can test which e-mails are registered. Then redirects to the reset page.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(string email)
@@ -83,6 +87,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(ResetPassword), new { email = term });
         }
 
+        // GET: shows the reset-password form (e-mail is prefilled).
         [HttpGet]
         public IActionResult ResetPassword(string? email = null)
         {
@@ -90,6 +95,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View();
         }
 
+        // POST: checks the e-mail/code are present, the two passwords match and the password is strong enough, then verifies the code. On success the new password is hashed, saved to the database and the user is sent to the login page.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ResetPassword(string email, string code, string newPassword, string confirmPassword)
@@ -130,6 +136,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Login));
         }
 
+        // GET: shows the login page. Already signed-in users go straight to the return url or the home page.
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -140,6 +147,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View();
         }
 
+        // POST: finds the user by e-mail or username and checks the password. On success the user is signed in (cookie) and redirected; otherwise a generic error is shown so it does not reveal which part was wrong.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password, string? returnUrl = null)
@@ -166,6 +174,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToLocal(returnUrl);
         }
 
+        // GET: shows the registration page (signed-in users are sent home).
         [HttpGet]
         public IActionResult Register()
         {
@@ -175,6 +184,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(new UserAccount());
         }
 
+        // POST: validates the form (required fields, matching passwords, valid role, unique e-mail and username), then creates the account with a new id and a hashed password, saves it and redirects to login. The password arrives in the PasswordHash property and is hashed here.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(UserAccount model, string confirmPassword)
@@ -231,6 +241,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Login));
         }
 
+        // Signs the user out when called with GET (link) and returns to the login page.
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
@@ -238,6 +249,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Login));
         }
 
+        // Signs the user out with POST (protected by an anti-forgery token).
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LogoutPost()
@@ -246,6 +258,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Login));
         }
 
+        // Layout posts to asp-action="Logout": this action handles that POST under the name Logout.
         // Layout posts to asp-action="Logout" — support POST to Logout as well
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -256,12 +269,14 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Login));
         }
 
+        // Shows the access denied page when a signed-in user lacks the required role.
         [HttpGet]
         public IActionResult AccessDenied()
         {
             return View();
         }
 
+        // Creates the login cookie: stores id, display name, e-mail, role and phone as claims, valid for 8 hours.
         private async Task SignInUserAsync(UserAccount user)
         {
             var displayName = string.IsNullOrWhiteSpace(user.Username) ? user.Email : user.Username;
@@ -288,6 +303,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 });
         }
 
+        // Redirects to the return url only if it is a local url (prevents open redirects), otherwise to the home page.
         private IActionResult RedirectToLocal(string? returnUrl)
         {
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))

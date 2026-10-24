@@ -11,10 +11,12 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// Receptionist / Manager: vehicles ready for collection and handover.
     /// Requires job status Ready for Collection (and preferably payment recorded).
     /// </summary>
+    // Vehicle collection (handover to the customer) for Manager and Receptionist. A vehicle can only be marked Collected when its job is Ready for Collection.
     [Authorize(Roles = "Manager,Receptionist")]
     
     public class VehicleCollectionsController : Controller
     {
+        // GET /VehicleCollections: lists collection records (newest scheduled first), optionally filtered by status and search text. Also lists the jobs that are Ready for Collection and not yet collected, with readable labels.
         [HttpGet]
         public IActionResult Index(string? status = null, string? q = null)
         {
@@ -67,6 +69,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(list.OrderByDescending(c => c.ScheduledAt).ToList());
         }
 
+        // GET: shows one collection record with its job, vehicle, customer and payments (404 if not found).
         [HttpGet]
         public IActionResult Details(string id)
         {
@@ -81,6 +84,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // GET: manage page. Opens an existing record by id, or by job card id (an unsaved record is built from the job when none exists yet). Redirects to the list when neither is given.
         [HttpGet]
         public IActionResult Manage(string? jobCardId = null, string? id = null)
         {
@@ -112,6 +116,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // GET: shows the create form. When a job card id is given, the record is prefilled from the job.
         [HttpGet]
         public IActionResult Create(string? jobCardId = null)
         {
@@ -133,6 +138,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(model);
         }
 
+        // POST: requires an existing job card, creates the record (id col-xxxx) with the customer and vehicle taken from the job, sets the job to Ready for Collection when needed, and notifies the customer that the vehicle is ready.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(VehicleCollection model)
@@ -196,6 +202,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id = model.Id });
         }
 
+        // POST: changes the collection status (Pending, Ready, Collected or Cancelled), creating the record on the fly from the job if needed. Marking Collected requires the job to be Ready for Collection; a missing payment only produces a warning message. It then sets the job to Collected and stores the collection time. Setting Ready moves the job back to Ready for Collection.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateStatus(string id, string jobCardId, string collectionStatus, DateTime? collectedAt, string? notes, string? managedById)
@@ -250,6 +257,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                     return RedirectToAction(nameof(Manage), new { id = record.Id });
                 }
 
+                // Soft payment check: warn if no payment but still allow (workshop policy).
                 // Soft payment check — warn if no payment but still allow (workshop policy)
                 var hasPayment = AppDataStore.Payments.Any(p =>
                     p.CustomerId == record.CustomerId && p.Status != "Refunded");
@@ -291,6 +299,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id = record.Id });
         }
 
+        // POST: sends the customer another 'ready for collection' notification.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult NotifyCustomer(string id)
@@ -319,6 +328,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: deletes a collection record.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(string id)
@@ -334,6 +344,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
 
         // --- helpers ---
 
+        // Builds an unsaved collection record from a job card (status Collected or Ready, scheduled now). Returns null when the job does not exist.
         private static VehicleCollection? CreateFromJob(string jobCardId)
         {
             var job = AppDataStore.JobCards.FirstOrDefault(j => j.Id == jobCardId);
@@ -351,6 +362,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             };
         }
 
+        // Puts the job, vehicle, customer, display names and related payments into ViewBag for the detail pages.
         private void LoadDetailBags(VehicleCollection model)
         {
             var job = AppDataStore.JobCards.FirstOrDefault(j => j.Id == model.JobCardId);
@@ -372,6 +384,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 .ToList();
         }
 
+        // Fills the job dropdown with jobs that are not yet collected (plus the selected job).
         private void PopulateJobSelect(string? selectedId)
         {
             ViewBag.Jobs = AppDataStore.JobCards

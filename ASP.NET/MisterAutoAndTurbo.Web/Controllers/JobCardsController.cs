@@ -12,11 +12,13 @@ namespace MisterAutoAndTurbo.Web.Controllers
     /// Mechanic: Assigned jobs, diagnosis, notes, status.
     /// Manager: Active / completed / progress.
     /// </summary>
+    // Job cards: Receptionist/Manager create and delete them, mechanics update diagnosis, notes and status, and the manager follows progress.
     [Authorize(Roles = "Manager,Receptionist,Mechanic")]
     
     public class JobCardsController : Controller
     {
         /// <summary>JSON: job cards for one customer (appointment / quotation forms).</summary>
+        // Returns the customer's job cards as JSON (id and text) for dropdowns on appointment and quotation forms.
         [HttpGet]
         public IActionResult JsonByCustomer(string customerId)
         {
@@ -40,6 +42,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
         }
 
 
+        // GET /JobCards: lists job cards newest first. Status Active means anything not yet collected. Optional search q matches job fields, customer name and vehicle label.
         [HttpGet]
         public IActionResult Index(string? status = null, string? q = null)
         {
@@ -78,12 +81,15 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(jobs.OrderByDescending(j => j.CreatedAt).ToList());
         }
 
+        // Redirects to the list filtered to active (not collected) jobs.
         [HttpGet]
         public IActionResult Active() => RedirectToAction(nameof(Index), new { status = "Active" });
 
+        // Redirects to the list filtered to collected (completed) jobs.
         [HttpGet]
         public IActionResult Completed() => RedirectToAction(nameof(Index), new { status = JobStatus.Collected });
 
+        // GET: lists only jobs that have a mechanic assigned, using the Index view.
         [HttpGet]
         public IActionResult Assigned()
         {
@@ -100,6 +106,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View("Index", jobs);
         }
 
+        // GET: shows one job card with its vehicle, customer, and the requested service and description (from the service request or the linked appointment).
         [HttpGet]
         public IActionResult Details(string id)
         {
@@ -141,6 +148,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(job);
         }
 
+        // GET: shows the create form. When opened from an appointment, the customer, vehicle and service details are prefilled (missing values come from the latest service request). New jobs start in the Inspection status.
         [Authorize(Roles = "Manager,Receptionist")]
         [HttpGet]
         public IActionResult Create(string? customerId = null, string? vehicleId = null, string? appointmentId = null)
@@ -193,6 +201,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(jobCard);
         }
 
+        // POST: requires a registered vehicle, then saves a new job card (sequential id such as job-004, customer taken from the vehicle). If a service type or description was entered, a service request is created; if an appointment id was given, that appointment is linked to the job.
         [Authorize(Roles = "Manager,Receptionist")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -266,6 +275,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id = saved.Id });
         }
 
+        // GET: shows the edit form (404 if not found).
         [HttpGet]
         public IActionResult Edit(string id)
         {
@@ -280,6 +290,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(job);
         }
 
+        // POST: requires a registered vehicle, then updates vehicle, customer, mechanic, status (only valid values), diagnosis and notes.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(string id, JobCard jobCard)
@@ -311,6 +322,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: changes the status when it is one of the valid job statuses.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateStatus(string id, string status)
@@ -330,6 +342,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: appends a time-stamped note (South African time) to the repair notes.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AddRepairNotes(string id, string repairNotes)
@@ -353,6 +366,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: saves the diagnosis text for the job.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult RecordDiagnosis(string id, string diagnosis)
@@ -372,6 +386,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        // POST: deletes the job card (only Manager or Receptionist).
         [Authorize(Roles = "Manager,Receptionist")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -386,6 +401,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: progress overview of all jobs, newest first.
         [HttpGet]
         public IActionResult Progress()
         {
@@ -393,6 +409,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return View(AppDataStore.JobCards.OrderByDescending(j => j.CreatedAt).ToList());
         }
 
+        // Builds a label like 'registration - make model (owner name)'.
         private static string VehicleLabel(Vehicle v)
         {
             var owner = AppDataStore.Customers.FirstOrDefault(c => c.Id == v.CustomerId);
@@ -400,6 +417,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
             return $"{v.RegistrationNumber} — {v.Make} {v.Model}{ownerName}";
         }
 
+        // Fills the vehicle dropdown for the job form.
         private void PopulateVehicles()
         {
             ViewBag.Vehicles = AppDataStore.Vehicles
@@ -408,6 +426,7 @@ namespace MisterAutoAndTurbo.Web.Controllers
                 .ToList();
         }
 
+        // Creates the vehicle id to label lookup used by the views.
         private void LoadVehicleLabels()
         {
             ViewBag.VehicleLabels = AppDataStore.Vehicles
